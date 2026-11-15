@@ -217,7 +217,7 @@ footer a:hover{color:#fff}
       <button class="btn kakao" id="heroShare" type="button" data-share></button>
     </div>
     <div class="pills">
-      <span><b>8</b> <span data-i="p1">개 게임</span></span>
+      <span><b>9</b> <span data-i="p1">개 게임</span></span>
       <span data-i="p2">휴대폰·PC 모두 지원</span>
       <span data-i="p3">로그인 없는 게시판</span>
     </div>
@@ -489,7 +489,7 @@ document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&current) c
 /* 게시판과 댓글: 로그인 없이 별명으로 쓴다. 글은 Supabase 저장소에 쌓인다. 아래 두 값을 채우면 켜진다. README 참고 */
 var BACKEND={ url:"https://cerfluoyzcdzhwmxysym.supabase.co", key:"sb_publishable_WoR4KB7m7z4dWR8Y4pkCmw_-galDvZG" };
 /* 카카오톡 공유: 카카오 개발자 사이트의 JavaScript 키를 넣으면 카카오톡 공유 창이 뜬다. 비워 두면 기기의 기본 공유 창이나 주소 복사로 동작한다 */
-var KAKAO_JS_KEY="ad623f1391b866234711fb828b611cb6";
+var KAKAO_JS_KEY="ad623f1391b866234711fb828b611cb6"; var isInApp=/KAKAOTALK|Instagram|FBAN|FBAV|Threads|Line|NAVER/i.test(navigator.userAgent);
 var sb=null,sbState=0,sbWait=[],lastPost=0;
 function withSb(cb){ if(sbState===2) return cb(true); if(sbState===3) return cb(false); sbWait.push(cb); if(sbState===1) return; sbState=1;
   function flush(ok){ sbState=ok?2:3; var w=sbWait; sbWait=[]; w.forEach(function(f){ f(ok); }); }
@@ -537,11 +537,11 @@ function shareTo(title,url,btn){
   function other(){ if(navigator.share){ navigator.share({title:title,text:title,url:url}).catch(function(){}); return; }
     function done(){ var old=btn._label||btn.textContent; btn.textContent=T("주소를 복사했습니다","Link copied"); setTimeout(function(){ btn.textContent=old; },1600); }
     if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done,function(){ window.prompt(T("이 주소를 복사하세요","Copy this link"),url); }); } else window.prompt(T("이 주소를 복사하세요","Copy this link"),url); }
-  if(!KAKAO_JS_KEY) return other();
+  if(!KAKAO_JS_KEY || isInApp) return other();
   withKakao(function(ok){ if(!ok) return other();
     try{ window.Kakao.Share.sendDefault({objectType:"text",text:title+"\n"+T("브라우저에서 바로 하는 게임","A game you can play right in your browser"),link:{webUrl:url,mobileWebUrl:url}}); }catch(e){ other(); } }); }
 function siteUrl(){ return location.origin+location.pathname; }
-function shareLabels(){ var t=KAKAO_JS_KEY?T("카카오톡으로 공유","Share on KakaoTalk"):T("친구에게 공유","Share with a friend"),bs=document.querySelectorAll("[data-share]"); for(var j=0;j<bs.length;j++){ bs[j].textContent=t; bs[j]._label=t; } }
+function shareLabels(){ var t=(KAKAO_JS_KEY && !isInApp)?T("카카오톡으로 공유","Share on KakaoTalk"):T("친구에게 공유","Share with a friend"),bs=document.querySelectorAll("[data-share]"); for(var j=0;j<bs.length;j++){ bs[j].textContent=t; bs[j]._label=t; } }
 var shareSlug="",sb1=document.getElementById("heroShare"),sb2=document.getElementById("pShare");
 sb1.addEventListener("click",function(){ shareTo("UJ ARCADE",siteUrl(),sb1); });
 sb2.addEventListener("click",function(){ shareTo(document.getElementById("pTitle").textContent+" | UJ ARCADE",siteUrl()+(shareSlug?"#game-"+shareSlug:""),sb2); });
