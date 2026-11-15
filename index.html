@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UJ ARCADE | AI로 만든 게임</title>
+<meta name="description" content="설치 없이 브라우저에서 바로 하는 게임. 비개발자가 AI와 함께 만든 게임을 모았습니다.">
+<style>
+:root{
+  --bg:#090a14; --bg2:#0f1122; --card:#15182e; --line:#272b4a; --ink:#f3f4ff; --body:#aab0d0; --muted:#7078a0;
+  --pink:#ff4d8d; --cyan:#37e0ff; --yellow:#ffd23f; --lime:#7dff9b; --violet:#8f6bff;
+  --r:18px; --max:1180px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth; scroll-padding-top:76px}
+body{margin:0; background:var(--bg); color:var(--ink); line-height:1.6; font-size:16px; -webkit-text-size-adjust:100%; word-break:keep-all;
+  font-family:"Pretendard","Apple SD Gothic Neo","Malgun Gothic","Segoe UI",system-ui,sans-serif}
+a{color:inherit; text-decoration:none}
+button{font:inherit; color:inherit; cursor:pointer}
+:focus-visible{outline:2px solid var(--cyan); outline-offset:3px; border-radius:8px}
+.wrap{max-width:var(--max); margin:0 auto; padding:0 20px}
+h1,h2,h3{margin:0; line-height:1.15; letter-spacing:-.025em; text-wrap:balance}
+.eyebrow{font-size:12.5px; font-weight:800; letter-spacing:.2em; text-transform:uppercase; color:var(--cyan)}
+.btn{display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:13px 24px; border-radius:999px; font-weight:800; font-size:15px; border:1px solid transparent; transition:transform .15s, box-shadow .15s, border-color .15s}
+.btn:hover{transform:translateY(-2px)}
+.btn.play{background:linear-gradient(90deg,var(--pink),var(--violet)); color:#fff; box-shadow:0 10px 30px rgba(255,77,141,.35)}
+.btn.line{border-color:var(--line); background:rgba(255,255,255,.03)}
+.btn.line:hover{border-color:var(--cyan)}
+.btn.sm{padding:9px 16px; font-size:14px}
+
+/* nav */
+.nav{position:fixed; inset:0 0 auto 0; z-index:40; transition:background .2s, box-shadow .2s}
+.nav.solid{background:rgba(9,10,20,.86); backdrop-filter:blur(12px); box-shadow:0 1px 0 var(--line)}
+.nav .in{display:flex; align-items:center; justify-content:space-between; height:68px; gap:14px}
+.logo{display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.04em; font-size:18px}
+.logo i{width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg,var(--pink),var(--violet) 55%,var(--cyan)); display:grid; place-items:center; font-style:normal; font-size:15px}
+.menu{display:flex; align-items:center; gap:22px; font-size:15px; font-weight:700}
+.menu a.l{color:var(--body)} .menu a.l:hover{color:#fff}
+.lang{display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden}
+.lang button{border:0; background:none; padding:6px 12px; font-size:12.5px; font-weight:800; color:var(--muted)}
+.lang button[aria-pressed="true"]{background:#fff; color:var(--bg)}
+@media (max-width:760px){ .menu a.l{display:none} }
+
+/* hero */
+.hero{position:relative; overflow:hidden; padding:150px 0 90px; background:radial-gradient(900px 500px at 15% 0%, rgba(143,107,255,.28), transparent 60%), radial-gradient(900px 520px at 90% 20%, rgba(255,77,141,.2), transparent 60%), var(--bg)}
+#fx{position:absolute; inset:0; width:100%; height:100%; pointer-events:none}
+.hero .in{position:relative; z-index:1; max-width:820px}
+.hero h1{font-size:clamp(42px,7.4vw,88px); margin:18px 0 20px; letter-spacing:-.04em}
+.hero h1 em{font-style:normal; background:linear-gradient(90deg,var(--pink),var(--yellow) 50%,var(--cyan)); -webkit-background-clip:text; background-clip:text; color:transparent}
+.hero p{font-size:19px; color:var(--body); max-width:52ch; margin:0 0 30px}
+.cta{display:flex; flex-wrap:wrap; gap:12px}
+.pills{display:flex; flex-wrap:wrap; gap:8px; margin-top:36px; font-size:13px; color:var(--body)}
+.pills span{border:1px solid var(--line); border-radius:999px; padding:5px 13px; background:rgba(255,255,255,.03)}
+.pills b{color:var(--lime)}
+
+.sec{padding:84px 0}
+.sec.alt{background:var(--bg2)}
+.sec-head{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px 24px; margin-bottom:34px}
+.sec-head h2{font-size:clamp(28px,4vw,42px); margin-top:10px}
+.sec-head p{margin:0; color:var(--body); max-width:46ch}
+
+/* game cards */
+.grid{display:grid; gap:20px}
+@media (min-width:700px){ .grid{grid-template-columns:repeat(2,1fr)} }
+@media (min-width:1040px){ .grid.three{grid-template-columns:repeat(3,1fr)} .grid.five{grid-template-columns:repeat(3,1fr)} }
+.game{background:var(--card); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; display:flex; flex-direction:column; transition:transform .2s, border-color .2s, box-shadow .2s; text-align:left; padding:0}
+.game:hover{transform:translateY(-5px); border-color:var(--hue,var(--cyan)); box-shadow:0 26px 60px rgba(0,0,0,.45), 0 0 0 1px var(--hue,var(--cyan))}
+.cover{height:176px; position:relative; overflow:hidden; background:linear-gradient(135deg,var(--c1),var(--c2))}
+.cover svg{width:100%; height:100%; display:block}
+.cover .badge{position:absolute; left:14px; top:14px; font-size:11.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; background:rgba(9,10,20,.7); border:1px solid rgba(255,255,255,.2); border-radius:999px; padding:4px 10px}
+.game .b{padding:20px 22px 22px; display:flex; flex-direction:column; gap:8px; flex:1}
+.game h3{font-size:20px}
+.game p{margin:0; color:var(--body); font-size:15px; flex:1}
+.meta{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:8px; font-size:13.5px; color:var(--muted)}
+.meta .go{font-weight:800; color:var(--hue,var(--cyan)); font-size:14.5px}
+.meta b{color:var(--yellow)}
+
+/* how */
+.how{display:grid; gap:18px}
+@media (min-width:860px){ .how{grid-template-columns:repeat(3,1fr)} }
+.how div{border:1px solid var(--line); border-radius:var(--r); padding:26px 24px; background:var(--card)}
+.how b{display:block; font-size:13px; letter-spacing:.14em; color:var(--pink); margin-bottom:12px}
+.how h3{font-size:19px; margin-bottom:6px}
+.how p{margin:0; color:var(--body); font-size:15px}
+
+footer{border-top:1px solid var(--line); padding:44px 0 38px; color:var(--muted); font-size:14.5px}
+footer .cols{display:flex; flex-wrap:wrap; justify-content:space-between; gap:22px}
+footer ul{list-style:none; display:flex; flex-wrap:wrap; gap:8px 18px; margin:0; padding:0}
+footer a:hover{color:#fff}
+
+/* modal */
+.modal{position:fixed; inset:0; z-index:100; background:rgba(5,6,14,.9); backdrop-filter:blur(8px); display:none; align-items:center; justify-content:center; padding:14px}
+.modal.open{display:flex}
+.panel{width:min(560px,100%); max-height:100%; overflow:auto; background:var(--card); border:1px solid var(--line); border-radius:22px; padding:18px; box-shadow:0 40px 100px rgba(0,0,0,.6)}
+.panel-top{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px}
+.panel-top h3{font-size:20px}
+.x{border:1px solid var(--line); background:none; width:38px; height:38px; border-radius:50%; font-size:18px}
+.hud{display:flex; gap:10px; margin-bottom:12px}
+.hud div{flex:1; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:8px 12px}
+.hud small{display:block; font-size:11.5px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase}
+.hud strong{font-size:20px; font-variant-numeric:tabular-nums}
+.arena{position:relative; border-radius:16px; overflow:hidden; background:var(--bg); border:1px solid var(--line); min-height:300px; display:grid; place-items:center; touch-action:none; user-select:none; -webkit-user-select:none}
+.arena canvas{display:block}
+.over{position:absolute; inset:0; display:grid; place-items:center; background:rgba(9,10,20,.78); text-align:center; padding:20px}
+.over h4{margin:0 0 6px; font-size:26px; letter-spacing:-.02em}
+.over p{margin:0 0 16px; color:var(--body)}
+.help{margin:12px 2px 0; font-size:14px; color:var(--body)}
+
+.cards{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; padding:12px; width:100%}
+.cardb{aspect-ratio:1; border-radius:12px; border:1px solid var(--line); background:linear-gradient(135deg,#1c2040,#141730); font-size:clamp(22px,7vw,34px); display:grid; place-items:center; transition:transform .25s, background .25s}
+.cardb span{opacity:0; transition:opacity .15s}
+.cardb.up{background:#0b0d1c; transform:rotateY(180deg)}
+.cardb.up span{opacity:1; transform:rotateY(180deg)}
+.cardb.done{border-color:var(--lime); box-shadow:0 0 18px rgba(125,255,155,.25)}
+.nums{display:grid; grid-template-columns:repeat(5,1fr); gap:7px; padding:12px; width:100%}
+.numb{aspect-ratio:1; border-radius:12px; border:1px solid var(--line); background:#1a1e3c; font-weight:800; font-size:clamp(16px,5vw,22px); font-variant-numeric:tabular-nums; transition:transform .1s, background .15s, opacity .2s}
+.numb:active{transform:scale(.94)}
+.numb.hit{background:transparent; opacity:.25; border-style:dashed}
+.numb.bad{animation:shake .3s; border-color:var(--pink)}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+.panel.wide{width:min(1040px,100%)}
+.p-actions{display:flex; align-items:center; gap:8px}
+.frame{position:relative; border-radius:16px; overflow:hidden; border:1px solid var(--line); background:#000; height:min(68vh,640px)}
+.frame iframe{width:100%; height:100%; border:0; display:block}
+.c-title{margin:22px 2px 10px; font-size:17px}
+.thread{min-height:60px}
+.thread-box{background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:22px}
+.c-hint{margin:10px 2px 0; font-size:13.5px; color:var(--muted)}
+.btn.kakao{background:#FEE500; color:#191919; padding:11px 20px}
+.c-top{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; margin-bottom:6px}
+.c-hint2{font-size:14px; color:var(--muted)}
+.c-who{width:100%; font-size:14.5px; color:var(--body); display:flex; align-items:center; gap:6px; flex-wrap:wrap}
+.c-who b{color:var(--ink)}
+.c-form{width:100%; display:flex; gap:10px; align-items:flex-end}
+.c-form textarea{flex:1; min-width:0; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:11px 13px; color:var(--ink); font:inherit; resize:vertical; line-height:1.5}
+.c-form{display:grid; gap:8px; align-items:stretch; position:relative}
+.c-nick{width:min(260px,100%); background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:10px 13px; color:var(--ink); font:inherit}
+.c-row{display:flex; gap:10px; align-items:flex-end}
+.c-row textarea{flex:1; min-width:0; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:11px 13px; color:var(--ink); font:inherit; resize:vertical; line-height:1.5}
+.btn.kakao.sm{padding:9px 16px}
+@media (max-width:600px){ .c-row{flex-direction:column; align-items:stretch} .p-actions .btn.line{display:none} }
+.c-msg{margin:4px 2px; min-height:1px; font-size:14px; color:var(--pink)}
+.c-list{display:grid; gap:10px; margin-top:10px}
+.c-item{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
+.c-head{display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--muted); margin-bottom:4px}
+.c-head b{color:var(--ink); font-size:14.5px}
+.c-body{margin:0; white-space:pre-wrap; overflow-wrap:anywhere; color:var(--body); font-size:15px}
+.c-del{margin-left:auto; border:1px solid var(--line); background:none; border-radius:999px; padding:3px 11px; font-size:12.5px; color:var(--body)}
+.c-del:hover{border-color:var(--pink); color:#fff}
+.c-empty{margin:0; color:var(--muted); font-size:14.5px; padding:8px 2px}
+@media (max-width:600px){ .c-form{flex-direction:column; align-items:stretch} }
+.c-note{margin:0; padding:16px 18px; border:1px dashed var(--line); border-radius:12px; color:var(--body); font-size:14.5px}
+@media (max-width:600px){ .frame{height:62vh} .thread-box{padding:14px} }
+
+.rv{opacity:0; transform:translateY(18px); transition:opacity .6s, transform .6s}
+.rv.in-view{opacity:1; transform:none}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .rv{opacity:1; transform:none; transition:none} .btn,.game,.cardb{transition:none} .numb.bad{animation:none} }
+@media (max-width:600px){ .sec{padding:64px 0} .hero{padding:120px 0 64px} }
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="wrap in">
+    <a class="logo" href="#top"><i>▶</i>UJ ARCADE</a>
+    <nav class="menu">
+      <a class="l" href="#games" data-i="n2">게임</a>
+      <a class="l" href="#play" data-i="n1">미니게임</a>
+      <a class="l" href="#board" data-i="n4">게시판</a>
+      <a class="l" href="#how" data-i="n3">만든 방법</a>
+      <span class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="ko">KO</button><button type="button" data-lang="en">EN</button>
+      </span>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero" id="hero">
+  <canvas id="fx" aria-hidden="true"></canvas>
+  <div class="wrap"><div class="in">
+    <span class="eyebrow" data-i="h_eb">설치 없이 · 무료 · 광고 없음</span>
+    <h1><span data-i="h1a">열자마자</span> <em data-i="h1b">바로 한 판</em></h1>
+    <p data-i="h_p">비개발자가 AI와 함께 만든 브라우저 게임을 모았습니다. 휴대폰이든 PC든 주소만 열면 됩니다.</p>
+    <div class="cta">
+      <a class="btn play" href="#games">▶ <span data-i="c1">지금 플레이</span></a>
+      <a class="btn line" href="#board" data-i="c2">게시판 가기</a>
+      <button class="btn kakao" id="heroShare" type="button" data-share></button>
+    </div>
+    <div class="pills">
+      <span><b>8</b> <span data-i="p1">개 게임</span></span>
+      <span data-i="p2">휴대폰·PC 모두 지원</span>
+      <span data-i="p3">로그인 없는 게시판</span>
+    </div>
+  </div></div>
+</section>
+
+<section class="sec" id="games">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><span class="eyebrow" data-i="s2_eb">Games</span><h2 data-i="s2_h">직접 만든 게임 5종</h2></div>
+      <p data-i="s2_p">누르면 이 사이트 안에서 바로 열립니다. 게임마다 댓글을 남길 수 있습니다.</p>
+    </div>
+    <div class="grid five">
+      <a class="game rv" href="https://skadnrwhd-web.github.io/seoul-escape/" data-play="seoul-escape" target="_blank" rel="noopener" style="--hue:var(--lime); --c1:#0b2b22; --c2:#1fa37a">
+        <div class="cover"><span class="badge" data-i="b_alg">알고리즘</span>
+          <svg viewBox="0 0 320 176" fill="none"><g stroke="#fff" opacity=".35" stroke-width="1.5"><path d="M40 40l60 26 54-34 62 44 60-30M40 40l24 84 70-22 62 32 80-82M100 66l34 36M154 32l-20 70M216 76l-20 58"/></g><path d="M40 40l60 26 34 36 62 32 80-82" stroke="#7dff9b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><g fill="#fff"><circle cx="40" cy="40" r="6"/><circle cx="276" cy="52" r="6"/></g></svg></div>
+        <div class="b"><h3>Seoul Escape</h3><p data-i="f1_p">서울 도로망에서 다익스트라와 A* 알고리즘이 벌이는 길찾기 경주.</p><div class="meta"><span data-i="newtab">댓글 남기기</span><span class="go">▶ <span data-i="open">플레이</span></span></div></div>
+      </a>
+      <a class="game rv" href="https://skadnrwhd-web.github.io/water-ring-game/" data-play="water-ring-game" target="_blank" rel="noopener" style="--hue:var(--cyan); --c1:#082840; --c2:#2b8fd6">
+        <div class="cover"><span class="badge" data-i="b_cls">클래식</span>
+          <svg viewBox="0 0 320 176" fill="none"><rect x="92" y="22" width="136" height="132" rx="18" stroke="#fff" stroke-width="2.5" fill="rgba(255,255,255,.1)"/><path d="M130 150V84M190 150V70" stroke="#fff" stroke-width="5" stroke-linecap="round"/><ellipse cx="130" cy="104" rx="16" ry="6" stroke="#ffd23f" stroke-width="4"/><ellipse cx="174" cy="52" rx="16" ry="6" stroke="#ff4d8d" stroke-width="4" transform="rotate(-18 174 52)"/><ellipse cx="204" cy="112" rx="16" ry="6" stroke="#7dff9b" stroke-width="4" transform="rotate(12 204 112)"/></svg></div>
+        <div class="b"><h3>Water Ring Toss</h3><p data-i="f2_p">버튼으로 물살을 일으켜 고리를 기둥에 거는 추억의 휴대용 게임.</p><div class="meta"><span data-i="newtab">댓글 남기기</span><span class="go">▶ <span data-i="open">플레이</span></span></div></div>
+      </a>
+      <a class="game rv" href="https://skadnrwhd-web.github.io/-wobble-tower/" data-play="-wobble-tower" target="_blank" rel="noopener" style="--hue:var(--yellow); --c1:#33230a; --c2:#c98a2a">
+        <div class="cover"><span class="badge">3D</span>
+          <svg viewBox="0 0 320 176" fill="none"><g fill="#fff" stroke="#33230a" stroke-width="2"><rect x="112" y="124" width="96" height="20" rx="3"/><rect x="112" y="102" width="30" height="20" rx="3"/><rect x="178" y="102" width="30" height="20" rx="3"/><rect x="112" y="80" width="96" height="20" rx="3"/><rect x="145" y="58" width="30" height="20" rx="3"/><rect x="112" y="36" width="96" height="20" rx="3" transform="rotate(-4 160 46)"/></g><rect x="226" y="100" width="46" height="20" rx="3" fill="#ffd23f" transform="rotate(10 249 110)"/></svg></div>
+        <div class="b"><h3>Wobble Tower</h3><p data-i="f3_p">탑이 무너지지 않게 블록을 천천히 빼서 위에 쌓는 3D 균형 게임.</p><div class="meta"><span data-i="newtab">댓글 남기기</span><span class="go">▶ <span data-i="open">플레이</span></span></div></div>
+      </a>
+      <a class="game rv" href="https://skadnrwhd-web.github.io/tower-of-hanoi-3d/" data-play="tower-of-hanoi-3d" target="_blank" rel="noopener" style="--hue:var(--pink); --c1:#3a1226; --c2:#c2456f">
+        <div class="cover"><span class="badge" data-i="b_puz">퍼즐</span>
+          <svg viewBox="0 0 320 176" fill="none"><rect x="60" y="136" width="200" height="12" rx="6" fill="#fff"/><g fill="#fff" opacity=".7"><rect x="96" y="44" width="8" height="92" rx="4"/><rect x="156" y="44" width="8" height="92" rx="4"/><rect x="216" y="44" width="8" height="92" rx="4"/></g><rect x="64" y="118" width="72" height="16" rx="8" fill="#fff"/><rect x="74" y="100" width="52" height="16" rx="8" fill="#ffd23f"/><rect x="84" y="82" width="32" height="16" rx="8" fill="#37e0ff"/></svg></div>
+        <div class="b"><h3>Tower of Hanoi 3D</h3><p data-i="f4_p">나무 질감으로 만든 3D 하노이의 탑. 기둥 세 개로 원판을 옮기세요.</p><div class="meta"><span data-i="newtab">댓글 남기기</span><span class="go">▶ <span data-i="open">플레이</span></span></div></div>
+      </a>
+      <a class="game rv" href="https://skadnrwhd-web.github.io/tower-of-hanoi-3d-2/" data-play="tower-of-hanoi-3d-2" target="_blank" rel="noopener" style="--hue:var(--violet); --c1:#1c1447; --c2:#6d5cff">
+        <div class="cover"><span class="badge" data-i="b_puz">퍼즐</span>
+          <svg viewBox="0 0 320 176" fill="none"><rect x="44" y="136" width="232" height="12" rx="6" fill="#fff"/><g fill="#fff" opacity=".7"><rect x="76" y="44" width="8" height="92" rx="4"/><rect x="132" y="44" width="8" height="92" rx="4"/><rect x="188" y="44" width="8" height="92" rx="4"/><rect x="244" y="44" width="8" height="92" rx="4"/></g><rect x="52" y="118" width="56" height="16" rx="8" fill="#fff"/><rect x="60" y="100" width="40" height="16" rx="8" fill="#ffd23f"/><rect x="116" y="118" width="40" height="16" rx="8" fill="#37e0ff"/><rect x="232" y="118" width="32" height="16" rx="8" fill="#ff4d8d"/></svg></div>
+        <div class="b"><h3>Tower of Hanoi 3D II</h3><p data-i="f5_p">기둥이 네 개로 늘어난 하노이의 탑. 최적 풀이와 자동 풀이 포함.</p><div class="meta"><span data-i="newtab">댓글 남기기</span><span class="go">▶ <span data-i="open">플레이</span></span></div></div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt" id="play">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><span class="eyebrow" data-i="s1_eb">Bonus</span><h2 data-i="s1_h">보너스 미니게임</h2></div>
+      <p data-i="s1_p">카드를 누르면 바로 시작합니다. 한 판에 1분이면 충분합니다.</p>
+    </div>
+    <div class="grid three">
+      <button class="game rv" type="button" data-game="dodge" style="--hue:var(--pink); --c1:#3a0f2a; --c2:#ff4d8d">
+        <div class="cover"><span class="badge" data-i="b_act">액션</span>
+          <svg viewBox="0 0 320 176" fill="none"><g fill="#fff" opacity=".9"><rect x="40" y="24" width="70" height="14" rx="4"/><rect x="170" y="52" width="46" height="14" rx="4" opacity=".7"/><rect x="230" y="14" width="56" height="14" rx="4" opacity=".5"/><rect x="96" y="84" width="60" height="14" rx="4" opacity=".6"/></g><circle cx="186" cy="138" r="15" fill="#37e0ff"/><circle cx="186" cy="138" r="26" stroke="#37e0ff" opacity=".4" stroke-width="2"/><circle cx="262" cy="96" r="8" fill="#ffd23f"/></svg></div>
+        <div class="b"><h3 data-i="g1_h">네온 닷지</h3><p data-i="g1_p">위에서 떨어지는 블록을 피해 오래 버티세요. 노란 구슬은 보너스 점수.</p>
+          <div class="meta"><span><span data-i="best">최고</span> <b data-best="dodge">-</b></span><span class="go">▶ <span data-i="start">시작</span></span></div></div>
+      </button>
+      <button class="game rv" type="button" data-game="pairs" style="--hue:var(--cyan); --c1:#0a2a3d; --c2:#1aa3c9">
+        <div class="cover"><span class="badge" data-i="b_mem">기억력</span>
+          <svg viewBox="0 0 320 176" fill="none"><g stroke="#fff" stroke-width="2" opacity=".9"><rect x="52" y="38" width="62" height="100" rx="10" fill="rgba(255,255,255,.12)"/><rect x="129" y="38" width="62" height="100" rx="10" fill="#fff"/><rect x="206" y="38" width="62" height="100" rx="10" fill="#fff"/></g><path d="M160 66l8 16 18 2-13 12 3 18-16-9-16 9 3-18-13-12 18-2 8-16z" fill="#1aa3c9"/><path d="M237 66l8 16 18 2-13 12 3 18-16-9-16 9 3-18-13-12 18-2 8-16z" fill="#1aa3c9"/></svg></div>
+        <div class="b"><h3 data-i="g2_h">짝 맞추기</h3><p data-i="g2_p">카드 16장 속 같은 그림 여덟 쌍을 가장 적은 횟수로 찾아보세요.</p>
+          <div class="meta"><span><span data-i="best">최고</span> <b data-best="pairs">-</b></span><span class="go">▶ <span data-i="start">시작</span></span></div></div>
+      </button>
+      <button class="game rv" type="button" data-game="order" style="--hue:var(--yellow); --c1:#3a2c06; --c2:#e0a81c">
+        <div class="cover"><span class="badge" data-i="b_spd">순발력</span>
+          <svg viewBox="0 0 320 176" fill="none" font-family="Arial,sans-serif" font-weight="800" font-size="24" text-anchor="middle"><g fill="rgba(255,255,255,.16)" stroke="#fff" stroke-width="2"><rect x="66" y="34" width="52" height="52" rx="10"/><rect x="134" y="34" width="52" height="52" rx="10" fill="#fff"/><rect x="202" y="34" width="52" height="52" rx="10"/><rect x="66" y="98" width="52" height="52" rx="10"/><rect x="134" y="98" width="52" height="52" rx="10"/><rect x="202" y="98" width="52" height="52" rx="10"/></g><g fill="#fff"><text x="92" y="69">7</text><text x="228" y="69">3</text><text x="92" y="133">12</text><text x="160" y="133">5</text><text x="228" y="133">9</text></g><text x="160" y="69" fill="#e0a81c">1</text></svg></div>
+        <div class="b"><h3 data-i="g3_h">순서 터치</h3><p data-i="g3_p">흩어진 1부터 25까지를 순서대로 최대한 빨리 누르세요.</p>
+          <div class="meta"><span><span data-i="best">최고</span> <b data-best="order">-</b></span><span class="go">▶ <span data-i="start">시작</span></span></div></div>
+      </button>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="board">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><span class="eyebrow" data-i="s4_eb">Community</span><h2 data-i="s4_h">게시판</h2></div>
+      <p data-i="s4_p">게임 후기, 버그 제보, 만들어 줬으면 하는 게임을 자유롭게 남겨 주세요.</p>
+    </div>
+    <div class="thread-box rv">
+      <div class="thread" id="boardThread"></div>
+      <p class="c-hint" data-i="c_hint">로그인 없이 별명만 적으면 쓸 수 있습니다. 쓴 글은 누구나 볼 수 있고 고칠 수 없으니, 이름·연락처 같은 개인정보는 적지 마세요.</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec alt" id="how">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><span class="eyebrow" data-i="s3_eb">How it's made</span><h2 data-i="s3_h">코딩 없이, AI와 대화로 만들었습니다</h2></div>
+      <p data-i="s3_p">게임마다 만든 과정과 소스 코드를 공개합니다.</p>
+    </div>
+    <div class="how">
+      <div class="rv"><b>01</b><h3 data-i="w1h">말로 설명한다</h3><p data-i="w1p">어떤 게임인지, 어떻게 조작하는지를 AI에게 문장으로 설명합니다.</p></div>
+      <div class="rv"><b>02</b><h3 data-i="w2h">해 보고 고친다</h3><p data-i="w2p">직접 해 보면서 어색한 부분을 말하면 AI가 고칩니다. 이 과정을 되풀이합니다.</p></div>
+      <div class="rv"><b>03</b><h3 data-i="w3h">공개한다</h3><p data-i="w3p">완성한 게임은 누구나 할 수 있게 올리고, 만든 과정을 글과 영상으로 남깁니다.</p></div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap cols">
+    <div><div class="logo" style="color:#fff; margin-bottom:8px"><i>▶</i>UJ ARCADE</div><span data-i="ft">AI로 만든 게임. 기록은 이 브라우저에만 저장됩니다.</span></div>
+    <ul>
+      <li><a href="https://github.com/skadnrwhd-web" target="_blank" rel="noopener">GitHub</a></li>
+      <li><a href="https://www.youtube.com/@ujnam2197" target="_blank" rel="noopener">YouTube</a></li>
+      <li><a href="https://blog.naver.com/ujnam2197" target="_blank" rel="noopener">Blog</a></li>
+      <li><a href="https://www.instagram.com/ujnam80" target="_blank" rel="noopener">Instagram</a></li>
+    </ul>
+  </div>
+</footer>
+
+<div class="modal" id="player" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+  <div class="panel wide">
+    <div class="panel-top">
+      <h3 id="pTitle"></h3>
+      <div class="p-actions"><button class="btn kakao sm" id="pShare" type="button" data-share></button><a class="btn line sm" id="pNew" target="_blank" rel="noopener"><span data-i="p_new">새 창에서 열기</span> ↗</a><button class="x" id="pClose" type="button" aria-label="Close">✕</button></div>
+    </div>
+    <div class="frame" id="pFrame"></div>
+    <h4 class="c-title" data-i="c_title">댓글</h4>
+    <div class="thread" id="pThread"></div>
+    <p class="c-hint" data-i="c_hint">로그인 없이 별명만 적으면 쓸 수 있습니다. 쓴 글은 누구나 볼 수 있고 고칠 수 없으니, 이름·연락처 같은 개인정보는 적지 마세요.</p>
+  </div>
+</div>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="panel">
+    <div class="panel-top"><h3 id="mTitle"></h3><button class="x" id="mClose" type="button" aria-label="Close">✕</button></div>
+    <div class="hud"><div><small id="hudL1"></small><strong id="hudV1">0</strong></div><div><small id="hudL2"></small><strong id="hudV2">-</strong></div></div>
+    <div class="arena" id="arena"></div>
+    <p class="help" id="mHelp"></p>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",s4_p:"Reviews, bug reports, games you would like to see: leave anything here.",c_hint:"No login needed. Pick any nickname and write. Posts are public and cannot be edited, so do not write personal details such as your name or contact info.",c_title:"Comments",p_new:"Open in new tab",n1:"Mini-games",n2:"Games",n3:"How it's made",
+ h_eb:"No install · Free · No ads",h1a:"Open it,",h1b:"play right away",
+ h_p:"Browser games built by a non-developer together with AI. Phone or PC, just open the link.",
+ c1:"Play now",c2:"Go to the board",p1:"games",p2:"Works on phone and PC",p3:"Board with no login",
+ s1_eb:"Bonus",s1_h:"Bonus mini-games",s1_p:"Tap a card to start. One round takes about a minute.",
+ b_act:"Action",b_mem:"Memory",b_spd:"Speed",b_alg:"Algorithm",b_cls:"Classic",b_puz:"Puzzle",
+ g1_h:"Neon Dodge",g1_p:"Dodge the blocks falling from above and survive as long as you can. Yellow orbs give bonus points.",
+ g2_h:"Pair Match",g2_p:"Find eight matching pairs among 16 cards in as few moves as possible.",
+ g3_h:"Tap in Order",g3_p:"Tap the scattered numbers from 1 to 25 in order, as fast as you can.",
+ best:"Best",start:"Start",
+ s2_eb:"Games",s2_h:"Five games I built",s2_p:"Each one opens right here on this site, and you can leave comments on every game.",
+ f1_p:"A pathfinding race between Dijkstra and A* on a Seoul road network.",
+ f2_p:"The nostalgic handheld game: push water with a button to land rings on pegs.",
+ f3_p:"A 3D balance game: pull blocks out slowly and stack them on top without toppling the tower.",
+ f4_p:"A wood-textured 3D Tower of Hanoi. Move the discs across three pegs.",
+ f5_p:"Tower of Hanoi with four pegs, including the optimal solution and auto-solve.",
+ newtab:"Leave a comment",open:"Play",
+ s3_eb:"How it's made",s3_h:"No coding. Built by talking with AI",s3_p:"The process and source code of each game are public.",
+ w1h:"Describe it",w1p:"Explain to the AI, in sentences, what the game is and how it is controlled.",
+ w2h:"Play and fix",w2p:"Play it, say what feels off, and the AI fixes it. Repeat.",
+ w3h:"Publish",w3p:"Finished games go online for anyone to play, with the process shared in posts and videos.",
+ ft:"Games made with AI. Scores are stored only in this browser."};
+var nodes=document.querySelectorAll("[data-i]"),KO={},i,lang="ko";
+for(i=0;i<nodes.length;i++){var k=nodes[i].getAttribute("data-i"); if(!(k in KO)) KO[k]=nodes[i].textContent;}
+function T(ko,en){ return lang==="en"?en:ko; }
+function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } }
+function setLang(l){ lang=l; var d=l==="en"?EN:KO;
+  for(var j=0;j<nodes.length;j++){var key=nodes[j].getAttribute("data-i"); if(d[key]!=null) nodes[j].textContent=d[key];}
+  document.documentElement.lang=l; document.title=l==="en"?"UJ ARCADE | Games made with AI":"UJ ARCADE | AI로 만든 게임";
+  var b=document.querySelectorAll("[data-lang]"); for(j=0;j<b.length;j++) b[j].setAttribute("aria-pressed",String(b[j].getAttribute("data-lang")===l));
+  store("arc-lang",l); showBests(); if(typeof boardMounted!=="undefined"&&boardMounted) mountBoard(); if(typeof shareLabels==="function") shareLabels(); }
+var lb=document.querySelectorAll("[data-lang]"); for(i=0;i<lb.length;i++) lb[i].addEventListener("click",function(){ setLang(this.getAttribute("data-lang")); });
+
+/* 최고 기록 */
+function best(id){ var v=parseFloat(store("arc-best-"+id)); return isNaN(v)?null:v; }
+function fmt(id,v){ if(v==null) return "-"; if(id==="order") return v.toFixed(1)+T("초","s"); if(id==="pairs") return v+T("번"," moves"); return String(v); }
+function saveBest(id,v,lower){ var b=best(id); if(b==null||(lower?v<b:v>b)){ store("arc-best-"+id,String(v)); showBests(); return true; } return false; }
+function showBests(){ var bs=document.querySelectorAll("[data-best]"); for(var j=0;j<bs.length;j++){ var id=bs[j].getAttribute("data-best"); bs[j].textContent=fmt(id,best(id)); } }
+
+/* 공통 화면 */
+var modal=document.getElementById("modal"),arena=document.getElementById("arena"),hudL1=document.getElementById("hudL1"),hudV1=document.getElementById("hudV1"),
+    hudL2=document.getElementById("hudL2"),hudV2=document.getElementById("hudV2"),mTitle=document.getElementById("mTitle"),mHelp=document.getElementById("mHelp"),current=null,opener=null;
+function el(tag,cls,text){ var n=document.createElement(tag); if(cls) n.className=cls; if(text!=null) n.textContent=text; return n; }
+function overlay(title,sub,btn,fn){ var o=el("div","over"),w=el("div"); w.appendChild(el("h4",null,title)); if(sub) w.appendChild(el("p",null,sub));
+  var b=el("button","btn play",btn); b.type="button"; b.addEventListener("click",function(){ o.remove(); fn(); }); w.appendChild(b); o.appendChild(w); arena.appendChild(o); b.focus(); return o; }
+
+var GAMES={};
+
+/* 1. 네온 닷지 */
+GAMES.dodge=function(){
+  var cv=el("canvas"),ctx=cv.getContext("2d"),W=0,H=0,dpr=1,raf=0,alive=false,last=0,t=0,score=0,spawn=0,orbT=2,px=0,tx=0,keys={},blocks=[],orbs=[],bonus=0;
+  function size(){ var r=arena.getBoundingClientRect(); W=Math.max(260,Math.floor(r.width)); H=Math.max(300,Math.min(520,window.innerHeight-250)); dpr=Math.min(window.devicePixelRatio||1,2);
+    cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+"px"; cv.style.height=H+"px"; }
+  function reset(){ t=0; score=0; bonus=0; spawn=.4; orbT=2; blocks=[]; orbs=[]; px=tx=W/2; alive=true; last=0; hudV1.textContent="0"; cancelAnimationFrame(raf); raf=requestAnimationFrame(loop); }
+  function end(){ alive=false; var rec=saveBest("dodge",score,false); hudV2.textContent=fmt("dodge",best("dodge"));
+    overlay(T("게임 끝","Game over"),T("점수 ","Score ")+score+(rec?T(" · 새 기록!"," · New best!"):""),T("다시 하기","Play again"),reset); }
+  function loop(now){ if(!alive) return; if(!last) last=now; var dt=Math.min(.05,(now-last)/1000); last=now; t+=dt;
+    if(keys.l) tx-=420*dt; if(keys.r) tx+=420*dt; tx=Math.max(14,Math.min(W-14,tx)); px+=(tx-px)*Math.min(1,dt*18);
+    spawn-=dt; if(spawn<=0){ spawn=Math.max(.17,.55-t*.012); var bw=26+Math.random()*52; blocks.push({x:Math.random()*(W-bw),y:-16,w:bw,h:14,v:Math.min(540,150+t*9)*(0.85+Math.random()*.3)}); }
+    orbT-=dt; if(orbT<=0){ orbT=2.5+Math.random()*2; orbs.push({x:20+Math.random()*(W-40),y:-10,v:150}); }
+    var py=H-46,pr=12,j,b;
+    for(j=blocks.length-1;j>=0;j--){ b=blocks[j]; b.y+=b.v*dt; if(b.y>H+20){ blocks.splice(j,1); continue; }
+      var nx=Math.max(b.x,Math.min(px,b.x+b.w)),ny=Math.max(b.y,Math.min(py,b.y+b.h)); if((nx-px)*(nx-px)+(ny-py)*(ny-py)<pr*pr){ draw(py,pr); end(); return; } }
+    for(j=orbs.length-1;j>=0;j--){ b=orbs[j]; b.y+=b.v*dt; if(b.y>H+20){ orbs.splice(j,1); continue; } if((b.x-px)*(b.x-px)+(b.y-py)*(b.y-py)<(pr+9)*(pr+9)){ orbs.splice(j,1); bonus+=50; } }
+    score=Math.floor(t*10)+bonus; hudV1.textContent=score; draw(py,pr); raf=requestAnimationFrame(loop); }
+  function draw(py,pr){ ctx.setTransform(dpr,0,0,dpr,0,0); ctx.fillStyle="#090a14"; ctx.fillRect(0,0,W,H);
+    ctx.strokeStyle="rgba(255,255,255,.05)"; ctx.lineWidth=1; var off=(t*60)%40; ctx.beginPath(); for(var y=off;y<H;y+=40){ ctx.moveTo(0,y); ctx.lineTo(W,y); } for(var x=0;x<W;x+=40){ ctx.moveTo(x,0); ctx.lineTo(x,H); } ctx.stroke();
+    ctx.shadowBlur=14; ctx.shadowColor="#ff4d8d"; ctx.fillStyle="#ff4d8d"; for(var j=0;j<blocks.length;j++){ var b=blocks[j]; ctx.fillRect(b.x,b.y,b.w,b.h); }
+    ctx.shadowColor="#ffd23f"; ctx.fillStyle="#ffd23f"; for(j=0;j<orbs.length;j++){ ctx.beginPath(); ctx.arc(orbs[j].x,orbs[j].y,8,0,6.2832); ctx.fill(); }
+    ctx.shadowColor="#37e0ff"; ctx.fillStyle="#37e0ff"; ctx.beginPath(); ctx.arc(px,py,pr,0,6.2832); ctx.fill(); ctx.shadowBlur=0; }
+  function move(e){ var r=cv.getBoundingClientRect(); tx=e.clientX-r.left; }
+  function kd(e){ if(e.key==="ArrowLeft"||e.key==="a") keys.l=true; if(e.key==="ArrowRight"||e.key==="d") keys.r=true; }
+  function ku(e){ if(e.key==="ArrowLeft"||e.key==="a") keys.l=false; if(e.key==="ArrowRight"||e.key==="d") keys.r=false; }
+  return { title:function(){ return T("네온 닷지","Neon Dodge"); }, l1:function(){ return T("점수","Score"); },
+    help:function(){ return T("마우스나 손가락을 좌우로 움직이세요. 키보드는 ← → 키.","Move the mouse or your finger left and right. On a keyboard, use ← →."); },
+    start:function(){ arena.appendChild(cv); size(); px=tx=W/2; t=0; draw(H-46,12); cv.addEventListener("pointermove",move); cv.addEventListener("pointerdown",move); window.addEventListener("keydown",kd); window.addEventListener("keyup",ku);
+      overlay(T("네온 닷지","Neon Dodge"),T("블록을 피해 오래 버티세요","Dodge the blocks and survive"),T("시작","Start"),reset); },
+    stop:function(){ alive=false; cancelAnimationFrame(raf); window.removeEventListener("keydown",kd); window.removeEventListener("keyup",ku); },
+    _dbg:function(){ return {alive:alive,score:score,blocks:blocks.length,W:W,H:H}; } };
+};
+
+/* 2. 짝 맞추기 */
+GAMES.pairs=function(){
+  var SY=["●","▲","■","◆","★","✚","♥","☾"],CO=["#ff4d8d","#37e0ff","#ffd23f","#7dff9b","#8f6bff","#ff9f43","#ff6b6b","#c8d0ff"],grid,open=[],lock=false,moves=0,found=0,timer=0;
+  function build(){ clearTimeout(timer); arena.textContent=""; grid=el("div","cards"); open=[]; lock=false; moves=0; found=0; hudV1.textContent="0";
+    var deck=[]; for(var j=0;j<8;j++){ deck.push(j); deck.push(j); } for(j=deck.length-1;j>0;j--){ var r=Math.floor(Math.random()*(j+1)),tmp=deck[j]; deck[j]=deck[r]; deck[r]=tmp; }
+    deck.forEach(function(v,idx){ var b=el("button","cardb"); b.type="button"; b.setAttribute("aria-label",T("카드 ","Card ")+(idx+1)); var s=el("span",null,SY[v]); s.style.color=CO[v]; b.appendChild(s); b._v=v;
+      b.addEventListener("click",function(){ flip(b); }); grid.appendChild(b); });
+    arena.appendChild(grid); }
+  function flip(b){ if(lock||b.classList.contains("up")) return; b.classList.add("up"); open.push(b); if(open.length<2) return;
+    moves++; hudV1.textContent=moves; var a=open[0],c=open[1]; open=[];
+    if(a._v===c._v){ a.classList.add("done"); c.classList.add("done"); found++; if(found===8) timer=setTimeout(win,450); }
+    else{ lock=true; timer=setTimeout(function(){ a.classList.remove("up"); c.classList.remove("up"); lock=false; },700); } }
+  function win(){ var rec=saveBest("pairs",moves,true); hudV2.textContent=fmt("pairs",best("pairs"));
+    overlay(T("완성!","Cleared!"),moves+T("번 만에 찾았습니다"," moves")+(rec?T(" · 새 기록!"," · New best!"):""),T("다시 하기","Play again"),build); }
+  return { title:function(){ return T("짝 맞추기","Pair Match"); }, l1:function(){ return T("뒤집은 횟수","Moves"); },
+    help:function(){ return T("카드 두 장을 뒤집어 같은 그림을 찾으세요. 횟수가 적을수록 좋습니다.","Flip two cards to find a matching pair. Fewer moves is better."); },
+    start:build, stop:function(){ clearTimeout(timer); }, _dbg:function(){ return {moves:moves,found:found}; } };
+};
+
+/* 3. 순서 터치 */
+GAMES.order=function(){
+  var grid,next=1,t0=0,tick=0,done=false;
+  function build(){ clearInterval(tick); arena.textContent=""; grid=el("div","nums"); next=1; t0=0; done=false; hudV1.textContent="0.0";
+    var a=[]; for(var j=1;j<=25;j++) a.push(j); for(j=a.length-1;j>0;j--){ var r=Math.floor(Math.random()*(j+1)),tmp=a[j]; a[j]=a[r]; a[r]=tmp; }
+    a.forEach(function(v){ var b=el("button","numb",String(v)); b.type="button"; b._v=v; b.addEventListener("click",function(){ tap(b); }); grid.appendChild(b); });
+    arena.appendChild(grid); }
+  function tap(b){ if(done||b.classList.contains("hit")) return;
+    if(b._v!==next){ b.classList.remove("bad"); void b.offsetWidth; b.classList.add("bad"); return; }
+    if(next===1){ t0=performance.now(); tick=setInterval(function(){ hudV1.textContent=((performance.now()-t0)/1000).toFixed(1); },100); }
+    b.classList.add("hit"); next++;
+    if(next>25){ done=true; clearInterval(tick); var s=Math.round((performance.now()-t0)/100)/10; hudV1.textContent=s.toFixed(1); var rec=saveBest("order",s,true); hudV2.textContent=fmt("order",best("order"));
+      overlay(T("완료!","Done!"),s.toFixed(1)+T("초","s")+(rec?T(" · 새 기록!"," · New best!"):""),T("다시 하기","Play again"),build); } }
+  return { title:function(){ return T("순서 터치","Tap in Order"); }, l1:function(){ return T("시간(초)","Time (s)"); },
+    help:function(){ return T("1을 누르면 시간이 흐르기 시작합니다. 25까지 순서대로 누르세요.","The clock starts when you tap 1. Tap up to 25 in order."); },
+    start:build, stop:function(){ clearInterval(tick); }, _dbg:function(){ return {next:next,done:done}; } };
+};
+
+function openGame(id,from){ if(!GAMES[id]) return; closeGame(true); opener=from||null; current=GAMES[id](); current.id=id; window.__game=current;
+  arena.textContent=""; mTitle.textContent=current.title(); hudL1.textContent=current.l1(); hudL2.textContent=T("최고 기록","Best"); hudV1.textContent="0"; hudV2.textContent=fmt(id,best(id)); mHelp.textContent=current.help();
+  modal.classList.add("open"); document.body.style.overflow="hidden"; current.start(); }
+function closeGame(silent){ if(current){ current.stop(); current=null; } arena.textContent=""; modal.classList.remove("open"); document.body.style.overflow=""; if(!silent&&opener) opener.focus(); }
+var gb=document.querySelectorAll("[data-game]"); for(i=0;i<gb.length;i++) gb[i].addEventListener("click",function(){ openGame(this.getAttribute("data-game"),this); });
+document.getElementById("mClose").addEventListener("click",function(){ closeGame(); });
+modal.addEventListener("click",function(e){ if(e.target===modal) closeGame(); });
+document.addEventListener("keydown",function(e){ if(e.key==="Escape"&&current) closeGame(); });
+
+/* 게시판과 댓글: 로그인 없이 별명으로 쓴다. 글은 Supabase 저장소에 쌓인다. 아래 두 값을 채우면 켜진다. README 참고 */
+var BACKEND={ url:"https://cerfluoyzcdzhwmxysym.supabase.co", key:"sb_publishable_WoR4KB7m7z4dWR8Y4pkCmw_-galDvZG" };
+/* 카카오톡 공유: 카카오 개발자 사이트의 JavaScript 키를 넣으면 카카오톡 공유 창이 뜬다. 비워 두면 기기의 기본 공유 창이나 주소 복사로 동작한다 */
+var KAKAO_JS_KEY="ad623f1391b866234711fb828b611cb6";
+var sb=null,sbState=0,sbWait=[],lastPost=0;
+function withSb(cb){ if(sbState===2) return cb(true); if(sbState===3) return cb(false); sbWait.push(cb); if(sbState===1) return; sbState=1;
+  function flush(ok){ sbState=ok?2:3; var w=sbWait; sbWait=[]; w.forEach(function(f){ f(ok); }); }
+  function ready(){ try{ sb=window.supabase.createClient(BACKEND.url,BACKEND.key); flush(true); }catch(e){ flush(false); } }
+  if(window.supabase&&window.supabase.createClient) return ready();
+  var s=document.createElement("script"); s.src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js"; s.integrity="sha384-uteMfOloLDGt042uDz+xHGF3ym63/WQ6rFq7murQRG8Ih7QrXGEGNtWd8688sb4O"; s.crossOrigin="anonymous"; s.onload=ready; s.onerror=function(){ flush(false); }; document.head.appendChild(s); }
+function mountThread(box,term){ box.textContent=""; box._term=term;
+  if(!BACKEND.url||!BACKEND.key){ box.appendChild(el("p","c-note",T("게시판은 아직 연결 전입니다. 곧 열립니다.","The board is not connected yet. Coming soon."))); return; }
+  box.appendChild(el("p","c-note",T("불러오는 중…","Loading…")));
+  withSb(function(ok){ if(box._term!==term) return; box.textContent="";
+    if(!ok){ box.appendChild(el("p","c-note",T("글을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.","Could not load posts. Please try again later."))); return; }
+    renderThread(box,term); }); }
+function renderThread(box,term){
+  var form=el("form","c-form"),nk=el("input","c-nick"),row=el("div","c-row"),ta=el("textarea"),send=el("button","btn play sm",T("등록","Post")),trap=el("input"),msg=el("p","c-msg"),list=el("div","c-list");
+  nk.type="text"; nk.maxLength=20; nk.placeholder=T("별명 (최대 20자)","Nickname (up to 20 characters)"); nk.setAttribute("aria-label",T("별명","Nickname")); nk.value=store("arc-nick")||""; nk.autocomplete="nickname";
+  ta.maxLength=1000; ta.rows=3; ta.placeholder=T("내용을 입력하세요 (최대 1,000자)","Write something (up to 1,000 characters)"); ta.setAttribute("aria-label",T("글 내용","Post text"));
+  trap.type="text"; trap.name="website"; trap.tabIndex=-1; trap.autocomplete="off"; trap.setAttribute("aria-hidden","true"); trap.style.cssText="position:absolute;left:-9999px;width:1px;height:1px;opacity:0";
+  send.type="submit";
+  function say(text){ msg.textContent=text||""; }
+  function load(){ sb.from("comments").select("id,nickname,body,created_at").eq("thread",term).order("created_at",{ascending:false}).limit(50).then(function(r){
+    if(box._term!==term) return; list.textContent="";
+    if(r.error){ list.appendChild(el("p","c-empty",T("글을 불러오지 못했습니다.","Could not load posts."))); return; }
+    if(!r.data.length){ list.appendChild(el("p","c-empty",T("아직 글이 없습니다. 첫 글을 남겨 보세요.","No posts yet. Be the first."))); return; }
+    r.data.forEach(function(x){ var it=el("div","c-item"),hd=el("div","c-head"),d=new Date(x.created_at);
+      hd.appendChild(el("b",null,x.nickname)); hd.appendChild(el("span",null,isNaN(d)?"":d.toLocaleString(lang==="en"?"en":"ko-KR",{dateStyle:"medium",timeStyle:"short"})));
+      it.appendChild(hd); it.appendChild(el("p","c-body",x.body)); list.appendChild(it); }); }); }
+  form.addEventListener("submit",function(e){ e.preventDefault(); if(trap.value) return;
+    var name=nk.value.trim().slice(0,20)||T("익명","Anonymous"),body=ta.value.trim(); if(!body){ say(T("내용을 적어 주세요.","Please write something.")); return; }
+    var wait=Math.ceil((lastPost+15000-Date.now())/1000); if(wait>0){ say(T(wait+"초 뒤에 다시 쓸 수 있습니다.","You can post again in "+wait+"s.")); return; }
+    send.disabled=true; say(""); store("arc-nick",name);
+    sb.from("comments").insert({thread:term,nickname:name,body:body}).then(function(r){ send.disabled=false;
+      if(r.error){ say(/too many/i.test(r.error.message||"")?T("지금 글이 너무 많이 올라오고 있습니다. 1분 뒤에 다시 해 주세요.","Too many posts right now. Please try again in a minute."):T("등록하지 못했습니다. 잠시 뒤 다시 해 주세요.","Could not post. Please try again.")); return; }
+      lastPost=Date.now(); ta.value=""; load(); }); });
+  row.appendChild(ta); row.appendChild(send); form.appendChild(nk); form.appendChild(row); form.appendChild(trap);
+  box.appendChild(form); box.appendChild(msg); box.appendChild(list); load(); }
+
+/* 친구에게 공유 */
+var kkState=0,kkWait=[];
+function withKakao(cb){ if(kkState===2) return cb(true); if(kkState===3) return cb(false); kkWait.push(cb); if(kkState===1) return; kkState=1;
+  function flush(ok){ kkState=ok?2:3; var w=kkWait; kkWait=[]; w.forEach(function(f){ f(ok); }); }
+  function ready(){ try{ if(!window.Kakao.isInitialized()) window.Kakao.init(KAKAO_JS_KEY); flush(window.Kakao.isInitialized()); }catch(e){ flush(false); } }
+  if(window.Kakao&&window.Kakao.init) return ready();
+  var s=document.createElement("script"); s.src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js"; s.integrity="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj"; s.crossOrigin="anonymous"; s.onload=ready; s.onerror=function(){ flush(false); }; document.head.appendChild(s); }
+function shareTo(title,url,btn){
+  function other(){ if(navigator.share){ navigator.share({title:title,text:title,url:url}).catch(function(){}); return; }
+    function done(){ var old=btn._label||btn.textContent; btn.textContent=T("주소를 복사했습니다","Link copied"); setTimeout(function(){ btn.textContent=old; },1600); }
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done,function(){ window.prompt(T("이 주소를 복사하세요","Copy this link"),url); }); } else window.prompt(T("이 주소를 복사하세요","Copy this link"),url); }
+  if(!KAKAO_JS_KEY) return other();
+  withKakao(function(ok){ if(!ok) return other();
+    try{ window.Kakao.Share.sendDefault({objectType:"text",text:title+"\n"+T("브라우저에서 바로 하는 게임","A game you can play right in your browser"),link:{webUrl:url,mobileWebUrl:url}}); }catch(e){ other(); } }); }
+function siteUrl(){ return location.origin+location.pathname; }
+function shareLabels(){ var t=KAKAO_JS_KEY?T("카카오톡으로 공유","Share on KakaoTalk"):T("친구에게 공유","Share with a friend"),bs=document.querySelectorAll("[data-share]"); for(var j=0;j<bs.length;j++){ bs[j].textContent=t; bs[j]._label=t; } }
+var shareSlug="",sb1=document.getElementById("heroShare"),sb2=document.getElementById("pShare");
+sb1.addEventListener("click",function(){ shareTo("UJ ARCADE",siteUrl(),sb1); });
+sb2.addEventListener("click",function(){ shareTo(document.getElementById("pTitle").textContent+" | UJ ARCADE",siteUrl()+(shareSlug?"#game-"+shareSlug:""),sb2); });
+
+/* 내 게임을 사이트 안에서 열기 */
+var player=document.getElementById("player"),pFrame=document.getElementById("pFrame"),pTitle=document.getElementById("pTitle"),pNew=document.getElementById("pNew"),pThread=document.getElementById("pThread"),pOpener=null;
+function openPlayer(a){ var slug=a.getAttribute("data-play"),url=a.href,name=a.querySelector("h3").textContent; pOpener=a; shareSlug=slug;
+  pTitle.textContent=name; pNew.href=url; pFrame.textContent="";
+  var f=document.createElement("iframe"); f.src=url; f.title=name; f.setAttribute("allow","fullscreen; gamepad; accelerometer; gyroscope; autoplay"); f.setAttribute("allowfullscreen",""); pFrame.appendChild(f);
+  mountThread(pThread,"game: "+slug); player.classList.add("open"); document.body.style.overflow="hidden"; document.getElementById("pClose").focus();
+  try{ history.replaceState(null,"","#game-"+slug); }catch(e){} }
+function closePlayer(){ if(!player.classList.contains("open")) return; pFrame.textContent=""; pThread.textContent=""; player.classList.remove("open"); document.body.style.overflow="";
+  try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){} if(pOpener) pOpener.focus(); }
+var pl=document.querySelectorAll("[data-play]"); for(i=0;i<pl.length;i++) pl[i].addEventListener("click",function(e){ if(e.ctrlKey||e.metaKey||e.shiftKey) return; e.preventDefault(); openPlayer(this); });
+document.getElementById("pClose").addEventListener("click",closePlayer);
+player.addEventListener("click",function(e){ if(e.target===player) closePlayer(); });
+document.addEventListener("keydown",function(e){ if(e.key==="Escape") closePlayer(); });
+var boardMounted=false; function mountBoard(){ boardMounted=true; mountThread(document.getElementById("boardThread"),"board"); }
+
+/* 내비게이션, 등장 효과 */
+var nav=document.getElementById("nav"); function onScroll(){ nav.classList.toggle("solid",window.scrollY>24); } window.addEventListener("scroll",onScroll,{passive:true}); onScroll();
+var rv=document.querySelectorAll(".rv");
+if("IntersectionObserver" in window){ var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add("in-view"); io.unobserve(e.target); } }); },{threshold:.08});
+  for(i=0;i<rv.length;i++){ rv[i].style.transitionDelay=(i%3)*80+"ms"; io.observe(rv[i]); } } else { for(i=0;i<rv.length;i++) rv[i].classList.add("in-view"); }
+
+/* 첫 화면 배경: 떠다니는 도형 */
+(function(){ var cv=document.getElementById("fx"),hero=document.getElementById("hero"),ctx=cv.getContext("2d"),W=0,H=0,dpr=1,vis=true,reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var COL=["#ff4d8d","#37e0ff","#ffd23f","#7dff9b","#8f6bff"],P=[],n=window.innerWidth<700?22:42;
+  for(var j=0;j<n;j++) P.push({x:Math.random(),y:Math.random(),z:.3+Math.random()*.7,s:Math.floor(Math.random()*4),c:COL[j%5],r:Math.random()*6.28,vr:(Math.random()-.5)*.6,vy:.01+Math.random()*.02,ph:Math.random()*6.28});
+  function size(){ var r=hero.getBoundingClientRect(); W=r.width; H=r.height; dpr=Math.min(window.devicePixelRatio||1,2); cv.width=W*dpr; cv.height=H*dpr; }
+  function frame(now){ var t=now/1000; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H); ctx.lineWidth=2;
+    for(var j=0;j<P.length;j++){ var p=P[j],yy=((p.y-t*p.vy)%1+1)%1,x=p.x*W+Math.sin(t*.5+p.ph)*24*p.z,y=yy*(H+80)-40,s=10+p.z*16;
+      ctx.save(); ctx.translate(x,y); ctx.rotate(p.r+t*p.vr); ctx.globalAlpha=.12+p.z*.5; ctx.strokeStyle=p.c; ctx.beginPath();
+      if(p.s===0){ ctx.arc(0,0,s*.6,0,6.2832); } else if(p.s===1){ ctx.rect(-s*.55,-s*.55,s*1.1,s*1.1); }
+      else if(p.s===2){ ctx.moveTo(0,-s*.7); ctx.lineTo(s*.65,s*.5); ctx.lineTo(-s*.65,s*.5); ctx.closePath(); }
+      else { ctx.moveTo(-s*.6,0); ctx.lineTo(s*.6,0); ctx.moveTo(0,-s*.6); ctx.lineTo(0,s*.6); }
+      ctx.stroke(); ctx.restore(); }
+    if(vis&&!reduce) requestAnimationFrame(frame); }
+  window.addEventListener("resize",function(){ size(); if(reduce) frame(0); });
+  if("IntersectionObserver" in window) new IntersectionObserver(function(es){ var v=es[0].isIntersecting; if(v&&!vis){ vis=true; requestAnimationFrame(frame); } else vis=v; }).observe(hero);
+  size(); requestAnimationFrame(frame); setTimeout(size,400);
+})();
+
+mountBoard();
+setLang(store("arc-lang")||((navigator.language||"en").toLowerCase().indexOf("ko")===0?"ko":"en"));
+if(location.hash.indexOf("#game-")===0){ var want=document.querySelector('[data-play="'+location.hash.slice(6).replace(/[^A-Za-z0-9_-]/g,"")+'"]'); if(want) openPlayer(want); }
+})();
+</script>
+</body>
+</html>
