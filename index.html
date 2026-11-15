@@ -119,6 +119,18 @@ footer a:hover{color:#fff}
 .numb.bad{animation:shake .3s; border-color:var(--pink)}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
+/* 휴대폰: 게임 화면을 거의 전체 화면으로 쓰고, 댓글은 아래로 스크롤해서 본다 */
+@media (max-width:700px){
+  #player{padding:0; align-items:stretch}
+  #player .panel.wide{width:100%; max-height:none; height:100%; border-radius:0; border:0; padding:8px 8px 20px; -webkit-overflow-scrolling:touch}
+  #player .panel-top{margin-bottom:8px; flex-wrap:nowrap}
+  #player .panel-top h3{font-size:15px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1}
+  #player .p-actions{flex:none; gap:6px}
+  #player .p-actions .btn.sm{padding:8px 11px; font-size:13px; white-space:nowrap}
+  #player #pNew span{display:none}
+  #player .frame{height:calc(100dvh - 70px); height:calc(100svh - 70px); min-height:420px; border-radius:12px}
+}
+@media (max-width:700px) and (orientation:landscape){ #player .frame{height:calc(100dvh - 58px); min-height:260px} }
 .panel.wide{width:min(1040px,100%)}
 .p-actions{display:flex; align-items:center; gap:8px}
 .frame{position:relative; border-radius:16px; overflow:hidden; border:1px solid var(--line); background:#000; height:min(68vh,640px)}
@@ -151,7 +163,7 @@ footer a:hover{color:#fff}
 .c-empty{margin:0; color:var(--muted); font-size:14.5px; padding:8px 2px}
 @media (max-width:600px){ .c-form{flex-direction:column; align-items:stretch} }
 .c-note{margin:0; padding:16px 18px; border:1px dashed var(--line); border-radius:12px; color:var(--body); font-size:14.5px}
-@media (max-width:600px){ .frame{height:62vh} .thread-box{padding:14px} }
+@media (max-width:600px){ .thread-box{padding:14px} }
 
 .rv{opacity:0; transform:translateY(18px); transition:opacity .6s, transform .6s}
 .rv.in-view{opacity:1; transform:none}
