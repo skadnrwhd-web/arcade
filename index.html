@@ -537,11 +537,11 @@ function shareTo(title,url,btn){
   function other(){ if(navigator.share){ navigator.share({title:title,text:title,url:url}).catch(function(){}); return; }
     function done(){ var old=btn._label||btn.textContent; btn.textContent=T("주소를 복사했습니다","Link copied"); setTimeout(function(){ btn.textContent=old; },1600); }
     if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done,function(){ window.prompt(T("이 주소를 복사하세요","Copy this link"),url); }); } else window.prompt(T("이 주소를 복사하세요","Copy this link"),url); }
-  if(!KAKAO_JS_KEY || isInApp) return other();
+  if(!KAKAO_JS_KEY || isInApp || typeof navigator.share==="function") return other();
   withKakao(function(ok){ if(!ok) return other();
     try{ window.Kakao.Share.sendDefault({objectType:"text",text:title+"\n"+T("브라우저에서 바로 하는 게임","A game you can play right in your browser"),link:{webUrl:url,mobileWebUrl:url}}); }catch(e){ other(); } }); }
 function siteUrl(){ return location.origin+location.pathname; }
-function shareLabels(){ var t=(KAKAO_JS_KEY && !isInApp)?T("카카오톡으로 공유","Share on KakaoTalk"):T("친구에게 공유","Share with a friend"),bs=document.querySelectorAll("[data-share]"); for(var j=0;j<bs.length;j++){ bs[j].textContent=t; bs[j]._label=t; } }
+function shareLabels(){ var t=(KAKAO_JS_KEY && !isInApp && typeof navigator.share!=="function")?T("카카오톡으로 공유","Share on KakaoTalk"):T("친구에게 공유","Share with a friend"),bs=document.querySelectorAll("[data-share]"); for(var j=0;j<bs.length;j++){ bs[j].textContent=t; bs[j]._label=t; } }
 var shareSlug="",sb1=document.getElementById("heroShare"),sb2=document.getElementById("pShare");
 sb1.addEventListener("click",function(){ shareTo("UJ ARCADE",siteUrl(),sb1); });
 sb2.addEventListener("click",function(){ shareTo(document.getElementById("pTitle").textContent+" | UJ ARCADE",siteUrl()+(shareSlug?"#game-"+shareSlug:""),sb2); });
