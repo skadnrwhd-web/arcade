@@ -173,6 +173,19 @@ footer a:hover{color:#fff}
 @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .rv{opacity:1; transform:none; transition:none} .btn,.game,.cardb{transition:none} .numb.bad{animation:none} }
 @media (max-width:600px){ .sec{padding:64px 0} .hero{padding:120px 0 64px} }
 </style>
+<script>
+/* 방문 통계(GA4): 이름 없는 무작위 번호만 쓰고, 광고용 추적은 끕니다. 내 PC(localhost)에서는 보내지 않습니다. */
+(function(){
+  window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments);};
+  var h=location.hostname;
+  if(h&&!/^(localhost|127[.]|0[.]0[.]0[.]0)/.test(h)){
+    var sc=document.createElement('script');sc.async=true;sc.src='https://www.googletagmanager.com/gtag/js?id=G-LBVR1WXV96';document.head.appendChild(sc);
+    gtag('consent','default',{ad_storage:'denied',analytics_storage:'granted',ad_user_data:'denied',ad_personalization:'denied'});
+    gtag('js',new Date());
+    gtag('config','G-LBVR1WXV96',{allow_google_signals:false,allow_ad_personalization_signals:false});
+  }
+})();
+</script>
 </head>
 <body>
 
@@ -311,7 +324,7 @@ footer a:hover{color:#fff}
 
 <footer>
   <div class="wrap cols">
-    <div><div class="logo" style="color:#fff; margin-bottom:8px"><i>▶</i>UJ ARCADE</div><span data-i="ft">AI로 만든 게임. 기록은 이 브라우저에만 저장됩니다.</span></div>
+    <div><div class="logo" style="color:#fff; margin-bottom:8px"><i>▶</i>UJ ARCADE</div><span data-i="ft">AI로 만든 게임. 기록은 이 브라우저에만 저장됩니다.</span><br><span data-i="ft2">방문 통계(구글 애널리틱스)를 씁니다. 이름·연락처는 받지 않고, 광고용 추적은 끕니다.</span></div>
     <ul>
       <li><a href="https://github.com/skadnrwhd-web" target="_blank" rel="noopener">GitHub</a></li>
       <li><a href="https://www.youtube.com/@ujnam2197" target="_blank" rel="noopener">YouTube</a></li>
@@ -361,7 +374,7 @@ var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",s4_p:"Reviews, bug reports, ga
  f2_p:"The nostalgic handheld game: push water with a button to land rings on pegs.",
  f3_p:"A 3D balance game: pull blocks out slowly and stack them on top without toppling the tower.",
  f4_p:"A wood-textured 3D Tower of Hanoi. Move the discs across three pegs.",
- f5_p:"Tower of Hanoi with four pegs, including the optimal solution and auto-solve.", c_down:"▼ Comments", f6_p:"Beat the monsters by solving math problems before they reach you. Elementary grades 1-6.", b_edu:"Math",
+ f5_p:"Tower of Hanoi with four pegs, including the optimal solution and auto-solve.", ft2:"We use Google Analytics for visit statistics. No names or contact details are collected, and ad tracking is turned off.", c_down:"▼ Comments", f6_p:"Beat the monsters by solving math problems before they reach you. Elementary grades 1-6.", b_edu:"Math",
  newtab:"Leave a comment",open:"Play",
  s3_eb:"How it's made",s3_h:"No coding. Built by talking with AI",s3_p:"The process and source code of each game are public.",
  w1h:"Describe it",w1p:"Explain to the AI, in sentences, what the game is and how it is controlled.",
