@@ -94,6 +94,20 @@ h1,h2,h3{margin:0; line-height:1.15; letter-spacing:-.025em; text-wrap:balance}
 .cg-actions .c-hint2{font-size:13px}
 .cg-msg{margin:10px 0 0; min-height:1px; font-size:14px; color:var(--pink)}
 .cg-msg.ok{color:var(--lime)}
+/* 게임 주소 안내: 입력란 아래 한 줄 힌트 + 접었다 펴는 1분 가이드 */
+.cg-urlhint{margin:0; font-size:12.5px; line-height:1.55; color:var(--muted)}
+.cg-guide{margin:14px 0 2px; border:1px solid var(--line); border-radius:14px; background:linear-gradient(150deg, rgba(55,224,255,.08), rgba(143,107,255,.09)); overflow:hidden}
+.cg-guide>summary{display:flex; align-items:flex-start; gap:8px; list-style:none; cursor:pointer; padding:12px 15px; font-size:13.5px; font-weight:800; color:var(--cyan); line-height:1.5; transition:background .15s}
+.cg-guide>summary::-webkit-details-marker{display:none}
+.cg-guide>summary::marker{content:""}
+.cg-guide>summary:hover{background:rgba(55,224,255,.07)}
+.cg-guide>summary::before{content:"▸"; flex:0 0 auto; font-size:11px; line-height:1.9; transition:transform .2s}
+.cg-guide[open]>summary::before{transform:rotate(90deg)}
+.cg-guide[open]>summary{border-bottom:1px solid var(--line)}
+.cg-guide .cg-steps{margin:0; padding:14px 16px 15px 34px; display:grid; gap:11px; color:var(--body); font-size:13.5px; line-height:1.6}
+.cg-guide .cg-steps li::marker{color:var(--pink); font-weight:900}
+.cg-guide .cg-steps b{display:block; color:var(--ink); margin-bottom:2px}
+.cg-guide .cg-steps p{margin:0}
 .cg-card .cg-art{position:absolute; inset:0; display:grid; place-items:center; z-index:0}
 .cg-card .cover .badge{z-index:2}
 .cg-card .cg-art b{position:relative; z-index:1; font-size:clamp(40px,8vw,58px); font-weight:900; letter-spacing:-.05em; color:#fff; text-shadow:0 10px 34px rgba(0,0,0,.5)}
@@ -308,7 +322,15 @@ footer a:hover{color:#fff}
         <div class="cg-field"><label for="cgTitle" data-i="s5_title">게임 이름 (최대 40자)</label><input id="cgTitle" type="text" maxlength="40"></div>
       </div>
       <div class="cg-field"><label for="cgDesc" data-i="s5_desc">한 줄 설명 (최대 120자)</label><input id="cgDesc" type="text" maxlength="120"></div>
-      <div class="cg-field"><label for="cgUrl" data-i="s5_url">게임 주소</label><input id="cgUrl" type="url" inputmode="url" maxlength="500" placeholder="https://..."></div>
+      <div class="cg-field"><label for="cgUrl" data-i="s5_url">게임 주소</label><input id="cgUrl" type="url" inputmode="url" maxlength="500" placeholder="https://..."><p class="cg-urlhint" data-i="s5_urlh">클로드·ChatGPT 공유 링크나 GitHub Pages처럼 https:// 로 시작하는 공개 주소를 넣어 주세요.</p></div>
+      <details class="cg-guide" id="cgGuide">
+        <summary><span data-i="s5_gq">💡 게임 주소(https://...)는 어떻게 만드나요?</span></summary>
+        <ol class="cg-steps">
+          <li><b data-i="s5_g1t">클로드(Claude) / ChatGPT로 만든 경우</b><p data-i="s5_g1p">게임 화면에서 공유(Share) → 공개 링크 복사를 누르고, 나온 주소를 그대로 붙여넣으세요.</p></li>
+          <li><b data-i="s5_g2t">HTML 파일로 만든 경우</b><p data-i="s5_g2p">무료로 올릴 수 있는 GitHub Pages나 Netlify Drop에 파일을 올린 뒤 나온 https:// 주소를 넣으세요. 내 PC의 파일 경로(file://)나 로그인해야 열리는 비공개 링크는 다른 사람이 플레이할 수 없습니다.</p></li>
+          <li><b data-i="s5_g3t">등록하면</b><p data-i="s5_g3p">승인 없이 바로 아래 카드에 등록되고, 누구나 이 사이트 안에서 바로 플레이할 수 있습니다.</p></li>
+        </ol>
+      </details>
       <input id="cgTrap" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0">
       <div class="cg-actions"><button class="btn play sm" id="cgSend" type="submit" data-i="s5_send">등록하기</button><span class="c-hint2" data-i="s5_wait">등록하면 바로 공개됩니다. 연속 등록은 15초 뒤에 가능합니다.</span></div>
       <p class="cg-msg" id="cgMsg" role="status" aria-live="polite"></p>
@@ -434,6 +456,11 @@ var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",s4_p:"Reviews, bug reports, ga
  s5_nick:"Your nickname (up to 20 characters)",s5_title:"Game name (up to 40 characters)",s5_desc:"One-line description (up to 120 characters)",s5_url:"Game link",
  s5_send:"Post",s5_wait:"It goes live right away. You can post again in 15 seconds.",
  s5_hint:"Games open right here on this site. The link must start with https://.",
+ s5_urlh:"Paste a public https:// link, such as a Claude/ChatGPT share link or a GitHub Pages URL.",
+ s5_gq:"💡 How do I get a game link (https://...)?",
+ s5_g1t:"Made it with Claude or ChatGPT",s5_g1p:"On the game screen, press Share, copy the public link, and paste that address as it is.",
+ s5_g2t:"Made it as an HTML file",s5_g2p:"Upload the file to a free host such as GitHub Pages or Netlify Drop, then paste the https:// address you get. A file:// path on your own PC, or a private link that needs a login, cannot be opened by other people.",
+ s5_g3t:"After you post it",s5_g3p:"It appears in the cards below right away with no approval, and anyone can play it right here on this site.",
  newtab:"Leave a comment",open:"Play",
  s3_eb:"How it's made",s3_h:"No coding. Built by talking with AI",s3_p:"The process and source code of each game are public.",
  w1h:"Describe it",w1p:"Explain to the AI, in sentences, what the game is and how it is controlled.",
