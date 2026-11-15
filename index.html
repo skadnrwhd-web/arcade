@@ -119,22 +119,20 @@ footer a:hover{color:#fff}
 .numb.bad{animation:shake .3s; border-color:var(--pink)}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
-/* 휴대폰: 게임 화면을 고정(스크롤 없음)하고, 댓글은 '댓글' 버튼으로 바꿔 본다 */
+/* 휴대폰: 게임이 화면 전체를 쓰고, 댓글은 아래로 내리면 나온다 */
 .cbtn{display:none; background:rgba(255,255,255,.1); color:var(--ink); border:1px solid var(--line)}
 @media (max-width:700px){
   #player{padding:0; align-items:stretch}
-  #player .panel.wide{width:100%; max-height:none; height:100%; border-radius:0; border:0; padding:6px 6px 0; overflow:hidden; display:flex; flex-direction:column}
-  #player .panel-top{margin-bottom:6px; flex:none; flex-wrap:nowrap}
-  #player .panel-top h3{font-size:15px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1}
+  #player .panel.wide{width:100%; max-height:none; height:100%; border-radius:0; border:0; padding:0 0 28px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
+  #player .frame{order:1; flex:none; height:calc(100vh - 50px); height:calc(100svh - 50px); border:0; border-radius:0; margin:0}
+  #player .panel-top{order:2; flex:none; height:50px; margin:0; padding:0 8px; gap:6px; flex-wrap:nowrap; background:var(--card)}
+  #player .panel-top h3{font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1}
   #player .p-actions{flex:none; gap:6px}
-  #player .p-actions .btn.sm{padding:8px 11px; font-size:13px; white-space:nowrap}
+  #player .p-actions .btn.sm{padding:8px 10px; font-size:13px; white-space:nowrap}
   #player .cbtn{display:inline-flex}
-  #player .frame{flex:1; min-height:0; height:auto; border-radius:12px; margin-bottom:6px}
-  #player .c-title,#player .thread,#player .c-hint{display:none}
-  #player.showc .frame{display:none}
-  #player.showc .c-title,#player.showc .thread,#player.showc .c-hint{display:block}
-  #player.showc .panel.wide{overflow:auto; display:block}
-  #player.showc .panel-top{position:sticky; top:0; z-index:2; background:var(--card); padding-bottom:6px}
+  #player .c-title{order:3; margin:18px 14px 10px}
+  #player .thread{order:4; margin:0 10px}
+  #player .c-hint{order:5; margin:10px 14px 0}
 }
 .panel.wide{width:min(1040px,100%)}
 .p-actions{display:flex; align-items:center; gap:8px}
@@ -327,7 +325,7 @@ footer a:hover{color:#fff}
   <div class="panel wide">
     <div class="panel-top">
       <h3 id="pTitle"></h3>
-      <div class="p-actions"><button class="btn sm cbtn" id="pCmt" type="button">💬 <span id="pCmtT">댓글</span></button><button class="btn kakao sm" id="pShare" type="button" data-share></button><a class="btn line sm" id="pNew" target="_blank" rel="noopener"><span data-i="p_new">새 창에서 열기</span> ↗</a><button class="x" id="pClose" type="button" aria-label="Close">✕</button></div>
+      <div class="p-actions"><button class="btn sm cbtn" id="pCmt" type="button"><span id="pCmtT" data-i="c_down">▼ 댓글</span></button><button class="btn kakao sm" id="pShare" type="button" data-share></button><a class="btn line sm" id="pNew" target="_blank" rel="noopener"><span data-i="p_new">새 창에서 열기</span> ↗</a><button class="x" id="pClose" type="button" aria-label="Close">✕</button></div>
     </div>
     <div class="frame" id="pFrame"></div>
     <h4 class="c-title" data-i="c_title">댓글</h4>
@@ -363,7 +361,7 @@ var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",s4_p:"Reviews, bug reports, ga
  f2_p:"The nostalgic handheld game: push water with a button to land rings on pegs.",
  f3_p:"A 3D balance game: pull blocks out slowly and stack them on top without toppling the tower.",
  f4_p:"A wood-textured 3D Tower of Hanoi. Move the discs across three pegs.",
- f5_p:"Tower of Hanoi with four pegs, including the optimal solution and auto-solve.", f6_p:"Beat the monsters by solving math problems before they reach you. Elementary grades 1-6.", b_edu:"Math",
+ f5_p:"Tower of Hanoi with four pegs, including the optimal solution and auto-solve.", c_down:"▼ Comments", f6_p:"Beat the monsters by solving math problems before they reach you. Elementary grades 1-6.", b_edu:"Math",
  newtab:"Leave a comment",open:"Play",
  s3_eb:"How it's made",s3_h:"No coding. Built by talking with AI",s3_p:"The process and source code of each game are public.",
  w1h:"Describe it",w1p:"Explain to the AI, in sentences, what the game is and how it is controlled.",
@@ -540,13 +538,13 @@ var player=document.getElementById("player"),pFrame=document.getElementById("pFr
 function openPlayer(a){ var slug=a.getAttribute("data-play"),url=a.href,name=a.querySelector("h3").textContent; pOpener=a; shareSlug=slug;
   pTitle.textContent=name; pNew.href=url; pFrame.textContent="";
   var f=document.createElement("iframe"); f.src=url; f.title=name; f.setAttribute("allow","fullscreen; gamepad; accelerometer; gyroscope; autoplay"); f.setAttribute("allowfullscreen",""); pFrame.appendChild(f);
-  mountThread(pThread,"game: "+slug); player.classList.remove("showc"); document.getElementById("pCmtT").textContent=document.documentElement.lang==="en"?"Comments":"댓글"; player.classList.add("open"); document.body.style.overflow="hidden"; document.getElementById("pClose").focus();
+  mountThread(pThread,"game: "+slug); player.querySelector(".panel").scrollTop=0; player.classList.add("open"); document.body.style.overflow="hidden"; document.getElementById("pClose").focus();
   try{ history.replaceState(null,"","#game-"+slug); }catch(e){} }
 function closePlayer(){ if(!player.classList.contains("open")) return; pFrame.textContent=""; pThread.textContent=""; player.classList.remove("open"); document.body.style.overflow="";
   try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){} if(pOpener) pOpener.focus(); }
 var pl=document.querySelectorAll("[data-play]"); for(i=0;i<pl.length;i++) pl[i].addEventListener("click",function(e){ if(e.ctrlKey||e.metaKey||e.shiftKey) return; e.preventDefault(); openPlayer(this); });
 document.getElementById("pClose").addEventListener("click",closePlayer);
-var pCmt=document.getElementById("pCmt"); pCmt.addEventListener("click",function(){ var on=player.classList.toggle("showc"); document.getElementById("pCmtT").textContent=on?(document.documentElement.lang==="en"?"Game":"게임"):(document.documentElement.lang==="en"?"Comments":"댓글"); });
+var pCmt=document.getElementById("pCmt"); pCmt.addEventListener("click",function(){ var t=player.querySelector(".c-title"); if(t) t.scrollIntoView({behavior:"smooth",block:"start"}); });
 player.addEventListener("click",function(e){ if(e.target===player) closePlayer(); });
 document.addEventListener("keydown",function(e){ if(e.key==="Escape") closePlayer(); });
 var boardMounted=false; function mountBoard(){ boardMounted=true; mountThread(document.getElementById("boardThread"),"board"); }
