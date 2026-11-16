@@ -32,7 +32,7 @@
     font-variant-numeric:tabular-nums;color:#f4feff;
     text-shadow:0 0 20px rgba(70,225,255,.85),0 0 6px rgba(120,240,255,.75)}
   .lenrow .unit{font-size:clamp(8px,2.3vw,10px);font-weight:800;letter-spacing:.22em;color:rgba(140,205,235,.72)}
-  .statrow{display:flex;align-items:center;gap:7px;margin-top:3px;font-size:clamp(9px,2.6vw,11px);font-weight:800;
+  .statrow{display:flex;align-items:center;gap:7px;margin-top:5px;font-size:clamp(9px,2.6vw,11px);font-weight:800;
     letter-spacing:.12em;color:rgba(150,205,232,.78)}
   .statrow b{color:#9ff3ff;font-variant-numeric:tabular-nums;letter-spacing:.02em}
   .statrow .sep{width:1px;height:9px;background:rgba(120,190,220,.35)}
@@ -129,7 +129,7 @@
   .logo{font-size:clamp(24px,7.4vw,42px);font-weight:900;letter-spacing:-.02em;line-height:1.1;color:#fff;
     text-shadow:0 0 18px rgba(80,230,255,.9),0 0 46px rgba(70,120,255,.7),0 0 90px rgba(150,60,255,.5)}
   .logo .em{font-style:normal}
-  .sub{font-size:clamp(11px,3vw,14px);color:rgba(175,220,240,.82);font-weight:600;letter-spacing:.01em;line-height:1.5}
+  .sub{width:100%;max-width:100%;font-size:clamp(11px,3vw,14px);color:rgba(175,220,240,.82);font-weight:600;letter-spacing:.01em;line-height:1.55}
   .sub b{color:#9ff3ff;font-weight:800}
   .skinlab{font-size:9px;font-weight:900;letter-spacing:.24em;color:rgba(140,200,230,.6);margin-bottom:-4px}
   #skins{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%;max-width:400px}
@@ -145,7 +145,7 @@
   .skin .nm i{font-style:normal;font-size:8.5px;letter-spacing:.12em;color:rgba(150,200,225,.55);font-weight:700}
   .skin.on{border-color:rgba(120,240,255,.85);box-shadow:0 0 0 1px rgba(120,240,255,.35),0 0 22px rgba(60,210,255,.42);
     background:linear-gradient(160deg,rgba(18,48,80,.94),rgba(8,18,34,.92))}
-  .skin.on::before{content:"✓";position:absolute;top:-6px;right:-4px;width:17px;height:17px;border-radius:50%;
+  .skin.on::before{content:"✓";position:absolute;top:-7px;left:-5px;width:17px;height:17px;border-radius:50%;
     background:linear-gradient(180deg,#7cf6ff,#25b6f5);color:#04202e;font-size:11px;font-weight:900;
     display:flex;align-items:center;justify-content:center;box-shadow:0 0 12px rgba(90,230,255,.85)}
 
@@ -158,7 +158,7 @@
   .btn.ghost{background:linear-gradient(180deg,rgba(20,44,72,.9),rgba(8,16,30,.9));color:#bfefff;
     border:1px solid rgba(90,190,235,.4);box-shadow:none;font-size:clamp(12px,3.4vw,14px);height:clamp(36px,9vw,42px)}
 
-  .keys{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 12px;
+  .keys{width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 12px;
     font-size:clamp(9.5px,2.6vw,11px);color:rgba(160,205,230,.7);font-weight:700;letter-spacing:.02em}
   .keys span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
   .keys i{font-style:normal;color:#9ff3ff}
@@ -506,7 +506,7 @@ function makeWorm(opt){
     c1: opt.c1, c2: opt.c2, phase: rnd(0,TAU), skinId: opt.skinId || null,
     boosting: false, wantBoost: false, kills: 0, thinkT: 0,
     target: null, blink: rnd(1.5,4.5), spawnT: G.time, dropT: 0,
-    magnetT: 0, hyperT: 0,
+    magnetT: 0, hyperT: 0, invT: 0,
     wob: rnd(0,TAU)
   };
   w.aimA = w.ang;
@@ -517,6 +517,7 @@ function makeWorm(opt){
     var py = w.y - Math.sin(w.ang)*i*w.r*NODE_RATIO;
     w.nodes.push({ x:px, y:py, _w:w });
   }
+  if(w.isPlayer) w.invT = 1.4;
   return w;
 }
 
@@ -797,10 +798,19 @@ function addAI(initial){
 
 function spawnPlayer(){
   var skin = SKINS[G.skinIdx];
-  var a0 = rnd(0, TAU), r0 = rnd(0, ARENA_R*0.42);
-  var spot = { x: Math.cos(a0)*r0, y: Math.sin(a0)*r0 };
-  if(nearestNode(spot.x, spot.y, null, 400).d < 120){
-    spot = freeSpot(160);
+  var spot = freeSpot(300);
+  if(hypot(spot.x, spot.y) > ARENA_R*0.72){
+    var a0 = rnd(0, TAU), r0 = rnd(0, ARENA_R*0.4);
+    spot = { x: Math.cos(a0)*r0, y: Math.sin(a0)*r0 };
+  }
+  var bo = nearestNode(spot.x, spot.y, null, 460);
+  if(bo.n && bo.d < 210){
+    for(var k=0;k<30;k++){
+      var aa = rnd(0,TAU), rr = rnd(60, ARENA_R*0.62);
+      var cx2 = Math.cos(aa)*rr, cy2 = Math.sin(aa)*rr;
+      var nn2 = nearestNode(cx2, cy2, null, 460);
+      if(!nn2.n || nn2.d > 210){ spot = { x:cx2, y:cy2 }; break; }
+    }
   }
   // player spawn heading points to the arena centre
   var headAng = Math.atan2(-spot.y, -spot.x) + rnd(-0.5, 0.5);
@@ -1034,6 +1044,7 @@ function updatePlayer(dt){
 
   // power timers
   if(w.magnetT > 0){ w.magnetT -= dt; if(w.magnetT < 0) w.magnetT = 0; }
+  if(w.invT > 0){ w.invT -= dt; if(w.invT < 0) w.invT = 0; }
   moveWorm(w, dt, w.hyperT > 0);
 }
 
@@ -1187,6 +1198,8 @@ function collideCheck(){
     var w = G.worms[i];
     if(!w.alive) continue;
     var hr = headRadius(w);
+    // spawn shield (player only)
+    if(w.isPlayer && w.invT > 0) continue;
     // body hit
     var nr = nearestNode(w.x, w.y, w, 300);
     if(nr.n && nr.d < hr*0.5){
@@ -1573,6 +1586,8 @@ function wormBodyColor(w, t){
 
 function drawWorm(w, t, isLeader){
   if(!w.alive) return;
+  var shielded = (w.invT > 0);
+  if(shielded) ctx.globalAlpha = 0.45 + 0.25*Math.sin(t*14);
   var c1 = w.c1, c2 = w.c2;
   var body = wormBodyColor(w, t);
   var boostGlow = w.boosting || w.hyperT > 0;
@@ -1613,6 +1628,14 @@ function drawWorm(w, t, isLeader){
 
   // head
   drawHead(w, t, isLeader, body);
+  if(shielded){
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.strokeStyle = 'rgba(150,235,255,' + (0.45 + 0.35*Math.sin(t*12)).toFixed(3) + ')';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(w.x, w.y, headRadius(w)*2.4, 0, TAU); ctx.stroke();
+    ctx.globalCompositeOperation = 'source-over';
+  }
 }
 
 function drawHead(w, t, isLeader, body){
