@@ -317,7 +317,7 @@ var cfg = {
   boostTurn: 3.45,
   boostDrain: 7.6,
   boostDropInt: 0.11,
-  growOrb: 0.78,
+  growOrb: 1.18,
   shakeDecay: 6.5
 };
 
@@ -521,7 +521,8 @@ function nearestNode(x,y,skipW,maxR){
 /* ==================================================================
    6. worm factory
    ================================================================== */
-function segRadius(len){ return 10.6 + Math.min(11.5, len*0.042); }
+/* body thickness grows with eaten length: +18px cap, so 10~20 orbs visibly fatten the worm */
+function segRadius(len){ return 10.6 + Math.min(18, Math.pow(Math.max(0, len - 14), 0.72) * 0.42); }
 
 function makeWorm(opt){
   var w = {
@@ -800,7 +801,7 @@ function baseScale(){
 }
 function camTarget(w){
   var len = w ? w.len : 30;
-  var shrink = clamp(1 - (len - 14)*0.0028, 0.60, 1);
+  var shrink = clamp(1 - (len - 14)*0.0018, 0.60, 1);
   return baseScale()*shrink;
 }
 
@@ -1051,8 +1052,10 @@ function moveWorm(w, dt, hyper){
       w.boosting = false;
     }
   }
-  reconcileNodes(w);
   w.len = clamp(w.len, 10, MAX_LEN);
+  reconcileNodes(w);
+  // thickness must follow the length every frame, or the worm never looks bigger
+  w.r = segRadius(w.len);
 
   // nose sparkle
   if(w.boosting || w.hyperT > 0){
@@ -1185,10 +1188,11 @@ function updateAI(w, dt){
    13. update: world
    ================================================================== */
 function eatCheck(){
-  var n = G.orbs.length;
   for(var wi=0; wi<G.worms.length; wi++){
     var w = G.worms[wi];
     if(!w.alive) continue;
+    // read the live orb count per worm: the previous worm's swap-and-pop shortens the array
+    var n = G.orbs.length;
     var hr = headRadius(w);
     var reach = hr + 12;
     for(var i=n-1; i>=0; i--){
@@ -1203,6 +1207,7 @@ function eatCheck(){
         var gain = (f.big ? f.v*1.55 : f.v) * cfg.growOrb;
         if(!w.isPlayer && w.len + gain > AI_LEN_CAP){ gain = Math.max(0, AI_LEN_CAP - w.len); }
         w.len = Math.min(MAX_LEN, w.len + gain);
+        w.r = segRadius(w.len);
         if(w.isPlayer){
           G.lastLen = w.len;
           G.hudDirty = true;
