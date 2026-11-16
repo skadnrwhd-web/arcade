@@ -254,6 +254,7 @@ footer a:hover{color:#fff}
 /* 방문 통계(GA4): 이름 없는 무작위 번호만 쓰고, 광고용 추적은 끕니다. 내 PC(localhost)에서는 보내지 않습니다. */
 (function(){
   window.dataLayer=window.dataLayer||[];window.gtag=function(){dataLayer.push(arguments);};
+  window.track=function(n,p){try{gtag('event',n,p||{});}catch(e){}};
   var h=location.hostname;
   if(h&&!/^(localhost|127[.]|0[.]0[.]0[.]0)/.test(h)){
     var sc=document.createElement('script');sc.async=true;sc.src='https://www.googletagmanager.com/gtag/js?id=G-LBVR1WXV96';document.head.appendChild(sc);
@@ -677,9 +678,11 @@ function renderThread(box,term){
     send.disabled=true; say(""); store("arc-nick",name);
     sb.from("comments").insert({thread:term,nickname:name,body:body}).then(function(r){ send.disabled=false;
       if(r.error){ say(/too many/i.test(r.error.message||"")?T("지금 글이 너무 많이 올라오고 있습니다. 1분 뒤에 다시 해 주세요.","Too many posts right now. Please try again in a minute."):T("등록하지 못했습니다. 잠시 뒤 다시 해 주세요.","Could not post. Please try again.")); return; }
-      lastPost=Date.now(); ta.value=""; load(); }); });
+      lastPost=Date.now(); ta.value=""; track('comment_post',{thread:String(term).slice(0,40)}); load(); }); });
   row.appendChild(ta); row.appendChild(send); form.appendChild(nk); form.appendChild(row); form.appendChild(trap);
   box.appendChild(form); box.appendChild(msg); box.appendChild(list); load(); }
+
+/* 방문 통계 이벤트(클릭) */ document.addEventListener("click",function(e){ var t=e.target&&e.target.closest?e.target:null; if(!t) return; var m=t.closest("[data-game]"); if(m&&!m.hasAttribute("data-play")){ track('minigame_start',{game_id:m.getAttribute("data-game")}); return; } if(t.closest("#pNew")){ track('open_new_tab',{game_name:(document.getElementById("pTitle")||{}).textContent||""}); return; } var h=t.closest("#hero a.btn"); if(h){ track('hero_cta',{target:h.getAttribute("href")||""}); return; } var l=t.closest("[data-lang]"); if(l){ track('lang_change',{lang:l.getAttribute("data-lang")}); } },true);
 
 /* 친구에게 공유 */
 var kkState=0,kkWait=[];
@@ -689,6 +692,7 @@ function withKakao(cb){ if(kkState===2) return cb(true); if(kkState===3) return 
   if(window.Kakao&&window.Kakao.init) return ready();
   var s=document.createElement("script"); s.src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.5/kakao.min.js"; s.integrity="sha384-v6JKY3z4FUkWq21oZDHZe74YvuPk/WUrVLrDHTBojHXClOSa3iXy7sCXPY1jkFbj"; s.crossOrigin="anonymous"; s.onload=ready; s.onerror=function(){ flush(false); }; document.head.appendChild(s); }
 function shareTo(title,url,btn){
+  track('share_click',{share_target:title==="UJ ARCADE"?'site':'game',item_name:title});
   function other(){ if(navigator.share){ navigator.share({title:title,text:title,url:url}).catch(function(){}); return; }
     function done(){ var old=btn._label||btn.textContent; btn.textContent=T("주소를 복사했습니다","Link copied"); setTimeout(function(){ btn.textContent=old; },1600); }
     if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(url).then(done,function(){ window.prompt(T("이 주소를 복사하세요","Copy this link"),url); }); } else window.prompt(T("이 주소를 복사하세요","Copy this link"),url); }
@@ -704,6 +708,7 @@ sb2.addEventListener("click",function(){ shareTo(document.getElementById("pTitle
 /* 내 게임을 사이트 안에서 열기 */
 var player=document.getElementById("player"),pFrame=document.getElementById("pFrame"),pTitle=document.getElementById("pTitle"),pNew=document.getElementById("pNew"),pThread=document.getElementById("pThread"),pOpener=null;
 function openPlayer(a){ var cg=a.getAttribute("data-cg"),slug=cg?cg.replace(/^cgame:/,""):a.getAttribute("data-play"),url=a.getAttribute("data-url")||a.href,name=a.getAttribute("data-title")||a.querySelector("h3").textContent; pOpener=a; shareHash=(cg?"#cgame-":"#game-")+slug;
+  track('game_play',{game_id:slug,game_name:name,game_type:cg?'community':'official'});
   pTitle.textContent=name; pNew.href=url; pFrame.textContent="";
   var f=document.createElement("iframe"); f.src=url; f.title=name; f.setAttribute("allow","fullscreen; gamepad; accelerometer; gyroscope; autoplay"); f.setAttribute("allowfullscreen","");
   if(cg){ f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-pointer-lock"); f.setAttribute("referrerpolicy","no-referrer"); }
@@ -792,7 +797,7 @@ if(cgFormEl) cgFormEl.addEventListener("submit",function(e){ e.preventDefault();
   withSb(function(ok){ if(!ok){ cgSend.disabled=false; cgSay(T("지금은 등록할 수 없습니다. 잠시 뒤 다시 해 주세요.","Cannot post right now. Please try again later.")); return; }
     sb.from("comments").insert({thread:CG_THREAD,nickname:nick,body:payload}).then(function(r){ cgSend.disabled=false;
       if(r.error){ cgSay(/too many/i.test(r.error.message||"")?T("지금 글이 너무 많이 올라오고 있습니다. 1분 뒤에 다시 해 주세요.","Too many posts right now. Please try again in a minute."):T("등록하지 못했습니다. 잠시 뒤 다시 해 주세요.","Could not post. Please try again.")); return; }
-      lastPost=Date.now(); cgTitle.value=""; cgDesc.value=""; cgUrl.value=""; store("arc-nick",nick);
+      lastPost=Date.now(); track('community_game_submit'); cgTitle.value=""; cgDesc.value=""; cgUrl.value=""; store("arc-nick",nick);
       cgSay(T("등록되었습니다. 아래 목록에서 바로 플레이할 수 있습니다.","Posted. You can play it in the list below right away."),true); cgLoad(); }); }); });
 
 /* 내비게이션, 등장 효과 */
