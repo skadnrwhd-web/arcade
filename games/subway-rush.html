@@ -45,7 +45,7 @@
     padding:calc(16px + env(safe-area-inset-top,0px)) 18px calc(16px + env(safe-area-inset-bottom,0px));
     background:radial-gradient(120% 80% at 50% 20%,rgba(9,20,45,.62),rgba(3,4,12,.9));
     -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);transition:opacity .22s ease}
-  .screen.hide{opacity:0;pointer-events:none}
+  .screen.hide{opacity:0;pointer-events:none;visibility:hidden;transition:opacity .22s ease,visibility 0s linear .22s}
   .card{width:100%;max-width:380px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
   .logo{width:74px;height:74px;border-radius:22px;display:flex;align-items:center;justify-content:center;
     background:linear-gradient(160deg,rgba(55,224,255,.22),rgba(255,77,141,.16));
@@ -191,8 +191,10 @@ var muted = false, audio = null;
 var overAt = 0, overToken = 0;
 
 /* cached gradients */
-var bgGrad = null, glowGrad = null, roadGrad = null, vigGrad = null, moonGrad = null;
+var bgGrad = null, glowGrad = null, roadGrad = null, vigGrad = null, moonGrad = null, groundGrad = null;
 var skyline = [];
+var SIDE_N = 18, SIDE_GAP = 1.9;
+var sideShape = [];
 
 /* =========================================================
    utils
@@ -324,9 +326,14 @@ function buildGrads(){
   roadGrad.addColorStop(0.35, 'rgba(9,24,46,0.72)');
   roadGrad.addColorStop(1, 'rgba(4,8,20,0.94)');
 
-  vigGrad = ctx.createRadialGradient(cx, H * 0.55, Math.min(W, H) * 0.30, cx, H * 0.55, Math.max(W, H) * 0.82);
+  vigGrad = ctx.createRadialGradient(cx, H * 0.55, Math.min(W, H) * 0.34, cx, H * 0.55, Math.max(W, H) * 0.88);
   vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
-  vigGrad.addColorStop(1, 'rgba(0,0,0,0.55)');
+  vigGrad.addColorStop(1, 'rgba(0,0,0,0.42)');
+
+  groundGrad = ctx.createLinearGradient(0, horizonY, 0, bottomY);
+  groundGrad.addColorStop(0, 'rgba(12,22,44,0.0)');
+  groundGrad.addColorStop(0.30, 'rgba(10,18,38,0.35)');
+  groundGrad.addColorStop(1, 'rgba(6,10,22,0.85)');
 
   var mcx = cx + W * 0.19, mcy = horizonY - H * 0.11, mr = Math.min(W, H) * 0.16;
   moonGrad = ctx.createRadialGradient(mcx, mcy, 0, mcx, mcy, mr);
@@ -344,6 +351,17 @@ function buildGrads(){
     var bh = 12 + rn() * 66;
     skyline.push({ x: x, w: bw, h: bh, hue: rn() });
     x += bw + 5 + rn() * 16;
+  }
+
+  /* street-side buildings (perspective canyon) */
+  sideShape = [];
+  for (var s = 0; s < SIDE_N; s++) {
+    sideShape.push({
+      w: 0.55 + rn() * 0.85,
+      h: 0.55 + rn() * 1.75,
+      hue: rn(),
+      win: 0.35 + rn() * 0.65
+    });
   }
 }
 
@@ -421,7 +439,7 @@ function start(){
   laneFloat = 1; targetLane = 1; tilt = 0;
   objs = []; parts = []; floats = [];
   elapsed = 0; dist = 0; score = 0; speed = 9;
-  boostT = 0; spawnT = 0.9; lastCoffee = -99;
+  boostT = 0; spawnT = 1.8; lastCoffee = -99;
   shake = 0; flash = 0; coinFlash = 0;
   elScore.textContent = '0';
   elBoostW.classList.remove('on');
@@ -719,6 +737,66 @@ function drawSky(){
   ctx.restore();
 }
 
+function drawSides(){
+  /* ground plane on both sides of the track */
+  ctx.fillStyle = groundGrad;
+  ctx.fillRect(0, horizonY, W, H - horizonY);
+
+  var total = SIDE_N * SIDE_GAP;
+  var list = [];
+  for (var i = 0; i < SIDE_N; i++) {
+    var d = 1 + ((((i * SIDE_GAP - dist) % total) + total) % total);
+    if (d > 26) continue;
+    list.push({ d: d, sh: sideShape[i] });
+  }
+  list.sort(function(a, b){ return b.d - a.d; });
+
+  for (var j = 0; j < list.length; j++) {
+    var d2 = list[j].d, sh = list[j].sh;
+    var k = kOf(d2);
+    if (k < 0.014) continue;
+    var gy = yOf(d2);
+    var edge = roadHalf * k;
+    var w = roadHalf * 0.66 * sh.w * k;
+    var h = roadHalf * sh.h * k;
+    if (w < 3) continue;
+
+    var a = Math.min(1, 0.30 + k * 0.95);
+    for (var side = -1; side <= 1; side += 2) {
+      var x0 = side < 0 ? (cx - edge - w) : (cx + edge);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#09102a';
+      ctx.fillRect(x0, gy - h, w, h);
+      ctx.fillStyle = '#0d1738';
+      ctx.fillRect(x0, gy - h, w, h * 0.42);
+
+      /* neon roof edge */
+      ctx.fillStyle = sh.hue > 0.62 ? 'rgba(120,235,255,0.75)' : (sh.hue > 0.3 ? 'rgba(255,110,170,0.6)' : 'rgba(140,120,255,0.6)');
+      ctx.fillRect(x0, gy - h, w, Math.max(1, 2.2 * k));
+
+      /* vertical neon strip */
+      if (sh.hue > 0.5) {
+        ctx.fillStyle = 'rgba(70,225,255,0.30)';
+        ctx.fillRect(side < 0 ? x0 + w - Math.max(1, 2 * k) : x0, gy - h, Math.max(1, 2 * k), h);
+      }
+
+      /* windows */
+      if (k > 0.10 && w > 9) {
+        var cols = w > 26 ? 3 : 2;
+        var rows = Math.min(7, Math.max(2, Math.floor(h / 22)));
+        var gw = w / (cols * 2 + 1), gh = h / (rows * 2 + 1);
+        ctx.fillStyle = 'rgba(150,225,255,' + (0.10 + sh.win * 0.28).toFixed(2) + ')';
+        for (var r2 = 0; r2 < rows; r2++) {
+          for (var c2 = 0; c2 < cols; c2++) {
+            ctx.fillRect(x0 + gw * (1 + c2 * 2), gy - h + gh * (1 + r2 * 2), Math.max(1, gw * 0.9), Math.max(1, gh * 0.8));
+          }
+        }
+      }
+    }
+  }
+  ctx.globalAlpha = 1;
+}
+
 function drawRoad(){
   /* road surface */
   ctx.beginPath();
@@ -747,7 +825,7 @@ function drawRoad(){
   var gap = 1.55;
   var off = dist % gap;
   ctx.save();
-  ctx.strokeStyle = 'rgba(120,240,255,0.13)';
+  ctx.strokeStyle = 'rgba(120,240,255,0.20)';
   for (var i = -1; i < 26; i++) {
     var d = 1 + i * gap - off + gap;
     if (d < 1.02 || d > FAR) continue;
@@ -764,7 +842,7 @@ function drawRoad(){
   var dg = 2.05;
   var o2 = dist % dg;
   ctx.save();
-  ctx.strokeStyle = 'rgba(160,250,255,0.30)';
+  ctx.strokeStyle = 'rgba(170,250,255,0.45)';
   ctx.lineCap = 'round';
   for (var s = -1; s <= 1; s += 2) {
     var bx = s * 0.5 * laneOff;
@@ -1168,6 +1246,7 @@ function render(dt){
   }
 
   drawSky();
+  drawSides();
   drawRoad();
 
   /* objects: far to near */
