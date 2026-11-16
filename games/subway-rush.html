@@ -176,13 +176,22 @@ var cx = 195, horizonY = 232, bottomY = 690, roadHalf = 180, laneOff = 119;
 var boreRW = 240, boreRH = 460;
 
 var FAR      = 34;      // spawn depth
-var HIT_D    = 1.16;    // collision depth
+var HIT_D    = 1.16;    // collision depth (the player's plane)
 var KEEP_D   = 0.74;    // remove past this depth
 var NEAR_INV = 1;
+
+var GATE_LEN     = 0.62;          // depth a gate blocks at the player plane
+var TRAIN_LEN_MIN = 5.6;          // ~2 cars of real train depth
+var TRAIN_LEN_MAX = 9.4;          // ~3 cars
+var CAR_LEN      = 2.9;           // one carriage, in depth units
+var MOVE_DUR     = 0.08;          // seconds for a lane change to land exactly
+var SAFE_PAD     = 0.45;          // fairness margin when testing a spawn
+var DP_LO        = 1.36;          // fairness test runs down to just past the plane
 
 /* ---------- state ---------- */
 var state = 'ready';        // ready | playing | over
 var laneFloat = 1, targetLane = 1, tilt = 0;
+var laneFrom = 1, laneTo = 1, moveT = 0, moving = false;
 var objs = [], parts = [], floats = [];
 var elapsed = 0, dist = 0, score = 0, best = 0;
 var speed = 9, boostT = 0, spawnT = 1.0, lastCoffee = -99;
@@ -371,26 +380,101 @@ function layout(){
 /* =========================================================
    spawn
    ========================================================= */
-function laneBusy(lane){
+/* depth span an object blocks at the player plane (0 = pure pickup) */
+function blockSpan(o){
+  if (o.type === 'train') return o.zLen || 0;
+  if (o.type === 'gate') return GATE_LEN;
+  return 0;
+}
+
+/* blocking intervals of one lane, as [near, far] depth pairs */
+function laneIntervals(lane, lo, hi, extra){
+  var out = [];
   for (var i = 0; i < objs.length; i++) {
-    if (objs[i].d > FAR - 6 && objs[i].lane === lane) return true;
+    var o = objs[i];
+    if (o.lane !== lane || o.passed) continue;
+    var L = blockSpan(o);
+    if (L <= 0) continue;
+    var a = o.d, b = o.d + L;
+    if (b < lo || a > hi) continue;
+    out.push([a, b]);
   }
-  return false;
+  if (extra && extra.lane === lane) out.push([extra.lo, extra.hi]);
+  return out;
+}
+
+function laneClearFor(lane, lo, hi){
+  for (var i = 0; i < objs.length; i++) {
+    var o = objs[i];
+    if (o.lane !== lane) continue;
+    var L = blockSpan(o);
+    if (L <= 0) continue;
+    var a = o.d, b = o.d + L;
+    if (b > lo - 0.7 && a < hi + 0.7) return false;
+  }
+  return true;
+}
+
+/* Is there still a lane the player can actually run through once this block is
+   added? Long trains hold a lane for a stretch, so we walk the depth plane
+   from the spawn line toward the player and keep the lanes reachable by a
+   single lane change. Any depth where no lane is reachable fails the spawn. */
+function pathSafe(extra){
+  var lists = [
+    laneIntervals(0, DP_LO, FAR, extra),
+    laneIntervals(1, DP_LO, FAR, extra),
+    laneIntervals(2, DP_LO, FAR, extra)
+  ];
+  function open(lane, d){
+    var a = lists[lane];
+    for (var i = 0; i < a.length; i++) {
+      if (d >= a[i][0] - SAFE_PAD && d <= a[i][1] + SAFE_PAD) return false;
+    }
+    return true;
+  }
+  var reach = [open(0, FAR), open(1, FAR), open(2, FAR)];
+  if (!reach[0] && !reach[1] && !reach[2]) return false;
+  for (var d = FAR; d > DP_LO; d -= 0.22) {
+    var nx = [false, false, false];
+    for (var L2 = 0; L2 < 3; L2++) {
+      if (!open(L2, d)) continue;
+      if (reach[L2] || (L2 > 0 && reach[L2 - 1]) || (L2 < 2 && reach[L2 + 1])) nx[L2] = true;
+    }
+    if (!nx[0] && !nx[1] && !nx[2]) return false;
+    reach = nx;
+  }
+  return true;
 }
 
 function spawn(){
-  var lane = Math.floor(Math.random() * 3);
-  var tries = 0;
-  while (laneBusy(lane) && tries < 7) { lane = Math.floor(Math.random() * 3); tries++; }
-  if (laneBusy(lane)) return;
-
   var r = Math.random();
   var type;
   if (r < 0.085 && elapsed - lastCoffee > 9) { type = 'coffee'; lastCoffee = elapsed; }
-  else if (r < 0.30) type = 'card';
+  else if (r < 0.32) type = 'card';
   else type = Math.random() < 0.60 ? 'train' : 'gate';
 
-  objs.push({ type: type, lane: lane, d: FAR, prevD: FAR, done: false, spin: Math.random() * 6.28 });
+  var order = [0, 1, 2];
+  for (var i = order.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+  }
+
+  for (var n = 0; n < 3; n++) {
+    var lane = order[n];
+    if (type === 'coffee' || type === 'card') {
+      if (!laneClearFor(lane, FAR - 0.6, FAR + 0.6)) continue;
+      objs.push({ type: type, lane: lane, d: FAR, prevD: FAR, done: false, passed: false,
+                  zLen: 0, spin: Math.random() * 6.28 });
+      return true;
+    }
+    var len = (type === 'train') ? rnd(TRAIN_LEN_MIN, TRAIN_LEN_MAX) : GATE_LEN;
+    if (!laneClearFor(lane, FAR - len, FAR)) continue;
+    if (!pathSafe({ lane: lane, lo: FAR - len, hi: FAR })) continue;
+    objs.push({ type: type, lane: lane, d: FAR, prevD: FAR, done: false, passed: false,
+                zLen: len, spin: Math.random() * 6.28 });
+    return true;
+  }
+  return false;
 }
 
 /* =========================================================
@@ -419,6 +503,7 @@ function start(){
   ensureAudio();
   state = 'playing';
   laneFloat = 1; targetLane = 1; tilt = 0;
+  laneFrom = 1; laneTo = 1; moveT = 0; moving = false;
   objs = []; parts = []; floats = [];
   elapsed = 0; dist = 0; score = 0; speed = 9;
   boostT = 0; spawnT = 1.8; lastCoffee = -99;
@@ -471,10 +556,17 @@ function move(dir){
   var t = clamp(targetLane + dir, 0, 2);
   if (t === targetLane) return;
   targetLane = t;
+  laneFrom = laneFloat;   /* chain from wherever we are — no dead travel */
+  laneTo = t;
+  moveT = 0;
+  moving = true;
   sfx('move');
 }
 
 var pd = null;
+var SWIPE_MIN = 26;   /* a sideways drag must pass this to count as a swipe */
+var TAP_SLOP  = 10;   /* under this much movement a touch is a tap */
+var TAP_MS    = 520;
 function px(e){
   if (e.touches && e.touches.length) return e.touches[0].clientX;
   if (e.changedTouches && e.changedTouches.length) return e.changedTouches[0].clientX;
@@ -488,31 +580,43 @@ function py(e){
 
 function onDown(e){
   ensureAudio();
-  if (state !== 'playing') {
-    if (state === 'over') { /* tap handled by overlay button */ }
-    return;
-  }
+  if (state !== 'playing') return;
   var t = e.timeStamp || Date.now();
-  pd = { x: px(e), y: py(e), t: t, used: false };
+  pd = { x: px(e), y: py(e), t: t, used: false, dir: 0, ax: px(e), fired: 0 };
   if (e.cancelable) e.preventDefault();
 }
 function onMove(e){
-  if (!pd || pd.used) return;
-  var dx = px(e) - pd.x;
-  var dy = py(e) - pd.y;
-  if (Math.abs(dx) > 22 && Math.abs(dx) > Math.abs(dy) * 0.75) {
-    move(dx > 0 ? 1 : -1);
-    pd.used = true;
-  }
+  if (!pd) return;
   if (e.cancelable) e.preventDefault();
+  var x = px(e), y = py(e);
+  var dx = x - pd.x, dy = y - pd.y;
+  if (!pd.used) {
+    /* one lane per swipe, and only on a clearly sideways drag */
+    if (Math.abs(dx) >= SWIPE_MIN && Math.abs(dx) > Math.abs(dy) * 1.15) {
+      pd.dir = dx > 0 ? 1 : -1;
+      move(pd.dir);
+      pd.used = true;
+      pd.ax = x;
+      pd.fired = 1;
+    }
+    return;
+  }
+  /* a long drag that keeps going the same way may step one more lane */
+  var ex = x - pd.ax;
+  if (pd.fired < 2 && (ex > 0 ? 1 : -1) === pd.dir && Math.abs(ex) >= SWIPE_MIN * 2.6 && Math.abs(ex) > Math.abs(y - pd.y) * 1.15) {
+    move(pd.dir);
+    pd.ax = x;
+    pd.fired = 2;
+  }
 }
 function onUp(e){
   if (!pd) return;
-  var dx = px(e) - pd.x;
-  var dy = py(e) - pd.y;
+  var x = px(e), y = py(e);
+  var dx = x - pd.x, dy = y - pd.y;
   var dtms = (e.timeStamp || Date.now()) - pd.t;
-  if (!pd.used && Math.abs(dx) < 28 && Math.abs(dy) < 28 && dtms < 620) {
-    move(px(e) < W / 2 ? -1 : 1);
+  if (!pd.used && Math.abs(dx) < TAP_SLOP && Math.abs(dy) < TAP_SLOP && dtms < TAP_MS) {
+    /* the side is decided where the finger went down, not where it lifted */
+    move(pd.x < W / 2 ? -1 : 1);
   }
   pd = null;
   if (e.cancelable) e.preventDefault();
@@ -583,18 +687,29 @@ function update(dt){
     else elBoostF.style.transform = 'scaleX(' + (boostT / 3).toFixed(3) + ')';
   }
 
-  /* player lateral move */
-  var diff = targetLane - laneFloat;
-  laneFloat += diff * Math.min(1, dt * 15);
-  if (Math.abs(targetLane - laneFloat) < 0.012) laneFloat = targetLane;
-  tilt = clamp((targetLane - laneFloat) * 0.6, -0.30, 0.30);
+  /* player lateral move — fixed-duration snap that lands exactly on the lane */
+  if (moving) {
+    moveT += dt;
+    var mp = moveT / MOVE_DUR;
+    if (mp >= 1) {
+      laneFloat = laneTo;
+      tilt = 0;
+      moving = false;
+    } else {
+      var me = mp * (2 - mp);              /* ease-out quad: instant leave, clean settle */
+      laneFloat = laneFrom + (laneTo - laneFrom) * me;
+      tilt = clamp((laneTo - laneFrom) * 0.30 * (1 - mp), -0.30, 0.30);
+    }
+  } else {
+    tilt = 0;
+  }
 
   /* spawn */
   spawnT -= dt;
   if (spawnT <= 0) {
-    spawn();
+    var okSpawn = spawn();
     var base = Math.max(0.52, 1.16 - elapsed * 0.0092);
-    spawnT = base * rnd(0.82, 1.4);
+    spawnT = okSpawn ? base * rnd(0.82, 1.4) : 0.14;
   }
 
   /* objects */
@@ -603,45 +718,48 @@ function update(dt){
     o.prevD = o.d;
     o.d -= ds;
 
-    var crossed = (o.prevD > HIT_D && o.d <= HIT_D);
-    var inside  = (o.d <= HIT_D && o.prevD >= KEEP_D);
+    var span = blockSpan(o);
+    var inLane = Math.abs(o.lane - laneFloat) < 0.5;
+    var ox = cx + (o.lane - 1) * laneOff;
+    var oy = bottomY - laneOff * 0.35;
 
-    if (!o.done && (crossed || inside)) {
-      o.done = true;
-      var same = Math.abs(o.lane - laneFloat) < 0.5;
-      var ox = cx + (o.lane - 1) * laneOff;
-      var oy = bottomY - laneOff * 0.35;
-
-      if (same) {
-        if (o.type === 'card') {
-          score += 50;
-          coinFlash = 1;
-          sfx('coin');
-          burst(ox, oy, '#7df3ff', 12, 0.8);
-          floatText(ox, oy - 10, '+50', '#7df3ff');
-        } else if (o.type === 'coffee') {
-          boostT = 3;
-          elBoostW.classList.add('on');
-          elBoostF.style.transform = 'scaleX(1)';
-          sfx('boost');
-          burst(ox, oy, '#ffd23f', 20, 1);
-          floatText(ox, oy - 10, '무적 3초', '#ffd23f');
+    if (span > 0) {
+      /* a long train (or a gate) blocks the plane from its head to its tail,
+         so entering that lane while it sweeps past is a real hit */
+      var covers = (o.d <= HIT_D && o.prevD + span >= HIT_D);
+      if (!o.done && inLane && covers) {
+        if (boostT > 0) {
+          o.done = true;
+          o.passed = true;
+          score += 30;
+          sfx('smash');
+          burst(ox, oy, '#ff7ab0', 18, 1.15);
+          floatText(ox, oy - 10, '돌파!', '#ff7ab0');
+          shake = Math.max(shake, 0.45);
         } else {
-          if (boostT > 0) {
-            score += 30;
-            sfx('smash');
-            burst(ox, oy, '#ff7ab0', 18, 1.15);
-            floatText(ox, oy - 10, '돌파!', '#ff7ab0');
-            shake = Math.max(shake, 0.45);
-          } else {
-            gameOver();
-            return;
-          }
+          gameOver();
+          return;
         }
+      }
+    } else if (!o.done && inLane && o.d <= HIT_D && o.prevD >= HIT_D) {
+      o.done = true;
+      if (o.type === 'card') {
+        score += 50;
+        coinFlash = 1;
+        sfx('coin');
+        burst(ox, oy, '#7df3ff', 12, 0.8);
+        floatText(ox, oy - 10, '+50', '#7df3ff');
+      } else if (o.type === 'coffee') {
+        boostT = 3;
+        elBoostW.classList.add('on');
+        elBoostF.style.transform = 'scaleX(1)';
+        sfx('boost');
+        burst(ox, oy, '#ffd23f', 20, 1);
+        floatText(ox, oy - 10, '무적 3초', '#ffd23f');
       }
     }
 
-    if (o.d < KEEP_D) objs.splice(i, 1);
+    if (o.d + span < KEEP_D) objs.splice(i, 1);
   }
 
   /* particles */
@@ -825,73 +943,206 @@ function drawRoad(){
 /* =========================================================
    draw: objects
    ========================================================= */
-function drawTrain(o, k){
-  var x = xOf(o.lane, o.d);
-  var y = yOf(o.d);
-  var w = laneOff * 0.86 * k;
-  var h = laneOff * 1.30 * k;
-  if (w < 1.2) return;
+var TR_HW = 0.43;   /* half width in lane units (full width 0.86) */
+var TR_H  = 1.30;   /* body height in lane units */
 
-  /* ground shadow */
+/* project a point of the train box: fx = -1..1 across the body, fy = 0 ground .. 1 roof */
+function trainPt(lane, d, fx, fy){
+  var k = kOf(d);
+  return {
+    x: cx + (lane - 1) * laneOff * k + fx * laneOff * TR_HW * k,
+    y: yOf(d) - fy * laneOff * TR_H * k,
+    k: k
+  };
+}
+
+function quad(p1, p2, p3, p4, fill){
+  ctx.beginPath();
+  ctx.moveTo(p1.x, p1.y);
+  ctx.lineTo(p2.x, p2.y);
+  ctx.lineTo(p3.x, p3.y);
+  ctx.lineTo(p4.x, p4.y);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+}
+
+/* one carriage, from its near depth dN to its far depth dF */
+function drawTrainCar(lane, side, dN, dF){
+  var kN = kOf(dN), kF = kOf(dF);
+  if ((kN + kF) * 0.5 < 0.006) return;
+  var lw = Math.max(0.7, 2.4 * kN);
+
+  /* ---- visible flank ---- */
+  if (side !== 0) {
+    var sT_N = trainPt(lane, dN, side, 1), sT_F = trainPt(lane, dF, side, 1);
+    var sB_N = trainPt(lane, dN, side, 0), sB_F = trainPt(lane, dF, side, 0);
+
+    var sg = ctx.createLinearGradient(0, sT_N.y, 0, sB_N.y);
+    sg.addColorStop(0, '#1e5678');
+    sg.addColorStop(0.40, '#11364c');
+    sg.addColorStop(1, '#06131f');
+    quad(sT_N, sT_F, sB_F, sB_N, sg);
+
+    /* door panel near the far end of the carriage */
+    var dD0 = dN + (dF - dN) * 0.52, dD1 = dN + (dF - dN) * 0.80;
+    var dT0 = trainPt(lane, dD0, side, 0.86), dT1 = trainPt(lane, dD1, side, 0.86);
+    var dB0 = trainPt(lane, dD0, side, 0.02), dB1 = trainPt(lane, dD1, side, 0.02);
+    quad(dT0, dT1, dB1, dB0, 'rgba(6,22,34,0.72)');
+
+    /* 2호선 green stripe */
+    var g1 = trainPt(lane, dN, side, 0.54), g2 = trainPt(lane, dF, side, 0.54);
+    var g3 = trainPt(lane, dF, side, 0.46), g4 = trainPt(lane, dN, side, 0.46);
+    quad(g1, g2, g3, g4, 'rgba(46,224,122,0.88)');
+
+    /* lit window band */
+    var w1 = trainPt(lane, dN, side, 0.86), w2 = trainPt(lane, dF, side, 0.86);
+    var w3 = trainPt(lane, dF, side, 0.62), w4 = trainPt(lane, dN, side, 0.62);
+    var wg = ctx.createLinearGradient(w1.x, w1.y, w2.x, w2.y);
+    wg.addColorStop(0, 'rgba(214,250,255,0.90)');
+    wg.addColorStop(0.55, 'rgba(150,236,255,0.72)');
+    wg.addColorStop(1, 'rgba(96,196,240,0.42)');
+    quad(w1, w2, w3, w4, wg);
+
+    /* window frames */
+    var frames = Math.max(2, Math.round((dF - dN) / 0.85));
+    ctx.save();
+    ctx.strokeStyle = 'rgba(6,26,38,0.85)';
+    ctx.lineWidth = Math.max(0.6, 2.0 * kN);
+    for (var j = 1; j < frames; j++) {
+      var dj = dN + (dF - dN) * (j / frames);
+      var f1 = trainPt(lane, dj, side, 0.86), f0 = trainPt(lane, dj, side, 0.62);
+      ctx.beginPath(); ctx.moveTo(f1.x, f1.y); ctx.lineTo(f0.x, f0.y); ctx.stroke();
+    }
+    /* coupling seam at the far end */
+    ctx.strokeStyle = 'rgba(4,14,24,0.95)';
+    ctx.lineWidth = Math.max(1, 3.2 * kF);
+    ctx.beginPath(); ctx.moveTo(sT_F.x, sT_F.y); ctx.lineTo(sB_F.x, sB_F.y); ctx.stroke();
+    /* neon rim along the top of the flank */
+    ctx.strokeStyle = 'rgba(120,238,255,0.55)';
+    ctx.lineWidth = lw * 0.6;
+    ctx.beginPath(); ctx.moveTo(sT_N.x, sT_N.y); ctx.lineTo(sT_F.x, sT_F.y); ctx.stroke();
+    ctx.restore();
+  }
+
+  /* ---- roof ---- */
+  var rL_N = trainPt(lane, dN, -1, 1);
+  var rL_F = trainPt(lane, dF, -1, 1);
+  var rR_N = trainPt(lane, dN, 1, 1);
+  var rR_F = trainPt(lane, dF, 1, 1);
+  var rg = ctx.createLinearGradient(rL_N.x, rL_N.y, rR_N.x, rR_N.y);
+  rg.addColorStop(0, '#2c6c8c');
+  rg.addColorStop(0.5, '#1d4c66');
+  rg.addColorStop(1, '#12374b');
+  quad(rL_N, rL_F, rR_F, rR_N, rg);
+
+  /* roof ribs, so a head-on carriage still reads as a long roof */
   ctx.save();
-  ctx.globalAlpha = 0.45 * k;
+  ctx.strokeStyle = 'rgba(150,240,255,0.22)';
+  ctx.lineWidth = Math.max(0.5, 1.4 * kN);
+  var ribs = Math.max(2, Math.round((dF - dN) / 0.7));
+  for (var m = 1; m < ribs; m++) {
+    var dm = dN + (dF - dN) * (m / ribs);
+    var p1 = trainPt(lane, dm, -1, 1), p2 = trainPt(lane, dm, 1, 1);
+    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawTrain(o, k){
+  var lane = o.lane;
+  var L = o.zLen || 0;
+  var zNearO = o.d;
+  var zNear = Math.max(zNearO, 0.58);
+  var zFar = Math.min(zNearO + L, FAR * 0.998);
+  var side = (lane === 0) ? 1 : (lane === 2 ? -1 : 0);
+
+  /* shadow under the whole consist */
+  var sN = trainPt(lane, zNear, 0, 0), sF = trainPt(lane, zFar, 0, 0);
+  var hN = laneOff * TR_HW * sN.k, hF = laneOff * TR_HW * sF.k;
+  ctx.save();
+  ctx.globalAlpha = 0.42;
   ctx.fillStyle = '#000';
   ctx.beginPath();
-  ctx.ellipse(x, y, w * 0.62, w * 0.20, 0, 0, 6.2832);
+  ctx.moveTo(sN.x - hN * 1.18, sN.y);
+  ctx.lineTo(sF.x - hF * 1.18, sF.y);
+  ctx.lineTo(sF.x + hF * 1.18, sF.y);
+  ctx.lineTo(sN.x + hN * 1.18, sN.y);
+  ctx.closePath();
   ctx.fill();
   ctx.restore();
+
+  /* carriages, far to near so the near ones sit on top */
+  if (zFar > zNear + 0.02) {
+    var cars = Math.max(1, Math.round(L / CAR_LEN));
+    var step = L / cars;
+    for (var c = cars - 1; c >= 0; c--) {
+      var dN = Math.max(zNear, zNearO + c * step);
+      var dF = Math.min(zFar, zNearO + (c + 1) * step);
+      if (dF - dN < 0.02) continue;
+      drawTrainCar(lane, side, dN, dF);
+    }
+  }
+
+  /* ---- lead carriage nose ---- */
+  if (zNearO < 0.58) return;
+  var nk = kOf(zNear);
+  var nx = cx + (lane - 1) * laneOff * nk;
+  var ny = yOf(zNear);
+  var nw = laneOff * 0.86 * nk;
+  var nh = laneOff * TR_H * nk;
+  if (nw < 1.2) return;
 
   /* body */
   ctx.save();
   ctx.shadowColor = 'rgba(80,215,255,0.9)';
-  ctx.shadowBlur = 20 * k;
-  var g = ctx.createLinearGradient(x, y - h, x, y);
-  g.addColorStop(0, '#14344f');
+  ctx.shadowBlur = 20 * nk;
+  var g = ctx.createLinearGradient(nx, ny - nh, nx, ny);
+  g.addColorStop(0, '#16405c');
   g.addColorStop(0.45, '#0e2438');
   g.addColorStop(1, '#07131f');
-  rr(x - w / 2, y - h, w, h, w * 0.16);
+  rr(nx - nw / 2, ny - nh, nw, nh, nw * 0.16);
   ctx.fillStyle = g;
   ctx.fill();
-  ctx.lineWidth = Math.max(1, 2.2 * k);
+  ctx.lineWidth = Math.max(1, 2.2 * nk);
   ctx.strokeStyle = 'rgba(90,235,255,0.95)';
   ctx.stroke();
   ctx.restore();
 
   /* roof light bar */
   ctx.fillStyle = 'rgba(255,120,190,0.9)';
-  rr(x - w * 0.34, y - h + h * 0.045, w * 0.68, Math.max(1.2, h * 0.035), 2);
+  rr(nx - nw * 0.34, ny - nh + nh * 0.045, nw * 0.68, Math.max(1.2, nh * 0.035), 2);
   ctx.fill();
 
   /* windscreen */
-  var gr = ctx.createLinearGradient(0, y - h * 0.80, 0, y - h * 0.46);
+  var gr = ctx.createLinearGradient(0, ny - nh * 0.80, 0, ny - nh * 0.46);
   gr.addColorStop(0, 'rgba(160,245,255,0.95)');
   gr.addColorStop(1, 'rgba(50,140,200,0.55)');
-  rr(x - w * 0.36, y - h * 0.80, w * 0.72, h * 0.34, w * 0.10);
+  rr(nx - nw * 0.36, ny - nh * 0.80, nw * 0.72, nh * 0.34, nw * 0.10);
   ctx.fillStyle = gr;
   ctx.fill();
 
   /* headlights */
-  var lr = Math.max(1, w * 0.085);
+  var lr = Math.max(1, nw * 0.085);
   ctx.save();
   ctx.shadowColor = 'rgba(255,235,150,0.95)';
-  ctx.shadowBlur = 18 * k;
+  ctx.shadowBlur = 18 * nk;
   ctx.fillStyle = '#fff3bd';
-  ctx.beginPath(); ctx.arc(x - w * 0.28, y - h * 0.22, lr, 0, 6.2832); ctx.fill();
-  ctx.beginPath(); ctx.arc(x + w * 0.28, y - h * 0.22, lr, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.arc(nx - nw * 0.28, ny - nh * 0.22, lr, 0, 6.2832); ctx.fill();
+  ctx.beginPath(); ctx.arc(nx + nw * 0.28, ny - nh * 0.22, lr, 0, 6.2832); ctx.fill();
   ctx.restore();
 
   /* route badge */
-  if (h * 0.14 > 9) {
+  if (nh * 0.14 > 9) {
     ctx.save();
     ctx.fillStyle = 'rgba(255,255,255,0.92)';
     ctx.beginPath();
-    ctx.arc(x, y - h * 0.13, w * 0.13, 0, 6.2832);
+    ctx.arc(nx, ny - nh * 0.13, nw * 0.13, 0, 6.2832);
     ctx.fill();
     ctx.fillStyle = '#0a2233';
-    ctx.font = '700 ' + Math.round(w * 0.18) + 'px -apple-system,system-ui,sans-serif';
+    ctx.font = '700 ' + Math.round(nw * 0.18) + 'px -apple-system,system-ui,sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('2', x, y - h * 0.13);
+    ctx.fillText('2', nx, ny - nh * 0.13);
     ctx.restore();
   }
 }
