@@ -764,7 +764,7 @@
     return c;
   }
 
-  function itemSprite(emoji, colA, colB) {
+  function itemSprite(kind, colA, colB) {
     var Z = 52, c = mkC(Z, Z), g = c.getContext('2d'), cx = Z / 2;
     g.globalAlpha = 0.95;
     g.drawImage(SP.glow.gold, 0, 0, Z, Z);
@@ -778,11 +778,52 @@
     g.strokeStyle = 'rgba(255,255,255,0.85)';
     g.lineWidth = 2;
     g.stroke();
-    g.font = '600 22px -apple-system, "Apple Color Emoji", "Segoe UI Emoji", serif';
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.fillStyle = '#ffffff';
-    g.fillText(emoji, cx, cx + 1);
+    // 아이콘은 이모지 글꼴에 의존하지 않는 벡터로 그린다
+    g.lineJoin = 'round';
+    g.lineCap = 'round';
+    if (kind === 'power') {
+      g.fillStyle = '#fffbe8';
+      poly(g, [[28, 9], [17, 28], [24.5, 28], [22, 42], [35, 22], [27.5, 22]]);
+      g.fill();
+    } else if (kind === 'magnet') {
+      g.strokeStyle = '#ffffff';
+      g.lineWidth = 7;
+      g.beginPath();
+      g.arc(cx, 25, 9.5, 0.06, Math.PI - 0.06, false);
+      g.stroke();
+      g.fillStyle = '#ffffff';
+      g.fillRect(cx - 13, 10, 7, 9);
+      g.fillRect(cx + 6, 10, 7, 9);
+      g.fillStyle = 'rgba(255,90,120,0.95)';
+      g.fillRect(cx - 13, 10, 7, 4);
+      g.fillRect(cx + 6, 10, 7, 4);
+    } else if (kind === 'shield') {
+      g.fillStyle = '#ffffff';
+      poly(g, [[cx, 9], [cx + 12, 15], [cx + 12, 26], [cx, 43], [cx - 12, 26], [cx - 12, 15]]);
+      g.fill();
+      g.fillStyle = 'rgba(60,200,170,0.9)';
+      poly(g, [[cx, 15], [cx + 7, 19], [cx + 7, 26], [cx, 36], [cx - 7, 26], [cx - 7, 19]]);
+      g.fill();
+    } else if (kind === 'bomb') {
+      g.fillStyle = '#ffffff';
+      g.beginPath(); g.arc(cx, 30, 10, 0, TAU); g.fill();
+      g.strokeStyle = '#ffffff';
+      g.lineWidth = 3;
+      g.beginPath(); g.moveTo(cx + 5, 21); g.quadraticCurveTo(cx + 12, 14, cx + 8, 10); g.stroke();
+      g.fillStyle = '#ffd166';
+      poly(g, [[cx + 8, 7], [cx + 12, 11], [cx + 8, 14], [cx + 4, 11]]);
+      g.fill();
+      g.fillStyle = 'rgba(60,20,10,0.5)';
+      g.beginPath(); g.arc(cx - 3, 27, 2.2, 0, TAU); g.fill();
+    } else {
+      // fever — 불꽃
+      g.fillStyle = '#ffffff';
+      poly(g, [[cx, 8], [cx + 8, 20], [cx + 4, 24], [cx + 10, 29], [cx, 43], [cx - 9, 30], [cx - 4, 25], [cx - 7, 19]]);
+      g.fill();
+      g.fillStyle = 'rgba(255,120,200,0.95)';
+      poly(g, [[cx, 20], [cx + 4, 28], [cx + 2, 31], [cx, 37], [cx - 3, 30], [cx - 4, 27]]);
+      g.fill();
+    }
     return c;
   }
 
@@ -815,11 +856,11 @@
     SP.enemy = [enemySprite(0), enemySprite(1), enemySprite(2)];
     SP.boss = bossSprite();
     SP.gem = gemSprite();
-    SP.item.power = itemSprite('⚡', 'rgba(255,170,40,0.95)', 'rgba(255,245,190,0.95)');
-    SP.item.magnet = itemSprite('🧲', 'rgba(70,180,255,0.95)', 'rgba(220,250,255,0.95)');
-    SP.item.shield = itemSprite('🛡️', 'rgba(90,240,190,0.95)', 'rgba(225,255,240,0.95)');
-    SP.item.bomb = itemSprite('💣', 'rgba(255,90,90,0.95)', 'rgba(255,220,200,0.95)');
-    SP.item.fever = itemSprite('🔥', 'rgba(255,80,200,0.95)', 'rgba(255,235,255,0.95)');
+    SP.item.power = itemSprite('power', 'rgba(255,170,40,0.95)', 'rgba(255,245,190,0.95)');
+    SP.item.magnet = itemSprite('magnet', 'rgba(70,180,255,0.95)', 'rgba(220,250,255,0.95)');
+    SP.item.shield = itemSprite('shield', 'rgba(90,240,190,0.95)', 'rgba(225,255,240,0.95)');
+    SP.item.bomb = itemSprite('bomb', 'rgba(255,90,90,0.95)', 'rgba(255,220,200,0.95)');
+    SP.item.fever = itemSprite('fever', 'rgba(255,80,200,0.95)', 'rgba(255,235,255,0.95)');
     SP.meteor = meteorSprite();
   }
 
