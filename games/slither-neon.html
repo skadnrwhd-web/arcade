@@ -661,6 +661,7 @@ var input = {
 };
 
 function setAimAngle(a, from){
+  input.lastAct = G.time; G.hasInput = true;
   input.aim = a;
   input.steer = from || 'pointer';
   if(G.player) G.player.aimA = a;
@@ -698,6 +699,7 @@ function onMove(e, isTouchLike){
   if(isTouchLike){
     if(!input.stickOn) return;
     if(input.stickId !== null && e.pointerId != null && e.pointerId !== input.stickId) return;
+    input.lastAct = G.time; G.hasInput = true;
     var dx = p.x - input.ox, dy = p.y - input.oy;
     var d = hypot(dx,dy);
     var maxR = 52;
@@ -708,6 +710,7 @@ function onMove(e, isTouchLike){
   } else {
     input.mouseX = p.x; input.mouseY = p.y; input.mouseIn = true;
     input.mode = 'mouse';
+    input.lastAct = G.time; G.hasInput = true;
   }
 }
 function onUp(e, isTouchLike){
@@ -877,6 +880,8 @@ function startGame(){
   input.mouseIn = false;
   input.boostMouse = false;
   input.stickMag = 0;
+  input.lastAct = -999;
+  G.hasInput = false;
   elStick.classList.remove('on');
   updateHud(true);
 }
@@ -1087,6 +1092,19 @@ function updatePlayer(dt){
   // power timers
   if(w.magnetT > 0){ w.magnetT -= dt; if(w.magnetT < 0) w.magnetT = 0; }
   if(w.invT > 0){ w.invT -= dt; if(w.invT < 0) w.invT = 0; }
+  // until the player actually takes control the worm stays protected
+  if(!G.hasInput && w.invT < 0.6) w.invT = 0.6;
+
+  // idle assist: with no fresh input the worm patrols an orbit between the
+  // crowded centre and the wall, so a lifted finger or a passive player does
+  // not fly straight into the boundary
+  if(G.time - (input.lastAct || 0) > 2.2){
+    var d0 = hypot(w.x, w.y);
+    var orbA = Math.atan2(w.y, w.x) + 0.24;
+    var orbR = clamp(d0, ARENA_R*0.34, ARENA_R*0.68);
+    var tx = Math.cos(orbA)*orbR, ty = Math.sin(orbA)*orbR;
+    w.aimA = w.ang + angDiff(Math.atan2(ty - w.y, tx - w.x), w.ang)*0.55;
+  }
   moveWorm(w, dt, w.hyperT > 0);
 }
 
@@ -1667,8 +1685,7 @@ function wormBodyColor(w, t){
 
 function drawWorm(w, t, isLeader){
   if(!w.alive) return;
-  var shielded = (w.invT > 0);
-  if(shielded) ctx.globalAlpha = 0.45 + 0.25*Math.sin(t*14);
+  var shielded = (w.invT > 0.01);
   var c1 = w.c1, c2 = w.c2;
   var body = wormBodyColor(w, t);
   var boostGlow = w.boosting || w.hyperT > 0;
@@ -1710,11 +1727,10 @@ function drawWorm(w, t, isLeader){
   // head
   drawHead(w, t, isLeader, body);
   if(shielded){
-    ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = 'lighter';
-    ctx.strokeStyle = 'rgba(150,235,255,' + (0.45 + 0.35*Math.sin(t*12)).toFixed(3) + ')';
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(w.x, w.y, headRadius(w)*2.4, 0, TAU); ctx.stroke();
+    ctx.strokeStyle = 'rgba(150,235,255,' + (0.22 + 0.18*Math.sin(t*9)).toFixed(3) + ')';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(w.x, w.y, headRadius(w)*2.5, 0, TAU); ctx.stroke();
     ctx.globalCompositeOperation = 'source-over';
   }
 }
@@ -2215,7 +2231,7 @@ window.UJSLITHER = {
   G: G, cfg: cfg, SKINS: SKINS, ARENA_R: ARENA_R,
   start: startGame, reset: resetArena, makeWorm: makeWorm, addAI: addAI,
   spawnPlayer: spawnPlayer, killWorm: killWorm, killPlayer: killPlayer,
-  setAim: function(a){ if(G.player) G.player.aimA = a; },
+  setAim: function(a){ if(G.player) G.player.aimA = a; G.hasInput = true; input.lastAct = G.time; },
   setBoost: function(v){ input.boostTouch = !!v; },
   input: input, seedFood: seedFood,
   debugGrid: buildGrid, debugNearest: nearestNode, debugCollide: collideCheck, headR: headRadius
