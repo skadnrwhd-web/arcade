@@ -3,7 +3,7 @@
 Browser games made together with AI, collected in one place.
 Play them at https://skadnrwhd-web.github.io/arcade/
 
-- 5 full games (3D puzzles, a pathfinding race, a classic toy) and 3 mini-games
+- 12 full games (3D puzzles, a pathfinding race, a shooter, a runner, Suika, Gomoku and more) and 3 mini-games
 - A no-login message board (nickname only)
 - Share with friends on KakaoTalk
 
