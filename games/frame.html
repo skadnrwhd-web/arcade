@@ -5,16 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>size frame</title>
 <style>
-  html,body{margin:0;height:100%;background:#0a0d14;display:flex;align-items:center;justify-content:center;
-    font-family:-apple-system,"Apple SD Gothic Neo",sans-serif;color:#7fa8c4}
-  #wrap{position:relative;box-shadow:0 0 40px rgba(0,0,0,.8);border-radius:14px;overflow:hidden}
-  iframe{border:0;display:block}
-  #lab{position:fixed;left:10px;top:8px;font-size:11px;letter-spacing:.1em}
+  html,body{margin:0;height:100%;background:#000}
+  #f{position:fixed;left:0;top:0;border:0;display:block}
 </style>
 </head>
 <body>
-<div id="lab"></div>
-<div id="wrap"><iframe id="f" allow="autoplay"></iframe></div>
+<iframe id="f" allow="autoplay"></iframe>
 <script>
   var q = new URLSearchParams(location.search);
   var w = parseInt(q.get('w') || '390', 10);
@@ -22,7 +18,6 @@
   var f = document.getElementById('f');
   f.width = w; f.height = h;
   f.style.width = w + 'px'; f.style.height = h + 'px';
-  document.getElementById('lab').textContent = w + ' x ' + h;
   f.src = 'slither-neon.html' + (q.get('t') ? '?t=' + q.get('t') : '');
 </script>
 </body>
