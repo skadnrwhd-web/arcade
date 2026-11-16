@@ -236,6 +236,15 @@ footer a:hover{color:#fff}
 @media (max-width:600px){ .c-row{flex-direction:column; align-items:stretch} .p-actions .btn.line{display:none} }
 .c-msg{margin:4px 2px; min-height:1px; font-size:14px; color:var(--pink)}
 .c-list{display:grid; gap:10px; margin-top:10px}
+.c-bar{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:12px}
+.c-bar .c-refresh:only-child{margin-left:auto}
+.c-tabs{display:flex; flex-wrap:wrap; gap:6px}
+.c-tab,.c-refresh{font:inherit; font-size:13.5px; font-weight:800; color:var(--body); background:var(--bg); border:1px solid var(--line); border-radius:999px; padding:7px 13px; cursor:pointer; -webkit-tap-highlight-color:transparent}
+.c-tab[aria-pressed="true"]{color:#08121a; background:var(--cyan); border-color:var(--cyan)}
+.c-refresh:disabled{opacity:.6; cursor:default}
+.c-tag{font:inherit; font-size:12.5px; font-weight:800; color:var(--cyan); background:rgba(55,224,255,.1); border:1px solid rgba(55,224,255,.35); border-radius:999px; padding:2px 10px; cursor:pointer; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.c-head{flex-wrap:wrap}
+.cg-btns{display:flex; flex-wrap:wrap; gap:8px}
 .c-item{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
 .c-head{display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--muted); margin-bottom:4px}
 .c-head b{color:var(--ink); font-size:14.5px}
@@ -384,7 +393,7 @@ footer a:hover{color:#fff}
     </div>
     <div class="cg-top rv">
       <span class="c-hint2" data-i="s5_note">내가 만든 게임의 주소만 올려 주세요. 올린 글은 고치거나 지울 수 없습니다.</span>
-      <button class="btn play sm" id="cgToggle" type="button" aria-expanded="false" aria-controls="cgForm"><span id="cgToggleT" data-i="s5_add">+ 내 게임 올리기</span></button>
+      <span class="cg-btns"><button class="btn line sm" id="cgRefresh" type="button">↻ 새로고침</button><button class="btn play sm" id="cgToggle" type="button" aria-expanded="false" aria-controls="cgForm"><span id="cgToggleT" data-i="s5_add">+ 내 게임 올리기</span></button></span>
     </div>
     <form class="cg-form" id="cgForm" novalidate>
       <h3 data-i="s5_fh">내 게임 올리기</h3>
@@ -445,7 +454,7 @@ footer a:hover{color:#fff}
   <div class="wrap">
     <div class="sec-head rv">
       <div><span class="eyebrow" data-i="s4_eb">Community</span><h2 data-i="s4_h">게시판</h2></div>
-      <p data-i="s4_p">게임 후기, 버그 제보, 만들어 줬으면 하는 게임을 자유롭게 남겨 주세요.</p>
+      <p data-i="s4_p">게임 후기, 버그 제보, 만들어 줬으면 하는 게임을 자유롭게 남겨 주세요. 게임마다 남긴 댓글도 여기에 모입니다.</p>
     </div>
     <div class="thread-box rv">
       <div class="thread" id="boardThread"></div>
@@ -506,7 +515,7 @@ footer a:hover{color:#fff}
 <script>
 (function(){
 "use strict";
-var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",s4_p:"Reviews, bug reports, games you would like to see: leave anything here.",c_hint:"No login needed. Pick any nickname and write. Posts are public and cannot be edited, so do not write personal details such as your name or contact info.",c_title:"Comments",p_new:"Open in new tab",n1:"Mini-games",n2:"Games",n3:"How it's made",
+var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",s4_p:"Reviews, bug reports, games you would like to see: leave anything here. Comments left on each game are collected here too.",c_hint:"No login needed. Pick any nickname and write. Posts are public and cannot be edited, so do not write personal details such as your name or contact info.",c_title:"Comments",p_new:"Open in new tab",n1:"Mini-games",n2:"Games",n3:"How it's made",
  h_eb:"No install · Free · No ads",h1a:"Open it,",h1b:"play right away",
  h_p:"Browser games built by a non-developer together with AI. Phone or PC, just open the link.",
  c1:"Play now",c2:"Go to the board",p1:"games",p2:"Works on phone and PC",p3:"Board with no login",
@@ -667,22 +676,52 @@ function renderThread(box,term){
   trap.type="text"; trap.name="website"; trap.tabIndex=-1; trap.autocomplete="off"; trap.setAttribute("aria-hidden","true"); trap.style.cssText="position:absolute;left:-9999px;width:1px;height:1px;opacity:0";
   send.type="submit";
   function say(text){ msg.textContent=text||""; }
-  function load(){ sb.from("comments").select("id,nickname,body,created_at").eq("thread",term).order("created_at",{ascending:false}).limit(50).then(function(r){
-    if(box._term!==term) return; list.textContent="";
-    if(r.error){ list.appendChild(el("p","c-empty",T("글을 불러오지 못했습니다.","Could not load posts."))); return; }
-    if(!r.data.length){ list.appendChild(el("p","c-empty",T("아직 글이 없습니다. 첫 글을 남겨 보세요.","No posts yet. Be the first."))); return; }
-    r.data.forEach(function(x){ var it=el("div","c-item"),hd=el("div","c-head"),d=new Date(x.created_at);
-      hd.appendChild(el("b",null,x.nickname)); hd.appendChild(el("span",null,isNaN(d)?"":d.toLocaleString(lang==="en"?"en":"ko-KR",{dateStyle:"medium",timeStyle:"short"})));
-      it.appendChild(hd); it.appendChild(el("p","c-body",x.body)); list.appendChild(it); }); }); }
+  var isBoard=(term==="board"),filter=isBoard?boardFilter:"all",seq=0,busy=false;
+  /* 게시판에 보이는 게임 댓글의 thread 값에서 게임 이름과 카드를 찾는다. 이상한 값이거나 숨겨진 게임이면 null(=게시판에 안 보임) */
+  function tagFor(th){ var m=/^game:\s*([A-Za-z0-9_-]{1,60})$/.exec(th||""),c;
+    if(m){ c=document.querySelector('[data-play="'+m[1]+'"]'); return c?{name:(c.querySelector("h3")||{}).textContent||m[1],card:c}:null; }
+    m=/^cgame:([0-9]{1,12})$/.exec(th||""); if(m){ c=document.querySelector('[data-cg="cgame:'+m[1]+'"]'); return c?{name:c.getAttribute("data-title")||T("모두의 게임","Community game"),card:c}:null; }
+    return null; }
+  function paint(rows){ list.textContent=""; var n=0;
+    rows.forEach(function(x){ if(n>=50) return; var tg=null;
+      if(isBoard&&x.thread!=="board"){ tg=tagFor(x.thread); if(!tg) return; }
+      var it=el("div","c-item"),hd=el("div","c-head"),d=new Date(x.created_at);
+      hd.appendChild(el("b",null,x.nickname));
+      if(tg){ var tb=el("button","c-tag","🎮 "+tg.name); tb.type="button"; tb.title=T("이 게임 열기","Open this game");
+        tb.addEventListener("click",function(){ var t2=tagFor(x.thread); if(!t2) return; track('board_game_click',{game_name:t2.name}); openPlayer(t2.card); }); hd.appendChild(tb); }
+      hd.appendChild(el("span",null,isNaN(d)?"":d.toLocaleString(lang==="en"?"en":"ko-KR",{dateStyle:"medium",timeStyle:"short"})));
+      it.appendChild(hd); it.appendChild(el("p","c-body",x.body)); list.appendChild(it); n++; });
+    if(!n) list.appendChild(el("p","c-empty",filter==="game"?T("아직 게임 댓글이 없습니다.","No game comments yet."):T("아직 글이 없습니다. 첫 글을 남겨 보세요.","No posts yet. Be the first."))); }
+  function load(done){ var my=++seq;
+    function go(){ var q=sb.from("comments").select("id,thread,nickname,body,created_at"),lim=50;
+      if(!isBoard) q=q.eq("thread",term);
+      else if(filter==="free") q=q.eq("thread","board");
+      else { lim=80; q=q.or(filter==="game"?"thread.like.game:*,thread.like.cgame:*":"thread.eq.board,thread.like.game:*,thread.like.cgame:*"); }
+      q.order("created_at",{ascending:false}).limit(lim).then(function(r){ if(done) done(); if(box._term!==term||my!==seq) return;
+        if(r.error){ list.textContent=""; list.appendChild(el("p","c-empty",T("글을 불러오지 못했습니다.","Could not load posts."))); return; }
+        paint(r.data||[]); }); }
+    if(isBoard&&filter!=="free") cgThen(go); else go(); }
+  /* 탭(게시판만) + 새로고침 버튼 */
+  var bar=el("div","c-bar"),tabsEl=el("div","c-tabs"),tabBtns=[];
+  function syncTabs(){ tabBtns.forEach(function(b){ b.setAttribute("aria-pressed",String(b._k===filter)); }); }
+  if(isBoard){ [["all",T("전체","All")],["free",T("자유글","Posts")],["game",T("게임 댓글","Game comments")]].forEach(function(t){
+      var b=el("button","c-tab",t[1]); b.type="button"; b._k=t[0];
+      b.addEventListener("click",function(){ if(filter===t[0]) return; filter=boardFilter=t[0]; syncTabs(); track('board_tab',{tab:t[0]}); load(); });
+      tabBtns.push(b); tabsEl.appendChild(b); }); syncTabs(); bar.appendChild(tabsEl); }
+  var rf=el("button","c-refresh","↻ "+T("새로고침","Refresh")); rf.type="button";
+  rf.addEventListener("click",function(){ if(busy) return; busy=true; rf.disabled=true; rf.textContent="↻ "+T("불러오는 중…","Loading…"); track('refresh',{area:isBoard?'board':'game_comments'});
+    function end(){ busy=false; rf.disabled=false; rf.textContent="↻ "+T("새로고침","Refresh"); }
+    if(isBoard){ cgLoad(); cgThen(function(){ load(end); }); } else load(end); });
+  bar.appendChild(rf);
   form.addEventListener("submit",function(e){ e.preventDefault(); if(trap.value) return;
     var name=nk.value.trim().slice(0,20)||T("익명","Anonymous"),body=ta.value.trim(); if(!body){ say(T("내용을 적어 주세요.","Please write something.")); return; }
     var wait=Math.ceil((lastPost+15000-Date.now())/1000); if(wait>0){ say(T(wait+"초 뒤에 다시 쓸 수 있습니다.","You can post again in "+wait+"s.")); return; }
     send.disabled=true; say(""); store("arc-nick",name);
     sb.from("comments").insert({thread:term,nickname:name,body:body}).then(function(r){ send.disabled=false;
       if(r.error){ say(/too many/i.test(r.error.message||"")?T("지금 글이 너무 많이 올라오고 있습니다. 1분 뒤에 다시 해 주세요.","Too many posts right now. Please try again in a minute."):T("등록하지 못했습니다. 잠시 뒤 다시 해 주세요.","Could not post. Please try again.")); return; }
-      lastPost=Date.now(); ta.value=""; track('comment_post',{thread:String(term).slice(0,40)}); load(); }); });
+      lastPost=Date.now(); ta.value=""; track('comment_post',{thread:String(term).slice(0,40)}); if(isBoard&&filter!=="all"){ filter=boardFilter="all"; syncTabs(); } load(); }); });
   row.appendChild(ta); row.appendChild(send); form.appendChild(nk); form.appendChild(row); form.appendChild(trap);
-  box.appendChild(form); box.appendChild(msg); box.appendChild(list); load(); }
+  box.appendChild(form); box.appendChild(msg); box.appendChild(bar); box.appendChild(list); load(); }
 
 /* 방문 통계 이벤트(클릭) */ document.addEventListener("click",function(e){ var t=e.target&&e.target.closest?e.target:null; if(!t) return; var m=t.closest("[data-game]"); if(m&&!m.hasAttribute("data-play")){ track('minigame_start',{game_id:m.getAttribute("data-game")}); return; } if(t.closest("#pNew")){ track('open_new_tab',{game_name:(document.getElementById("pTitle")||{}).textContent||""}); return; } var h=t.closest("#hero a.btn"); if(h){ track('hero_cta',{target:h.getAttribute("href")||""}); return; } var l=t.closest("[data-lang]"); if(l){ track('lang_change',{lang:l.getAttribute("data-lang")}); } },true);
 
@@ -737,7 +776,10 @@ pRep.addEventListener("click",function(){ if(!pRepId||!/^[0-9]{1,12}$/.test(pRep
 var pCmt=document.getElementById("pCmt"); pCmt.addEventListener("click",function(){ var t=player.querySelector(".c-title"); if(t) t.scrollIntoView({behavior:"smooth",block:"start"}); });
 player.addEventListener("click",function(e){ if(e.target===player) closePlayer(); });
 document.addEventListener("keydown",function(e){ if(e.key==="Escape") closePlayer(); });
-var boardMounted=false; function mountBoard(){ boardMounted=true; mountThread(document.getElementById("boardThread"),"board"); }
+var boardMounted=false,boardFilter="all",cgReady=false,cgWait=[];
+function cgThen(cb){ if(cgReady) cb(); else cgWait.push(cb); }
+function cgDone(){ cgReady=true; var w=cgWait; cgWait=[]; w.forEach(function(f){ try{ f(); }catch(e){} }); }
+function mountBoard(){ boardMounted=true; mountThread(document.getElementById("boardThread"),"board"); }
 
 /* 모두의 게임: 누구나 올린 웹 게임을 승인 없이 바로 등록한다. 게시판과 같은 comments 테이블에 thread="community-games" 로 쌓는다 */
 var CG_THREAD="community-games",CG_REPORTS="community-reports",CG_HIDE=3,CG_MAXBODY=1000,cgList=document.getElementById("cgList"),cgFormEl=document.getElementById("cgForm"),
@@ -751,7 +793,7 @@ function cgSafeUrl(u){ u=String(u||"").trim(); if(u.length<12||u.length>480) ret
   try{ var x=new URL(u),h=x.hostname.toLowerCase(); if(x.protocol!=="https:"||!h||h.indexOf(".")<0) return null;
     if(x.username||x.password) return null; if(/^[0-9.]+$/.test(h)||h.indexOf(":")>=0||h.indexOf("[")>=0) return null; if(/(^|\.)xn--/.test(h)) return null;
     if(/(^|\.)(localhost|local|internal|test|invalid)$/.test(h)) return null; if(CG_BADHOST.test(h.replace(/^www\./,""))) return null; return x.href; }catch(e){ return null; } }
-function cgLabels(){ if(!cgToggleT) return; var open=cgFormEl.classList.contains("open");
+function cgLabels(){ var rb=document.getElementById("cgRefresh"); if(rb&&!rb.disabled) rb.textContent="↻ "+T("새로고침","Refresh"); if(!cgToggleT) return; var open=cgFormEl.classList.contains("open");
   cgToggleT.textContent=open?T("닫기","Close"):T("+ 내 게임 올리기","+ Post my game");
   cgToggle.setAttribute("aria-label",open?T("내 게임 올리기 닫기","Close the post form"):T("내 게임 올리기","Post my game"));
   cgNick.placeholder=T("예: 남욱","e.g. UJ"); cgTitle.placeholder=T("예: 우주 고양이","e.g. Space Catcher");
@@ -793,14 +835,15 @@ function cgRender(){ if(!cgList) return; cgList.textContent="";
   if(!cgData||!cgData.length){ cgList.appendChild(cgNote(T("아직 올라온 게임이 없습니다. 첫 게임의 주인이 되어 보세요!","No community games yet. Yours could be the first!"))); return; }
   for(var j=0;j<cgData.length;j++) cgList.appendChild(cgCard(cgData[j],j)); iconTips();
   if(cgPending){ var q=document.querySelector('[data-cg="cgame:'+cgPending+'"]'); if(q){ cgPending=null; openPlayer(q); } } }
-function cgLoad(){ if(!cgList) return; cgList.textContent=""; cgList.appendChild(cgNote(T("불러오는 중…","Loading…")));
-  withSb(function(ok){ if(!ok){ cgList.textContent=""; cgList.appendChild(cgNote(T("게임 목록을 불러오지 못했습니다. 잠시 뒤 새로 고침해 주세요.","Could not load the game list. Please refresh in a moment."))); return; }
+function cgLoad(){ if(!cgList){ cgDone(); return; } cgReady=false; cgList.textContent=""; cgList.appendChild(cgNote(T("불러오는 중…","Loading…")));
+  withSb(function(ok){ if(!ok){ cgList.textContent=""; cgList.appendChild(cgNote(T("게임 목록을 불러오지 못했습니다. 잠시 뒤 새로 고침해 주세요.","Could not load the game list. Please refresh in a moment."))); cgDone(); return; }
     sb.from("comments").select("id,nickname,body,created_at").eq("thread",CG_THREAD).order("created_at",{ascending:false}).limit(60).then(function(r){
-      if(r.error){ cgList.textContent=""; cgList.appendChild(cgNote(T("게임 목록을 불러오지 못했습니다.","Could not load the game list."))); return; }
+      if(r.error){ cgList.textContent=""; cgList.appendChild(cgNote(T("게임 목록을 불러오지 못했습니다.","Could not load the game list."))); cgDone(); return; }
       var seen={},out=[]; (r.data||[]).forEach(function(x){ var g=cgParse(x); if(!g||seen[g.id]) return; seen[g.id]=1; out.push(g); });
       sb.from("comments").select("body").eq("thread",CG_REPORTS).order("created_at",{ascending:false}).limit(1000).then(function(rr){
         var cnt={}; if(!rr.error) (rr.data||[]).forEach(function(q){ var k=String(q.body||"").trim(); if(/^[0-9]{1,12}$/.test(k)) cnt[k]=(cnt[k]||0)+1; });
-        cgData=out.filter(function(g){ return (cnt[g.id]||0)<CG_HIDE; }); cgRender(); }); }); }); }
+        cgData=out.filter(function(g){ return (cnt[g.id]||0)<CG_HIDE; }); cgRender(); cgDone(); }); }); }); }
+var cgRf=document.getElementById("cgRefresh"); if(cgRf) cgRf.addEventListener("click",function(){ if(cgRf.disabled) return; cgRf.disabled=true; cgRf.textContent="↻ "+T("불러오는 중…","Loading…"); track('refresh',{area:'community_games'}); cgLoad(); cgThen(function(){ cgRf.disabled=false; cgRf.textContent="↻ "+T("새로고침","Refresh"); }); });
 if(cgToggle) cgToggle.addEventListener("click",function(){ cgOpen(!cgFormEl.classList.contains("open")); });
 if(cgFormEl) cgFormEl.addEventListener("submit",function(e){ e.preventDefault(); if(cgTrap.value) return;
   var nick=cgNick.value.trim().slice(0,20)||T("익명","Anonymous"),title=cgTitle.value.trim().slice(0,40),desc=cgDesc.value.trim().slice(0,120),url=cgSafeUrl(cgUrl.value);
