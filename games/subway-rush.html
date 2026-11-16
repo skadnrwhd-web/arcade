@@ -794,18 +794,17 @@ function drawRoad(){
   ctx.restore();
 
   /* lane dashes */
-  var dg = 2.05;
-  var o2 = dist % dg;
+  var period = 4.0;
+  var o2 = dist % period;
   ctx.save();
   ctx.strokeStyle = 'rgba(190,252,255,0.80)';
   ctx.lineCap = 'round';
   for (var s = -1; s <= 1; s += 2) {
     var bx = s * 0.5 * laneOff;
-    for (var n = 0; n < 22; n++) {
-      var dd = 1 + n * dg - o2;
-      if (dd < 1.03 || dd > FAR) continue;
-      if (n % 2 === 1) continue;
-      var d2 = Math.min(FAR, dd + dg * 0.52);
+    for (var n = 0; n < 14; n++) {
+      var dd = 1 + n * period - o2;
+      if (dd < 1.02 || dd > FAR) continue;
+      var d2 = Math.min(FAR, dd + period * 0.52);
       var k1 = kOf(dd), k2 = kOf(d2);
       ctx.lineWidth = 0.7 + 2.6 * k1;
       ctx.beginPath();
