@@ -144,14 +144,15 @@
   var PHYS = {
     gravityK: 2.55,        // x 놀이판 높이(px/s^2)
     substeps: 8,           // 프레임당 서브스텝
-    friction: 0.34,
+    friction: 0.2,         // 과일간 접선 마찰(굴림 유도, 낮게)
     wallRest: 0.34,
     correction: 0.8,       // 위치 보정 계수(서브스텝당 2회 반복)
     slop: 0.2,             // 허용 관통(px)
     mergeEps: 0.9,
-    bounceCut: 42,         // 이보다 느린 충돌은 반발 없음
+    bounceCut: 30,         // 이보다 느린 충돌은 반발 없음
     maxSpeed: 4200,
-    settle: 400            // 접지 상태에서 이 속도(px/s)^2 미만이면 정지
+    floorFriction: 0.993,  // 바닥 접선 감쇠(서브스텝당)
+    maxSpin: 26            // 최대 각속도(rad/s)
   };
 
   // ---------- 유틸 ----------
@@ -307,6 +308,7 @@
   var particles = [];
   var floats = [];
   var sprites = [];
+  var faceSprites = [];
   var score = 0, best = parseInt(STORE.get(KEY_BEST, '0'), 10) || 0;
   var bestRunLevel = 0;
   var currentLevel = 0, nextLevel = 1;
@@ -364,7 +366,9 @@
     c.stroke();
     c.restore();
   }
+  var drawingBodyOnly = false;
   function face(c, rr, cy, col) {
+    if (drawingBodyOnly) return;
     var ec = col || '#40241a';
     var eyeR = rr * 0.085, eyeX = rr * 0.275, eyeY = (cy === undefined ? rr * 0.06 : cy);
     c.fillStyle = ec;
@@ -735,6 +739,21 @@
 
   var ART = [art0, art1, art2, art3, art4, art5, art6, art7, art8, art9, art10];
 
+  // 얼굴은 본체 회전과 별도로 항상 똑바로 그린다.
+  var FACE = [
+    { s: 0.88, y: 0.16 },
+    { s: 0.86, y: 0.12 },
+    { s: 0.80, y: 0.14, col: '#20112f' },
+    { s: 0.88, y: 0.14 },
+    { s: 0.86, y: 0.14 },
+    { s: 0.88, y: 0.16 },
+    { s: 0.82, y: 0.34 },
+    { s: 0.86, y: 0.14 },
+    { s: 0.80, y: 0.16 },
+    { s: 0.84, y: 0.18 },
+    { s: 0.86, y: 0.16 }
+  ];
+
   function art(level, c, radius) {
     c.save();
     ART[level](c, radius);
@@ -744,19 +763,53 @@
   // ---------- 스프라이트 ----------
   function buildSprites() {
     sprites = [];
+    faceSprites = [];
     for (var l = 0; l < FRUITS.length; l++) {
       var radius = radiusFor(l);
       var sizeCss = Math.max(10, radius * 2 * PAD);
       var px = Math.max(8, Math.ceil(sizeCss * G.dpr));
+      var sc = px / sizeCss;
+
       var el = document.createElement('canvas');
       el.width = px;
       el.height = px;
       var c = el.getContext('2d');
-      var sc = px / sizeCss;
       if (c.setTransform) c.setTransform(sc, 0, 0, sc, px / 2, px / 2);
+      drawingBodyOnly = true;
       art(l, c, radius);
+      drawingBodyOnly = false;
       sprites.push(el);
+
+      var fe = document.createElement('canvas');
+      fe.width = px;
+      fe.height = px;
+      var fc = fe.getContext('2d');
+      if (fc.setTransform) fc.setTransform(sc, 0, 0, sc, px / 2, px / 2);
+      var fd = FACE[l];
+      face(fc, radius * fd.s, radius * fd.y, fd.col);
+      faceSprites.push(fe);
     }
+  }
+
+  // 본체는 회전시키고 얼굴은 항상 똑바로 얹어 그린다.
+  function drawFruitSprite(level, x, y, radius, angle, alpha, sq) {
+    var body = sprites[level], fc = faceSprites[level];
+    if (!body) return;
+    var half = radius * PAD;
+    ctx.save();
+    ctx.globalAlpha = alpha === undefined ? 1 : alpha;
+    ctx.translate(x, y);
+    if (sq) ctx.scale(1 + sq * 0.11, 1 - sq * 0.15);
+    if (angle) {
+      ctx.save();
+      ctx.rotate(angle);
+      ctx.drawImage(body, -half, -half, half * 2, half * 2);
+      ctx.restore();
+    } else {
+      ctx.drawImage(body, -half, -half, half * 2, half * 2);
+    }
+    if (fc) ctx.drawImage(fc, -half, -half, half * 2, half * 2);
+    ctx.restore();
   }
 
   // ---------- HUD ----------
@@ -954,7 +1007,8 @@
     return {
       level: level, x: x, y: y, vx: 0, vy: 0, r: r,
       invMass: 1 / (r * r), age: 0, sq: 0, dead: false,
-      justDropped: false, rest: FRUITS[level].rest
+      justDropped: false, rest: FRUITS[level].rest,
+      ang: 0, av: 0
     };
   }
 
@@ -1015,6 +1069,8 @@
     nf.vy = vy * 0.32 - 26 * G.scale;
     nf.sq = 0.8;
     nf.age = 0.06;
+    nf.av = (a.av + b.av) * 0.5;
+    nf.ang = (a.ang + b.ang) * 0.5;
     fruits.push(nf);
     if (nl > bestRunLevel) bestRunLevel = nl;
     var pts = MERGE_SCORE[nl] + combo * Math.max(1, nl);
@@ -1089,11 +1145,12 @@
       if (f.dead) continue;
       f.contact = false;
       f.vy += g * h;
-      f.vx *= 0.9993;
-      f.vy *= 0.9993;
       if (f.vy > PHYS.maxSpeed) f.vy = PHYS.maxSpeed;
       f.x += f.vx * h;
       f.y += f.vy * h;
+      f.ang += f.av * h;
+      if (f.av > PHYS.maxSpin) f.av = PHYS.maxSpin;
+      else if (f.av < -PHYS.maxSpin) f.av = -PHYS.maxSpin;
       if (f.sq > 0) f.sq *= 0.965;
     }
   }
@@ -1137,15 +1194,19 @@
       b.vx += j * nx * b.invMass;
       b.vy += j * ny * b.invMass;
 
+      // 접선 마찰 + 회전(굴림): 마찰 임펄스가 각속도를 돌린다.
       var tx = -ny, ty = nx;
-      var vt = (b.vx - a.vx) * tx + (b.vy - a.vy) * ty;
-      var jt = -vt / imSum;
+      var vt = (b.vx - a.vx) * tx + (b.vy - a.vy) * ty - (b.av * b.r + a.av * a.r);
+      var imT = 3 * imSum;
+      var jt = -vt / imT;
       var maxF = PHYS.friction * Math.abs(j);
       if (jt > maxF) jt = maxF; else if (jt < -maxF) jt = -maxF;
       a.vx -= jt * tx * a.invMass;
       a.vy -= jt * ty * a.invMass;
       b.vx += jt * tx * b.invMass;
       b.vy += jt * ty * b.invMass;
+      a.av -= 2 * jt * a.invMass / a.r;
+      b.av -= 2 * jt * b.invMass / b.r;
     }
 
     var corr = (pen - PHYS.slop) * PHYS.correction / imSum;
@@ -1177,19 +1238,6 @@
     fruits = out;
   }
 
-  function restDamping() {
-    for (var i = 0; i < fruits.length; i++) {
-      var f = fruits[i];
-      if (f.dead) continue;
-      if (f.contact) {
-        var sp2 = f.vx * f.vx + f.vy * f.vy;
-        if (sp2 < 2500) { f.vx *= 0.82; f.vy *= 0.82; }
-      }
-      if (Math.abs(f.vx) < 4) f.vx = 0;
-      if (f.contact && Math.abs(f.vy) < 7) f.vy = 0;
-    }
-  }
-
   function applyBounds() {
     var wall = G.wall, floorY = G.floorY;
     for (var i = 0; i < fruits.length; i++) {
@@ -1211,9 +1259,12 @@
         if (f.vy > 0) {
           if (f.vy > 90) f.sq = Math.min(1, f.vy / 900);
           f.vy = -f.vy * f.rest;
-          if (Math.abs(f.vy) < 32) f.vy = 0;
+          if (Math.abs(f.vy) < 26) f.vy = 0;
         }
-        f.vx *= 0.9;
+        // 바닥을 구를 때는 슬립 없이 굴러가도록 각속도를 맞춰 준다.
+        var target = f.vx / f.r;
+        f.av += (target - f.av) * 0.35;
+        f.vx *= PHYS.floorFriction;
       }
       if (f.y - f.r < -f.r * 0.55) {
         f.y = f.r * 0.45;
@@ -1229,28 +1280,17 @@
     if (pending.length) applyPending(pending);
     solvePass(null);
     applyBounds();
-    restDamping();
   }
 
   function stepPhysics(dt) {
     if (state !== 'play') return;
     gameTime += dt;
-    if (dropTimer > 0) dropTimer =Math.max(0, dropTimer - dt);
+    if (dropTimer > 0) dropTimer = Math.max(0, dropTimer - dt);
     var N = PHYS.substeps;
     var h = dt / N;
     for (var s = 0; s < N; s++) subStep(h);
     for (var i = 0; i < fruits.length; i++) fruits[i].age += dt;
-    settleRest();
     checkOverflow(dt);
-  }
-
-  function settleRest() {
-    for (var i = 0; i < fruits.length; i++) {
-      var f = fruits[i];
-      if (f.dead || !f.contact || f.justDropped) continue;
-      var sp2 = f.vx * f.vx + f.vy * f.vy;
-      if (sp2 < PHYS.settle) { f.vx = 0; f.vy = 0; }
-    }
   }
 
   function updateVisuals(dt) {
@@ -1445,6 +1485,7 @@
     ctx.globalAlpha = ready ? 1 : 0.42;
     var half = r * PAD;
     if (sprites[currentLevel]) ctx.drawImage(sprites[currentLevel], x - half, y0 - half, half * 2, half * 2);
+    if (faceSprites[currentLevel]) ctx.drawImage(faceSprites[currentLevel], x - half, y0 - half, half * 2, half * 2);
     ctx.restore();
   }
 
@@ -1452,15 +1493,7 @@
     for (var i = 0; i < fruits.length; i++) {
       var f = fruits[i];
       if (f.dead) continue;
-      var sp = sprites[f.level];
-      if (!sp) continue;
-      var half = f.r * PAD;
-      var sq = f.sq;
-      ctx.save();
-      ctx.translate(f.x, f.y);
-      if (sq > 0.01) ctx.scale(1 + sq * 0.11, 1 - sq * 0.15);
-      ctx.drawImage(sp, -half, -half, half * 2, half * 2);
-      ctx.restore();
+      drawFruitSprite(f.level, f.x, f.y, f.r, f.ang, 1, f.sq > 0.01 ? f.sq : 0);
     }
   }
 
@@ -1687,7 +1720,7 @@
     },
     fruits: function () {
       return fruits.map(function (f) {
-        return { level: f.level, x: f.x, y: f.y, r: f.r, vx: f.vx, vy: f.vy, age: f.age, dead: f.dead, top: f.y - f.r };
+        return { level: f.level, x: f.x, y: f.y, r: f.r, vx: f.vx, vy: f.vy, age: f.age, dead: f.dead, top: f.y - f.r, ang: f.ang, av: f.av };
       });
     },
     count: function () { return fruits.length; },
