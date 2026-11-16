@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Gem Match</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#0b1020;color:#fff;font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+#app{height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:8px;background:radial-gradient(circle at 50% 0,#1d2a5c 0,#0b1020 70%)}
+#hud{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.pill{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:6px 12px;font-weight:800;font-size:15px;white-space:nowrap}
+.pill small{opacity:.7;font-weight:600;margin-right:4px;font-size:12px}
+.pill.mv b{font-size:20px}
+.goal b{margin-left:4px}
+.goal.done{opacity:.45;text-decoration:line-through}
+canvas{touch-action:none;border-radius:18px;background:#121a38;box-shadow:0 10px 40px rgba(0,0,0,.5);display:block}
+#tip{font-size:12px;opacity:.7;text-align:center;max-width:480px;line-height:1.5}
+#ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(5,8,20,.7);z-index:5}
+#ov.on{display:flex}
+#box{background:#18214a;border:1px solid rgba(255,255,255,.2);border-radius:22px;padding:24px 28px;text-align:center;min-width:240px}
+#box h2{margin:0 0 6px;font-size:26px}
+#box p{margin:0 0 16px;opacity:.8}
+button{font:inherit;font-weight:800;border:0;border-radius:14px;padding:12px 22px;background:linear-gradient(135deg,#37e0ff,#6d5cff);color:#fff;cursor:pointer}
+#msg{position:fixed;left:50%;top:14%;transform:translateX(-50%);background:rgba(0,0,0,.65);border-radius:12px;padding:8px 16px;font-weight:700;opacity:0;transition:opacity .3s;pointer-events:none;z-index:4}
+#msg.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div class="pill"><small>레벨</small><b id="lv">1</b></div>
+    <div class="pill mv"><small>남은 횟수</small><b id="mv">0</b></div>
+    <div class="pill"><small>점수</small><b id="sc">0</b></div>
+  </div>
+  <div id="goals" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"></div>
+  <canvas id="cv"></canvas>
+  <div id="tip">옆 칸과 바꿔서 같은 모양 3개 이상을 맞추세요. 4개는 로켓, 5개는 무지개 보석, ㄱ·ㅗ 모양은 폭탄이 됩니다.</div>
+</div>
+<div id="msg"></div>
+<div id="ov"><div id="box"><h2 id="oh"></h2><p id="op"></p><button id="ob" type="button"></button></div></div>
+<script>
+(function(){
+"use strict";
+var N=8, COL=["#ff5a6e","#3fa7ff","#3ddc84","#ffd23f","#b06cff","#ff9a3d"], DARK=["#a3243a","#1a62b0","#16904a","#b08a00","#6a34b8","#b05a10"], GLY=["●","■","▲","◆","⬢","★"];
+var cv=document.getElementById("cv"), ctx=cv.getContext("2d"), cs=48, dpr=1;
+var grid=[], fx=[], parts=[], level=1, moves=0, score=0, goals=[], K=5, busy=true, sel=null, hint=[], gameOver=false;
+var settleWait=[], last=0;
+
+function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } }
+function rnd(n){ return Math.floor(Math.random()*n); }
+function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
+function $(id){ return document.getElementById(id); }
+
+function newGem(x,y){ return {t:rnd(K), s:0, x:x, y:y, v:0, sc:1}; }
+
+/* ---------- 레벨 ---------- */
+function setupLevel(){
+  K = level<5 ? 5 : 6;
+  moves = Math.max(14, 22 - Math.floor((level-1)/3));
+  var cnt = Math.min(30, 8+2*level), a=rnd(K), b=rnd(K); while(b===a) b=rnd(K);
+  goals=[{t:a,n:cnt},{t:b,n:cnt}];
+  score=0; sel=null; hint=[]; gameOver=false; fx=[]; parts=[];
+  do{ fill(); }while(findRuns().length||!hasMove());
+  hud();
+}
+function fill(){
+  grid=[]; for(var r=0;r<N;r++){ grid[r]=[]; for(var c=0;c<N;c++) grid[r][c]=newGem(c,r); }
+}
+function hud(){
+  $("lv").textContent=level; $("mv").textContent=moves; $("sc").textContent=score;
+  var h=""; goals.forEach(function(g){ h+='<div class="pill goal'+(g.n<=0?' done':'')+'" style="border-color:'+COL[g.t]+'"><span style="color:'+COL[g.t]+'">'+GLY[g.t]+'</span><b>'+Math.max(0,g.n)+'</b></div>'; });
+  $("goals").innerHTML=h;
+}
+
+/* ---------- 찾기 ---------- */
+function findRuns(){
+  var runs=[], r,c,e,g,i,cells;
+  for(r=0;r<N;r++){ c=0; while(c<N){ g=grid[r][c]; if(!g||g.t<0){c++;continue;} e=c+1; while(e<N&&grid[r][e]&&grid[r][e].t===g.t) e++; if(e-c>=3){ cells=[]; for(i=c;i<e;i++) cells.push([r,i]); runs.push({dir:"h",cells:cells,t:g.t}); } c=e; } }
+  for(c=0;c<N;c++){ r=0; while(r<N){ g=grid[r][c]; if(!g||g.t<0){r++;continue;} e=r+1; while(e<N&&grid[e][c]&&grid[e][c].t===g.t) e++; if(e-r>=3){ cells=[]; for(i=r;i<e;i++) cells.push([i,c]); runs.push({dir:"v",cells:cells,t:g.t}); } r=e; } }
+  return runs;
+}
+function swapCells(a,b){ var t=grid[a[0]][a[1]]; grid[a[0]][a[1]]=grid[b[0]][b[1]]; grid[b[0]][b[1]]=t; }
+function hasMove(){
+  for(var r=0;r<N;r++) for(var c=0;c<N;c++){
+    var d=[[0,1],[1,0]];
+    for(var i=0;i<2;i++){ var r2=r+d[i][0], c2=c+d[i][1]; if(r2>=N||c2>=N) continue;
+      var A=grid[r][c], B=grid[r2][c2]; if(!A||!B) continue;
+      if(A.s===4||B.s===4||(A.s&&B.s)) return true;
+      swapCells([r,c],[r2,c2]); var ok=findRuns().length>0; swapCells([r,c],[r2,c2]); if(ok) return true; }
+  }
+  return false;
+}
+
+/* ---------- 지우기 ---------- */
+function expand(set){
+  var q=Array.from(set);
+  while(q.length){
+    var k=q.pop(), r=(k/N)|0, c=k%N, g=grid[r][c]; if(!g||!g.s) continue;
+    var add=[], i,j;
+    if(g.s===1) for(i=0;i<N;i++) add.push(r*N+i);
+    else if(g.s===2) for(i=0;i<N;i++) add.push(i*N+c);
+    else if(g.s===3){ for(i=-1;i<=1;i++) for(j=-1;j<=1;j++){ var rr=r+i,cc=c+j; if(rr>=0&&rr<N&&cc>=0&&cc<N) add.push(rr*N+cc); } }
+    else if(g.s===4){ var cntT={}; for(i=0;i<N;i++) for(j=0;j<N;j++){ var x=grid[i][j]; if(x&&x.t>=0) cntT[x.t]=(cntT[x.t]||0)+1; }
+      var bt=-1,bn=0; for(var t in cntT) if(cntT[t]>bn){bn=cntT[t];bt=+t;}
+      for(i=0;i<N;i++) for(j=0;j<N;j++){ var y=grid[i][j]; if(y&&y.t===bt) add.push(i*N+j); } }
+    add.forEach(function(k2){ if(!set.has(k2)){ set.add(k2); q.push(k2); } });
+  }
+}
+function burst(x,y,col){ for(var i=0;i<6;i++) parts.push({x:x+.5,y:y+.5,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6-1,l:1,c:col}); }
+function clearSet(set, make){
+  expand(set);
+  var made=(make||[]).filter(function(m){ return !set.has(m.k); });
+  var n=0;
+  set.forEach(function(k){
+    var r=(k/N)|0, c=k%N, g=grid[r][c]; if(!g) return;
+    if(g.t>=0) goals.forEach(function(go){ if(go.t===g.t) go.n--; });
+    burst(g.x,g.y,g.t>=0?COL[g.t]:"#fff");
+    fx.push(g); grid[r][c]=null; n++;
+  });
+  made.forEach(function(m){ var g=grid[(m.k/N)|0][m.k%N]; if(g){ g.s=m.s; if(m.s===4) g.t=-1; g.sc=1.5; } });
+  score+=n*10; hud();
+}
+function gravity(){
+  for(var c=0;c<N;c++){
+    var w=N-1, r;
+    for(r=N-1;r>=0;r--){ if(grid[r][c]){ if(w!==r){ grid[w][c]=grid[r][c]; grid[r][c]=null; } w--; } }
+    var k=0; for(r=w;r>=0;r--){ k++; grid[r][c]=newGem(c,-k); }
+  }
+}
+function settled(){
+  for(var r=0;r<N;r++) for(var c=0;c<N;c++){ var g=grid[r][c]; if(g&&(Math.abs(g.x-c)>.002||Math.abs(g.y-r)>.002||Math.abs(g.sc-1)>.02)) return false; }
+  return fx.length===0;
+}
+function waitSettle(){ return new Promise(function(res){ settleWait.push(res); }); }
+
+async function resolveLoop(){
+  var combo=0;
+  while(true){
+    var runs=findRuns(); if(!runs.length) break;
+    combo++;
+    var mark=new Set(), hm=new Map(), vm=new Map(), make=[], used=new Set();
+    runs.forEach(function(run){ run.cells.forEach(function(p){ var k=p[0]*N+p[1]; mark.add(k); (run.dir==="h"?hm:vm).set(k,run); }); });
+    hm.forEach(function(run,k){ if(vm.has(k)){ make.push({k:k,s:3}); used.add(run); used.add(vm.get(k)); } });
+    runs.forEach(function(run){
+      if(used.has(run)) return; var L=run.cells.length; if(L<4) return;
+      var piv=null; hint.forEach(function(h){ run.cells.forEach(function(p){ if(p[0]===h[0]&&p[1]===h[1]) piv=p; }); });
+      if(!piv) piv=run.cells[Math.floor(L/2)];
+      make.push({k:piv[0]*N+piv[1], s: L>=5?4:(run.dir==="h"?2:1)});
+    });
+    make.forEach(function(m){ mark.delete(m.k); });
+    clearSet(mark, make);
+    if(combo>=2) say("콤보 x"+combo);
+    await sleep(220);
+    gravity();
+    await waitSettle();
+  }
+  hint=[];
+}
+function say(t){ var m=$("msg"); m.textContent=t; m.classList.add("on"); clearTimeout(say.t); say.t=setTimeout(function(){ m.classList.remove("on"); },900); }
+
+/* ---------- 바꾸기 ---------- */
+function adj(a,b){ return Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])===1; }
+async function trySwap(a,b){
+  if(busy||gameOver) return; busy=true; sel=null;
+  var ga=grid[a[0]][a[1]], gb=grid[b[0]][b[1]];
+  swapCells(a,b); await waitSettle();
+  var special = ga.s===4||gb.s===4||(ga.s&&gb.s);
+  hint=[a,b];
+  if(special){
+    moves--; hud();
+    var set=new Set();
+    var ka=a[0]*N+a[1], kb=b[0]*N+b[1];
+    if(ga.s===4&&gb.s===4){ for(var i=0;i<N*N;i++) set.add(i); }
+    else if(ga.s===4||gb.s===4){
+      var R=ga.s===4?ga:gb, X=ga.s===4?gb:ga, kr=ga.s===4?ka:kb;
+      set.add(kr);
+      if(X.t>=0) for(var r=0;r<N;r++) for(var c=0;c<N;c++){ var g=grid[r][c]; if(g&&g.t===X.t) set.add(r*N+c); }
+    } else { set.add(ka); set.add(kb); }
+    clearSet(set); await sleep(260); gravity(); await waitSettle();
+  } else if(!findRuns().length){
+    swapCells(a,b); await waitSettle(); busy=false; return;
+  } else { moves--; hud(); }
+  await resolveLoop();
+  await afterTurn();
+}
+async function afterTurn(){
+  hud();
+  var win=goals.every(function(g){ return g.n<=0; });
+  if(win){ gameOver=true; store("gm-best",String(Math.max(+store("gm-best")||1,level+1)));
+    show("레벨 "+level+" 클리어!","점수 "+score,"다음 레벨",function(){ level++; start(); }); return; }
+  if(moves<=0){ gameOver=true; show("아쉬워요","목표를 다 모으지 못했어요","다시 도전",function(){ start(); }); return; }
+  if(!hasMove()){ say("움직일 곳이 없어 섞는 중"); await sleep(600); do{ fill(); }while(findRuns().length||!hasMove()); await waitSettle(); }
+  busy=false;
+}
+function show(h,p,b,fn){ $("oh").textContent=h; $("op").textContent=p; $("ob").textContent=b; $("ob").onclick=function(){ $("ov").classList.remove("on"); fn(); }; $("ov").classList.add("on"); }
+function start(){ busy=true; setupLevel(); size(); say("레벨 "+level+" 시작"); setTimeout(function(){ busy=false; },300); }
+
+/* ---------- 그리기 ---------- */
+function size(){
+  dpr=window.devicePixelRatio||1;
+  var s=Math.floor(Math.min(window.innerWidth-16, window.innerHeight-170, 520)); if(s<200) s=200;
+  cs=s/N; cv.style.width=s+"px"; cv.style.height=s+"px"; cv.width=Math.round(s*dpr); cv.height=Math.round(s*dpr);
+}
+function shape(g,cx,cy,rad,t){
+  ctx.beginPath();
+  if(t===0){ ctx.arc(cx,cy,rad,0,6.2832); }
+  else if(t===1){ var q=rad*.9; rr(cx-q,cy-q,q*2,q*2,rad*.3); }
+  else if(t===2){ ctx.moveTo(cx,cy-rad*1.05); ctx.lineTo(cx+rad*1.05,cy+rad*.8); ctx.lineTo(cx-rad*1.05,cy+rad*.8); ctx.closePath(); }
+  else if(t===3){ ctx.moveTo(cx,cy-rad*1.15); ctx.lineTo(cx+rad*1.05,cy); ctx.lineTo(cx,cy+rad*1.15); ctx.lineTo(cx-rad*1.05,cy); ctx.closePath(); }
+  else if(t===4){ for(var i=0;i<6;i++){ var a=Math.PI/3*i+Math.PI/6; ctx[i?"lineTo":"moveTo"](cx+Math.cos(a)*rad*1.05,cy+Math.sin(a)*rad*1.05); } ctx.closePath(); }
+  else { for(var j=0;j<10;j++){ var b=-Math.PI/2+Math.PI/5*j, rd=j%2?rad*.5:rad*1.15; ctx[j?"lineTo":"moveTo"](cx+Math.cos(b)*rd,cy+Math.sin(b)*rd); } ctx.closePath(); }
+}
+function rr(x,y,w,h,r){ ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function drawGem(g,pulse){
+  var cx=(g.x+.5)*cs, cy=(g.y+.5)*cs, rad=cs*.36*g.sc*(pulse?1+Math.sin(Date.now()/120)*.06:1);
+  if(g.t<0){ for(var i=0;i<6;i++){ ctx.beginPath(); ctx.moveTo(cx,cy); ctx.arc(cx,cy,rad*1.1,Math.PI/3*i,Math.PI/3*(i+1)); ctx.closePath(); ctx.fillStyle=COL[i]; ctx.fill(); }
+    ctx.beginPath(); ctx.arc(cx,cy,rad*1.1,0,6.2832); ctx.lineWidth=3; ctx.strokeStyle="#fff"; ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx,cy,rad*.38,0,6.2832); ctx.fillStyle="#fff"; ctx.fill(); return; }
+  shape(g,cx,cy,rad,g.t);
+  var gr=ctx.createRadialGradient(cx-rad*.35,cy-rad*.4,rad*.1,cx,cy,rad*1.2); gr.addColorStop(0,"#fff"); gr.addColorStop(.25,COL[g.t]); gr.addColorStop(1,DARK[g.t]);
+  ctx.fillStyle=gr; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle="rgba(255,255,255,.55)"; ctx.stroke();
+  if(g.s){ ctx.save(); ctx.strokeStyle="#fff"; ctx.fillStyle="#fff"; ctx.lineWidth=Math.max(2,cs*.05); ctx.lineCap="round"; ctx.shadowColor="#fff"; ctx.shadowBlur=8;
+    var L=rad*.8;
+    if(g.s===1||g.s===2){ var v=g.s===2; ctx.beginPath(); if(v){ ctx.moveTo(cx,cy-L); ctx.lineTo(cx,cy+L); } else { ctx.moveTo(cx-L,cy); ctx.lineTo(cx+L,cy); } ctx.stroke();
+      for(var s=-1;s<=1;s+=2){ ctx.beginPath(); if(v){ ctx.moveTo(cx-L*.4,cy+s*L*.55); ctx.lineTo(cx,cy+s*L); ctx.lineTo(cx+L*.4,cy+s*L*.55); } else { ctx.moveTo(cx+s*L*.55,cy-L*.4); ctx.lineTo(cx+s*L,cy); ctx.lineTo(cx+s*L*.55,cy+L*.4); } ctx.stroke(); } }
+    else if(g.s===3){ ctx.beginPath(); ctx.arc(cx,cy,L*.7,0,6.2832); ctx.stroke(); ctx.beginPath(); ctx.arc(cx,cy,L*.22,0,6.2832); ctx.fill(); }
+    ctx.restore(); }
+}
+function frame(t){
+  var dt=Math.min(.05,(t-last)/1000||.016); last=t;
+  var r,c,g;
+  for(r=0;r<N;r++) for(c=0;c<N;c++){ g=grid[r][c]; if(!g) continue;
+    var dx=c-g.x, dy=r-g.y;
+    if(Math.abs(dx)>.001){ g.x+= Math.sign(dx)*Math.min(Math.abs(dx),Math.max(5,Math.abs(dx)*14)*dt); } else g.x=c;
+    if(Math.abs(dy)>.001){ g.v=Math.min(g.v+36*dt,16); var st=Math.max(g.v,Math.abs(dy)*8)*dt; g.y+=Math.sign(dy)*Math.min(Math.abs(dy),st); if(Math.abs(r-g.y)<.001){ g.y=r; g.v=0; } } else { g.y=r; g.v=0; }
+    if(g.sc!==1){ g.sc+=(1-g.sc)*Math.min(1,dt*10); if(Math.abs(g.sc-1)<.02) g.sc=1; } }
+  for(var i=fx.length-1;i>=0;i--){ fx[i].sc-=dt*5; if(fx[i].sc<=0) fx.splice(i,1); }
+  for(var j=parts.length-1;j>=0;j--){ var p=parts[j]; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=10*dt; p.l-=dt*2.2; if(p.l<=0) parts.splice(j,1); }
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,cv.width,cv.height);
+  for(r=0;r<N;r++) for(c=0;c<N;c++){ ctx.fillStyle=(r+c)%2?"rgba(255,255,255,.05)":"rgba(255,255,255,.1)"; ctx.fillRect(c*cs,r*cs,cs,cs); }
+  if(sel){ ctx.strokeStyle="#fff"; ctx.lineWidth=3; ctx.strokeRect(sel[1]*cs+2,sel[0]*cs+2,cs-4,cs-4); }
+  for(r=0;r<N;r++) for(c=0;c<N;c++){ g=grid[r][c]; if(g) drawGem(g,sel&&sel[0]===r&&sel[1]===c); }
+  fx.forEach(function(f){ drawGem(f,false); });
+  parts.forEach(function(p){ ctx.globalAlpha=Math.max(0,p.l); ctx.fillStyle=p.c; ctx.beginPath(); ctx.arc(p.x*cs,p.y*cs,cs*.06,0,6.2832); ctx.fill(); });
+  ctx.globalAlpha=1;
+  if(settleWait.length&&settled()){ var w=settleWait; settleWait=[]; w.forEach(function(f){ f(); }); }
+  requestAnimationFrame(frame);
+}
+
+/* ---------- 입력 ---------- */
+var down=null, acted=false;
+function cellAt(e){ var b=cv.getBoundingClientRect(), x=(e.clientX-b.left)/b.width*N, y=(e.clientY-b.top)/b.height*N; return {r:Math.floor(y),c:Math.floor(x),x:x,y:y}; }
+cv.addEventListener("pointerdown",function(e){
+  e.preventDefault(); if(busy||gameOver) return;
+  var p=cellAt(e); if(p.r<0||p.r>=N||p.c<0||p.c>=N) return;
+  down={r:p.r,c:p.c,x:p.x,y:p.y}; acted=false;
+  if(sel&&adj(sel,[p.r,p.c])){ acted=true; trySwap(sel,[p.r,p.c]); sel=null; }
+  else sel=[p.r,p.c];
+  try{ cv.setPointerCapture(e.pointerId); }catch(x){}
+});
+cv.addEventListener("pointermove",function(e){
+  if(!down||acted||busy||gameOver) return;
+  var p=cellAt(e), dx=p.x-down.x, dy=p.y-down.y;
+  if(Math.max(Math.abs(dx),Math.abs(dy))<.45) return;
+  var to=Math.abs(dx)>Math.abs(dy)?[down.r,down.c+(dx>0?1:-1)]:[down.r+(dy>0?1:-1),down.c];
+  if(to[0]<0||to[0]>=N||to[1]<0||to[1]>=N) return;
+  acted=true; var from=[down.r,down.c]; sel=null; trySwap(from,to);
+});
+window.addEventListener("pointerup",function(){ down=null; });
+window.addEventListener("resize",size);
+
+var saved=+store("gm-best")||1; level=Math.min(saved,60);
+size(); start(); requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
