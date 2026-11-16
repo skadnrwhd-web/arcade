@@ -212,7 +212,7 @@ footer a:hover{color:#fff}
   #player{padding:0; align-items:stretch}
   #player .panel.wide{width:100%; max-height:none; height:100%; border-radius:0; border:0; padding:0 0 28px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
   #player .frame{order:1; flex:none; height:calc(100vh - 50px); height:calc(100svh - 50px); border:0; border-radius:0; margin:0}
-  #player .panel-top{order:2; flex:none; height:50px; margin:0; padding:0 8px; gap:6px; flex-wrap:nowrap; background:var(--card)}
+  #player .panel-top{order:0; position:sticky; top:0; z-index:5; flex:none; height:50px; margin:0; padding:0 8px; gap:6px; flex-wrap:nowrap; background:var(--card)}
   #player .panel-top h3{font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1}
   #player .p-actions{flex:none; gap:6px}
   #player .p-actions .btn.sm{padding:8px 10px; font-size:13px; white-space:nowrap}
@@ -223,6 +223,8 @@ footer a:hover{color:#fff}
 }
 .panel.wide{width:min(1040px,100%)}
 .p-actions{display:flex; align-items:center; gap:8px}
+#pClose{width:auto; min-width:38px; height:38px; padding:0 13px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; gap:6px; color:var(--ink); font:inherit; font-size:14px; font-weight:800; white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent}
+@media (max-width:360px){ #pClose .x-t{display:none} #pClose{padding:0; width:38px} }
 .frame{position:relative; border-radius:16px; overflow:hidden; border:1px solid var(--line); background:#000; height:min(68vh,640px)}
 .frame iframe{width:100%; height:100%; border:0; display:block}
 .c-title{margin:22px 2px 10px; font-size:17px}
@@ -512,7 +514,7 @@ footer a:hover{color:#fff}
   <div class="panel wide">
     <div class="panel-top">
       <h3 id="pTitle"></h3>
-      <div class="p-actions"><button class="btn sm" id="pRep" type="button" hidden title="신고"><span aria-hidden="true">🚩</span><span class="rt" id="pRepT"> 신고</span></button><button class="btn sm cbtn" id="pCmt" type="button"><span id="pCmtT" data-i="c_down">▼ 댓글</span></button><button class="btn kakao sm" id="pShare" type="button" data-share></button><a class="btn line sm" id="pNew" target="_blank" rel="noopener"><span data-i="p_new">새 창에서 열기</span> ↗</a><button class="x" id="pClose" type="button" aria-label="Close">✕</button></div>
+      <div class="p-actions"><button class="btn sm" id="pRep" type="button" hidden title="신고"><span aria-hidden="true">🚩</span><span class="rt" id="pRepT"> 신고</span></button><button class="btn sm cbtn" id="pCmt" type="button"><span id="pCmtT" data-i="c_down">▼ 댓글</span></button><button class="btn kakao sm" id="pShare" type="button" data-share></button><a class="btn line sm" id="pNew" target="_blank" rel="noopener"><span data-i="p_new">새 창에서 열기</span> ↗</a><button class="x" id="pClose" type="button"><span aria-hidden="true">✕</span><span class="x-t" data-i="p_exit">나가기</span></button></div>
     </div>
     <div class="frame" id="pFrame"></div>
     <h4 class="c-title" data-i="c_title">댓글</h4>
@@ -533,7 +535,7 @@ footer a:hover{color:#fff}
 <script>
 (function(){
 "use strict";
-var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",inst:"📲 Add to Home Screen",inst_h:"Tap the Share button (⬆) at the bottom, then choose “Add to Home Screen”.",s4_p:"Reviews, bug reports, games you would like to see: leave anything here. Comments left on each game are collected here too.",c_hint:"No login needed. Pick any nickname and write. Posts are public and cannot be edited, so do not write personal details such as your name or contact info.",c_title:"Comments",p_new:"Open in new tab",n1:"Mini-games",n2:"Games",n3:"How it's made",
+var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",inst:"📲 Add to Home Screen",inst_h:"Tap the Share button (⬆) at the bottom, then choose “Add to Home Screen”.",p_exit:"Exit",s4_p:"Reviews, bug reports, games you would like to see: leave anything here. Comments left on each game are collected here too.",c_hint:"No login needed. Pick any nickname and write. Posts are public and cannot be edited, so do not write personal details such as your name or contact info.",c_title:"Comments",p_new:"Open in new tab",n1:"Mini-games",n2:"Games",n3:"How it's made",
  h_eb:"No install · Free · No ads",h1a:"Open it,",h1b:"play right away",
  h_p:"Browser games built by a non-developer together with AI. Phone or PC, just open the link.",
  c1:"Play now",c2:"Go to the board",p1:"games",p2:"Works on phone and PC",p3:"Board with no login",
