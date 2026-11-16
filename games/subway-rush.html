@@ -322,9 +322,10 @@ function buildGrads(){
   glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
 
   roadGrad = ctx.createLinearGradient(0, horizonY, 0, bottomY);
-  roadGrad.addColorStop(0, 'rgba(20,52,86,0.30)');
-  roadGrad.addColorStop(0.35, 'rgba(9,24,46,0.72)');
-  roadGrad.addColorStop(1, 'rgba(4,8,20,0.94)');
+  roadGrad.addColorStop(0, 'rgba(46,96,150,0.45)');
+  roadGrad.addColorStop(0.22, 'rgba(20,50,90,0.80)');
+  roadGrad.addColorStop(0.55, 'rgba(11,28,54,0.90)');
+  roadGrad.addColorStop(1, 'rgba(6,14,30,0.96)');
 
   vigGrad = ctx.createRadialGradient(cx, H * 0.55, Math.min(W, H) * 0.34, cx, H * 0.55, Math.max(W, H) * 0.88);
   vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
@@ -357,8 +358,8 @@ function buildGrads(){
   sideShape = [];
   for (var s = 0; s < SIDE_N; s++) {
     sideShape.push({
-      w: 0.55 + rn() * 0.85,
-      h: 0.55 + rn() * 1.75,
+      w: 0.75 + rn() * 1.15,
+      h: 0.34 + rn() * 0.92,
       hue: rn(),
       win: 0.35 + rn() * 0.65
     });
@@ -753,14 +754,15 @@ function drawSides(){
 
   for (var j = 0; j < list.length; j++) {
     var d1 = list[j].d, sh = list[j].sh;
-    var d2 = d1 + SIDE_GAP * 0.92;
+    var d2 = d1 + SIDE_GAP * 1.02;
     var k1 = kOf(d1), k2 = kOf(d2);
     if (k1 <= 0.013) continue;
 
     var y1 = yOf(d1), y2 = yOf(d2);
     var e1 = roadHalf * k1, e2 = roadHalf * k2;
-    var w1 = roadHalf * 0.62 * sh.w * k1, w2 = roadHalf * 0.62 * sh.w * k2;
-    var h1 = roadHalf * 1.05 * sh.h * k1, h2 = roadHalf * 1.05 * sh.h * k2;
+    var w1 = (roadHalf * 0.95 * sh.w + W * 0.10) * k1;
+    var w2 = (roadHalf * 0.95 * sh.w + W * 0.10) * k2;
+    var h1 = roadHalf * (0.45 + sh.h) * k1, h2 = roadHalf * (0.45 + sh.h) * k2;
     var tone = sh.hue > 0.66 ? [120, 235, 255] : (sh.hue > 0.33 ? [255, 110, 170] : [150, 130, 255]);
     var alpha = Math.min(1, 0.16 + k1 * 1.05);
 
