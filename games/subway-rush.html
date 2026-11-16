@@ -328,10 +328,10 @@ function buildGrads(){
   boreGrad.addColorStop(1, '#12244c');
 
   roadGrad = ctx.createLinearGradient(0, horizonY, 0, bottomY);
-  roadGrad.addColorStop(0, 'rgba(70,120,180,0.55)');
-  roadGrad.addColorStop(0.22, 'rgba(26,62,110,0.85)');
-  roadGrad.addColorStop(0.55, 'rgba(13,32,62,0.94)');
-  roadGrad.addColorStop(1, 'rgba(7,16,34,0.98)');
+  roadGrad.addColorStop(0, 'rgba(90,150,215,0.60)');
+  roadGrad.addColorStop(0.22, 'rgba(34,78,132,0.88)');
+  roadGrad.addColorStop(0.55, 'rgba(18,42,78,0.95)');
+  roadGrad.addColorStop(1, 'rgba(10,24,48,0.98)');
 
   vigGrad = ctx.createRadialGradient(cx, H * 0.56, Math.min(W, H) * 0.40, cx, H * 0.56, Math.max(W, H) * 0.95);
   vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
@@ -722,10 +722,10 @@ function drawWorld(){
   for (var r = 0; r < ribs.length; r++) {
     var dr = ribs[r];
     var k = kOf(dr);
-    var a = Math.min(0.85, 0.03 + k * 1.15);
+    var a = Math.min(0.9, 0.05 + k * 1.7);
     ctx.save();
-    ctx.strokeStyle = 'rgba(96,214,255,' + a.toFixed(3) + ')';
-    ctx.lineWidth = Math.max(0.7, 3.2 * k);
+    ctx.strokeStyle = 'rgba(110,222,255,' + a.toFixed(3) + ')';
+    ctx.lineWidth = Math.max(0.8, 4.2 * k);
     borePath(dr, false);
     ctx.stroke();
     ctx.restore();
@@ -780,7 +780,7 @@ function drawRoad(){
   var gap = 1.55;
   var off = dist % gap;
   ctx.save();
-  ctx.strokeStyle = 'rgba(130,240,255,0.22)';
+  ctx.strokeStyle = 'rgba(140,242,255,0.34)';
   for (var i = -1; i < 26; i++) {
     var d = 1 + i * gap - off + gap;
     if (d < 1.02 || d > FAR) continue;
@@ -797,7 +797,7 @@ function drawRoad(){
   var dg = 2.05;
   var o2 = dist % dg;
   ctx.save();
-  ctx.strokeStyle = 'rgba(180,250,255,0.55)';
+  ctx.strokeStyle = 'rgba(190,252,255,0.80)';
   ctx.lineCap = 'round';
   for (var s = -1; s <= 1; s += 2) {
     var bx = s * 0.5 * laneOff;
@@ -1215,6 +1215,19 @@ function render(dt){
     else if (o.type === 'coffee') drawCoffee(o, k);
     else drawCard(o, k);
   }
+
+  /* headlight pool in front of the runner */
+  var pxp0 = cx + (laneFloat - 1) * laneOff;
+  var pyp0 = bottomY - laneOff * 0.50;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  var hg = ctx.createRadialGradient(pxp0, pyp0 + laneOff * 0.28, 0, pxp0, pyp0 + laneOff * 0.28, laneOff * 2.6);
+  hg.addColorStop(0, boostT > 0 ? 'rgba(255,215,120,0.20)' : 'rgba(120,235,255,0.17)');
+  hg.addColorStop(0.45, boostT > 0 ? 'rgba(255,180,60,0.07)' : 'rgba(70,190,255,0.06)');
+  hg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = hg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
 
   drawRunner();
 
