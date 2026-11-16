@@ -760,9 +760,9 @@ function drawSides(){
 
     var y1 = yOf(d1), y2 = yOf(d2);
     var e1 = roadHalf * k1, e2 = roadHalf * k2;
-    var w1 = (roadHalf * 0.95 * sh.w + W * 0.10) * k1;
-    var w2 = (roadHalf * 0.95 * sh.w + W * 0.10) * k2;
-    var h1 = roadHalf * (0.45 + sh.h) * k1, h2 = roadHalf * (0.45 + sh.h) * k2;
+    var w1 = (roadHalf * 1.05 * sh.w + W * 0.10) * k1;
+    var w2 = (roadHalf * 1.05 * sh.w + W * 0.10) * k2;
+    var h1 = roadHalf * (0.85 + sh.h * 1.5) * k1, h2 = roadHalf * (0.85 + sh.h * 1.5) * k2;
     var tone = sh.hue > 0.66 ? [120, 235, 255] : (sh.hue > 0.33 ? [255, 110, 170] : [150, 130, 255]);
     var alpha = Math.min(1, 0.16 + k1 * 1.05);
 
@@ -779,17 +779,17 @@ function drawSides(){
       ctx.lineTo(ox2, y2 - h2);
       ctx.lineTo(ox1, y1 - h1);
       ctx.closePath();
-      ctx.fillStyle = 'rgba(6,11,30,0.94)';
+      ctx.fillStyle = 'rgba(13,20,44,0.96)';
       ctx.fill();
 
-      /* wall tint near the top */
+      /* faint lit band */
       ctx.beginPath();
-      ctx.moveTo(bx1, ty1 + (y1 - ty1) * 0.55);
-      ctx.lineTo(bx2, ty2 + (y2 - ty2) * 0.55);
+      ctx.moveTo(bx1, ty1 + (y1 - ty1) * 0.62);
+      ctx.lineTo(bx2, ty2 + (y2 - ty2) * 0.62);
       ctx.lineTo(ox2, ty2);
       ctx.lineTo(ox1, ty1);
       ctx.closePath();
-      ctx.fillStyle = 'rgba(16,28,62,0.75)';
+      ctx.fillStyle = 'rgba(26,42,84,0.55)';
       ctx.fill();
 
       /* neon roof edges */
@@ -806,10 +806,10 @@ function drawSides(){
       ctx.stroke();
 
       /* windows along the wall */
-      if (k1 > 0.10 && w1 > 8) {
-        ctx.fillStyle = 'rgba(' + tone[0] + ',' + tone[1] + ',' + tone[2] + ',0.22)';
-        for (var u = 0.16; u < 0.95; u += 0.26) {
-          for (var v = 0.18; v < 0.86; v += 0.23) {
+      if (k1 > 0.07 && w1 > 8) {
+        ctx.fillStyle = 'rgba(' + tone[0] + ',' + tone[1] + ',' + tone[2] + ',0.30)';
+        for (var u = 0.12; u < 0.95; u += 0.19) {
+          for (var v = 0.14; v < 0.88; v += 0.19) {
             var lx = bx1 + (bx2 - bx1) * u;
             var ly = y1 + (y2 - y1) * u;
             var ux = tx1 + (tx2 - tx1) * u;
