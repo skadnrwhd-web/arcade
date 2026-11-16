@@ -15,6 +15,14 @@
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="canonical" href="https://skadnrwhd-web.github.io/arcade/">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="theme-color" content="#090a14">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="UJ ARCADE">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <style>
 :root{
   --bg:#090a14; --bg2:#0f1122; --card:#15182e; --line:#272b4a; --ink:#f3f4ff; --body:#aab0d0; --muted:#7078a0;
@@ -245,6 +253,10 @@ footer a:hover{color:#fff}
 .c-tag{font:inherit; font-size:12.5px; font-weight:800; color:var(--cyan); background:rgba(55,224,255,.1); border:1px solid rgba(55,224,255,.35); border-radius:999px; padding:2px 10px; cursor:pointer; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 .c-head{flex-wrap:wrap}
 .cg-btns{display:flex; flex-wrap:wrap; gap:8px}
+.inst{margin-top:14px}
+.inst-hint{margin:10px 0 0; padding:10px 14px; max-width:46ch; border:1px dashed var(--line); border-radius:12px; color:var(--body); font-size:14px; line-height:1.55}
+.reload{width:34px; height:34px; border-radius:999px; border:1px solid var(--line); background:transparent; color:var(--ink); font-size:18px; line-height:1; cursor:pointer; margin-right:8px; -webkit-tap-highlight-color:transparent}
+.reload[hidden],.inst[hidden]{display:none}
 .c-item{background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:12px 14px}
 .c-head{display:flex; align-items:center; gap:10px; font-size:13.5px; color:var(--muted); margin-bottom:4px}
 .c-head b{color:var(--ink); font-size:14.5px}
@@ -287,6 +299,7 @@ footer a:hover{color:#fff}
       <a class="l" href="#board" data-i="n4">게시판</a>
       <a class="l" href="#how" data-i="n3">만든 방법</a>
       <span class="vis" id="vis" hidden title="오늘 방문자 수"><i aria-hidden="true"></i><span id="visT"></span></span>
+      <button class="reload" id="reloadBtn" type="button" hidden aria-label="새로고침" title="새로고침">↻</button>
       <span class="lang" role="group" aria-label="Language">
         <button type="button" data-lang="ko">KO</button><button type="button" data-lang="en">EN</button>
       </span>
@@ -305,6 +318,10 @@ footer a:hover{color:#fff}
       <a class="btn play" href="#games">▶ <span data-i="c1">지금 플레이</span></a>
       <a class="btn line" href="#board" data-i="c2">게시판 가기</a>
       <button class="btn kakao" id="heroShare" type="button" data-share></button>
+    </div>
+    <div class="inst" id="instRow" hidden>
+      <button class="btn line sm" id="installBtn" type="button"><span data-i="inst">📲 홈 화면에 앱처럼 추가</span></button>
+      <p class="inst-hint" id="installHint" hidden data-i="inst_h">화면 아래의 공유 버튼(⬆)을 누르고 ‘홈 화면에 추가’를 선택하세요.</p>
     </div>
     <div class="pills">
       <span><b>15</b> <span data-i="p1">개 게임</span></span>
@@ -515,7 +532,7 @@ footer a:hover{color:#fff}
 <script>
 (function(){
 "use strict";
-var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",s4_p:"Reviews, bug reports, games you would like to see: leave anything here. Comments left on each game are collected here too.",c_hint:"No login needed. Pick any nickname and write. Posts are public and cannot be edited, so do not write personal details such as your name or contact info.",c_title:"Comments",p_new:"Open in new tab",n1:"Mini-games",n2:"Games",n3:"How it's made",
+var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",inst:"📲 Add to Home Screen",inst_h:"Tap the Share button (⬆) at the bottom, then choose “Add to Home Screen”.",s4_p:"Reviews, bug reports, games you would like to see: leave anything here. Comments left on each game are collected here too.",c_hint:"No login needed. Pick any nickname and write. Posts are public and cannot be edited, so do not write personal details such as your name or contact info.",c_title:"Comments",p_new:"Open in new tab",n1:"Mini-games",n2:"Games",n3:"How it's made",
  h_eb:"No install · Free · No ads",h1a:"Open it,",h1b:"play right away",
  h_p:"Browser games built by a non-developer together with AI. Phone or PC, just open the link.",
  c1:"Play now",c2:"Go to the board",p1:"games",p2:"Works on phone and PC",p3:"Board with no login",
@@ -885,6 +902,18 @@ if("IntersectionObserver" in window){ var io=new IntersectionObserver(function(e
 
 mountBoard();
 cgLoad(); iconTips();
+/* 홈 화면 설치: 안드로이드(크롬)는 설치 창을 띄우고, 아이폰(사파리)은 안내 문구를 보여 준다. 이미 앱으로 실행 중이면 새로고침 버튼만 보인다 */
+(function(){ var row=document.getElementById("instRow"),btn=document.getElementById("installBtn"),hint=document.getElementById("installHint"),rl=document.getElementById("reloadBtn"),dp=null;
+  var standalone=(window.navigator.standalone===true)||(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches);
+  if("serviceWorker" in navigator && /^https:|^http:\/\/localhost/.test(location.href)) navigator.serviceWorker.register("sw.js").catch(function(){});
+  if(!row||!btn) return;
+  if(standalone){ if(rl){ rl.hidden=false; rl.addEventListener("click",function(){ track('refresh',{area:'page'}); location.reload(); }); } track('pwa_open_standalone'); return; }
+  var ios=/iPhone|iPad|iPod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  if(ios&&!isInApp) row.hidden=false;
+  window.addEventListener("beforeinstallprompt",function(e){ e.preventDefault(); dp=e; row.hidden=false; });
+  window.addEventListener("appinstalled",function(){ row.hidden=true; track('pwa_installed'); });
+  btn.addEventListener("click",function(){ track('pwa_install_click',{platform:dp?'android':'ios'});
+    if(dp){ dp.prompt(); dp.userChoice.then(function(){ dp=null; row.hidden=true; }); } else hint.hidden=!hint.hidden; }); })();
 /* 오늘 방문자 수: 하루에 한 번만 센다(브라우저가 오늘 왔는지 기억). 이름·IP는 저장하지 않는다 */
 var visN=null;
 function visLabel(){ var v=document.getElementById("vis"),t=document.getElementById("visT"); if(!v||visN===null) return;
