@@ -1470,10 +1470,15 @@ function render(dt){
   for (var i = 0; i < sorted.length; i++) {
     var o = sorted[i];
     if (o.d > FAR) continue;
+    if (o.type === 'train') {
+      /* a long consist keeps drawing after its nose passes the camera */
+      if (o.d + (o.zLen || 0) <= 0.6) continue;
+      drawTrain(o, kOf(Math.max(o.d, 0.6)));
+      continue;
+    }
     var k = kOf(o.d);
     if (k <= 0.004) continue;
-    if (o.type === 'train') drawTrain(o, k);
-    else if (o.type === 'gate') drawGate(o, k);
+    if (o.type === 'gate') drawGate(o, k);
     else if (o.type === 'coffee') drawCoffee(o, k);
     else drawCard(o, k);
   }
