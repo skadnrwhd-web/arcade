@@ -1893,14 +1893,16 @@ function drawMinimap(){
   if(leader){
     var lx = cx + leader.x*k, ly = cy + leader.y*k;
     mctx.fillStyle = '#ffe066';
+    mctx.strokeStyle = 'rgba(20,10,0,0.85)';
+    mctx.lineWidth = 0.8;
     mctx.beginPath();
     for(var s=0;s<10;s++){
-      var rr2 = s%2 ? 2.2 : 5.2;
+      var rr2 = s%2 ? 1.5 : 3.6;
       var aa = -Math.PI/2 + s*Math.PI/5;
       var px2 = lx + Math.cos(aa)*rr2, py2 = ly + Math.sin(aa)*rr2;
       if(s===0) mctx.moveTo(px2,py2); else mctx.lineTo(px2,py2);
     }
-    mctx.closePath(); mctx.fill();
+    mctx.closePath(); mctx.fill(); mctx.stroke();
   }
   // player
   var pl = G.player;
