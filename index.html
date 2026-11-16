@@ -97,6 +97,8 @@ h1,h2,h3{margin:0; line-height:1.15; letter-spacing:-.025em; text-wrap:balance}
 #cgList .game .meta{width:100%; min-width:0} #cgList .cg-dom{display:block; max-width:100%; width:100%; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; text-align:center; font-size:10.5px; color:var(--muted)}
 #cgList .cg-card .cg-art b{font-size:clamp(26px,6vw,36px)}
 #cgList .c-note{grid-column:1/-1; justify-self:center}
+#play .game{font:inherit; color:inherit; cursor:pointer}
+#play .game .meta{display:flex; margin:0; justify-content:center; font-size:11.5px}
 
 /* 모두의 게임: 누구나 올린 웹 게임 */
 .cg-top{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; margin:0 0 20px}
@@ -371,9 +373,9 @@ footer a:hover{color:#fff}
   <div class="wrap">
     <div class="sec-head rv">
       <div><span class="eyebrow" data-i="s1_eb">Bonus</span><h2 data-i="s1_h">보너스 미니게임</h2></div>
-      <p data-i="s1_p">카드를 누르면 바로 시작합니다. 한 판에 1분이면 충분합니다.</p>
+      <p data-i="s1_p">아이콘을 누르면 바로 시작합니다. 한 판에 1분이면 충분합니다.</p>
     </div>
-    <div class="grid three">
+    <div class="grid three five">
       <button class="game rv" type="button" data-game="dodge" style="--hue:var(--pink); --c1:#3a0f2a; --c2:#ff4d8d">
         <div class="cover"><span class="badge" data-i="b_act">액션</span>
           <svg viewBox="0 0 320 176" fill="none"><g fill="#fff" opacity=".9"><rect x="40" y="24" width="70" height="14" rx="4"/><rect x="170" y="52" width="46" height="14" rx="4" opacity=".7"/><rect x="230" y="14" width="56" height="14" rx="4" opacity=".5"/><rect x="96" y="84" width="60" height="14" rx="4" opacity=".6"/></g><circle cx="186" cy="138" r="15" fill="#37e0ff"/><circle cx="186" cy="138" r="26" stroke="#37e0ff" opacity=".4" stroke-width="2"/><circle cx="262" cy="96" r="8" fill="#ffd23f"/></svg></div>
@@ -465,7 +467,7 @@ var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",s4_p:"Reviews, bug reports, ga
  h_eb:"No install · Free · No ads",h1a:"Open it,",h1b:"play right away",
  h_p:"Browser games built by a non-developer together with AI. Phone or PC, just open the link.",
  c1:"Play now",c2:"Go to the board",p1:"games",p2:"Works on phone and PC",p3:"Board with no login",
- s1_eb:"Bonus",s1_h:"Bonus mini-games",s1_p:"Tap a card to start. One round takes about a minute.",
+ s1_eb:"Bonus",s1_h:"Bonus mini-games",s1_p:"Tap an icon to start. One round takes about a minute.",
  b_act:"Action",b_mem:"Memory",b_spd:"Speed",b_alg:"Algorithm",b_cls:"Classic",b_puz:"Puzzle",
  g1_h:"Neon Dodge",g1_p:"Dodge the blocks falling from above and survive as long as you can. Yellow orbs give bonus points.",
  g2_h:"Pair Match",g2_p:"Find eight matching pairs among 16 cards in as few moves as possible.",
