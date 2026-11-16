@@ -337,10 +337,11 @@ function buildGrads(){
   vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
   vigGrad.addColorStop(1, 'rgba(0,0,0,0.48)');
 
-  exitGlow = ctx.createRadialGradient(cx, horizonY, 0, cx, horizonY, Math.max(W, H) * 0.34);
-  exitGlow.addColorStop(0, 'rgba(200,246,255,0.75)');
-  exitGlow.addColorStop(0.18, 'rgba(110,225,255,0.35)');
-  exitGlow.addColorStop(0.5, 'rgba(70,140,255,0.12)');
+  exitGlow = ctx.createRadialGradient(cx, horizonY, 0, cx, horizonY, Math.max(W, H) * 0.78);
+  exitGlow.addColorStop(0, 'rgba(205,248,255,0.80)');
+  exitGlow.addColorStop(0.10, 'rgba(120,228,255,0.36)');
+  exitGlow.addColorStop(0.26, 'rgba(70,150,255,0.13)');
+  exitGlow.addColorStop(0.55, 'rgba(40,90,200,0.04)');
   exitGlow.addColorStop(1, 'rgba(0,0,0,0)');
 }
 
@@ -699,12 +700,14 @@ function drawWorld(){
   ctx.fillStyle = boreGrad;
   ctx.fill();
 
-  /* light at the end of the tunnel */
+  /* light at the end of the tunnel (clipped to the bore) */
   ctx.save();
+  borePath(1, true);
+  ctx.clip();
   ctx.globalCompositeOperation = 'lighter';
   ctx.fillStyle = exitGlow;
   ctx.beginPath();
-  ctx.arc(cx, horizonY, Math.max(W, H) * 0.34, 0, 6.2832);
+  ctx.arc(cx, horizonY, Math.max(W, H) * 0.78, 0, 6.2832);
   ctx.fill();
   ctx.restore();
 
