@@ -37,7 +37,7 @@ h1{
   cursor:pointer;font-family:inherit;padding:0;
 }
 .iconBtn:active{background:rgba(20,50,70,.9)}
-.hud{display:flex;align-items:center;gap:6px;min-height:24px}
+.hud{display:flex;align-items:center;gap:6px;min-height:24px;max-width:600px}
 .chip{
   display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;
   font-size:11px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;
@@ -64,16 +64,17 @@ h1{
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.bad{border-color:rgba(255,85,105,.8);color:#ffd3d9;background:rgba(30,7,12,.97)}
 .over{
-  position:absolute;inset:0;z-index:8;display:flex;align-items:center;justify-content:center;
-  background:rgba(3,6,11,.55);opacity:0;pointer-events:none;transition:opacity .26s ease;padding:14px;
+  position:absolute;inset:0;z-index:8;display:flex;align-items:flex-end;justify-content:center;
+  background:linear-gradient(180deg,rgba(3,6,11,0) 42%,rgba(3,6,11,.72) 100%);
+  opacity:0;pointer-events:none;transition:opacity .26s ease;padding:10px 14px 4px;
 }
 .over.show{opacity:1;pointer-events:auto}
 .over.hidden{display:none}
 .overCard{
-  width:100%;max-width:300px;text-align:center;padding:20px 18px 16px;border-radius:18px;
-  background:linear-gradient(180deg,rgba(12,28,42,.98),rgba(6,12,20,.98));
+  width:100%;max-width:320px;text-align:center;padding:16px 16px 14px;border-radius:16px;
+  background:linear-gradient(180deg,rgba(12,28,42,.98),rgba(6,12,20,.99));
   border:1px solid rgba(53,240,255,.4);
-  box-shadow:0 0 0 1px rgba(255,61,240,.12) inset,0 18px 40px rgba(0,0,0,.55);
+  box-shadow:0 0 0 1px rgba(255,61,240,.12) inset,0 12px 34px rgba(0,0,0,.6);
 }
 .overIcon{font-size:30px;line-height:1;margin-bottom:6px}
 .overCard h2{
@@ -441,7 +442,7 @@ h1{
     if(gameOver){ toast('게임이 끝났어요 · 새 게임을 시작하세요', true); return; }
     if(aiThinking) return;
     if(!inb(x,y)) return;
-    if(bd[idx(x,y)] !== EMPTY){ playDeny(); toast('이미 돌이 있는 자리예요', true); return; }
+    if(bd[idx(x,y)] !== EMPTY){ playDeny(); toast('이미 돌이 있는 자리예요', true); needsDraw = true; return; }
     if(isAI() && turn === aiColor()) return;
     if(settings.renju && turn === BLACK){
       var info = blackInfo(x,y);
@@ -960,7 +961,8 @@ h1{
     }
 
     var pv = pending || hover;
-    if(pv && !gameOver){
+    if(pv && (gameOver || bd[idx(pv.x,pv.y)] !== EMPTY)) pv = null;
+    if(pv){
       var ps = (turn === BLACK) ? sprites.black : sprites.white;
       ctx.globalAlpha = pending ? 0.66 : 0.4;
       ctx.drawImage(ps.cv, px(pv.x)-ps.d/2, py(pv.y)-ps.d/2, ps.d, ps.d);
