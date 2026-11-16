@@ -159,6 +159,9 @@ footer a:hover{color:#fff}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
 /* 휴대폰: 게임이 화면 전체를 쓰고, 댓글은 아래로 내리면 나온다 */
+.cg-warn{position:absolute; left:10px; right:10px; bottom:10px; z-index:5; background:rgba(15,10,30,.92); border:1px solid var(--pink); border-radius:12px; padding:10px 12px; font-size:13px; line-height:1.5; color:#fff; cursor:pointer}
+#pRep[hidden]{display:none}
+@media (max-width:700px){ #pRep .rt{display:none} }
 .cbtn{display:none; background:rgba(255,255,255,.1); color:var(--ink); border:1px solid var(--line)}
 @media (max-width:700px){
   #player{padding:0; align-items:stretch}
@@ -336,7 +339,7 @@ footer a:hover{color:#fff}
       <p class="cg-msg" id="cgMsg" role="status" aria-live="polite"></p>
     </form>
     <div class="grid three" id="cgList"></div>
-    <p class="c-hint" data-i="s5_hint">게임은 이 사이트 안에서 바로 열립니다. 주소는 https:// 로 시작해야 합니다.</p>
+    <p class="c-hint" data-i="s5_hint">게임은 이 사이트 안에서 바로 열립니다. 주소는 https:// 로 시작해야 합니다. 올라온 게임은 다른 사람이 만든 외부 사이트이며, 이 사이트는 내용을 미리 검사하지 않습니다. 문제가 있는 게임은 🚩 신고해 주세요.</p>
   </div>
 </section>
 
@@ -413,7 +416,7 @@ footer a:hover{color:#fff}
   <div class="panel wide">
     <div class="panel-top">
       <h3 id="pTitle"></h3>
-      <div class="p-actions"><button class="btn sm cbtn" id="pCmt" type="button"><span id="pCmtT" data-i="c_down">▼ 댓글</span></button><button class="btn kakao sm" id="pShare" type="button" data-share></button><a class="btn line sm" id="pNew" target="_blank" rel="noopener"><span data-i="p_new">새 창에서 열기</span> ↗</a><button class="x" id="pClose" type="button" aria-label="Close">✕</button></div>
+      <div class="p-actions"><button class="btn sm" id="pRep" type="button" hidden title="신고"><span aria-hidden="true">🚩</span><span class="rt" id="pRepT"> 신고</span></button><button class="btn sm cbtn" id="pCmt" type="button"><span id="pCmtT" data-i="c_down">▼ 댓글</span></button><button class="btn kakao sm" id="pShare" type="button" data-share></button><a class="btn line sm" id="pNew" target="_blank" rel="noopener"><span data-i="p_new">새 창에서 열기</span> ↗</a><button class="x" id="pClose" type="button" aria-label="Close">✕</button></div>
     </div>
     <div class="frame" id="pFrame"></div>
     <h4 class="c-title" data-i="c_title">댓글</h4>
@@ -455,7 +458,7 @@ var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",s4_p:"Reviews, bug reports, ga
  s5_fh:"Post my game",s5_fp:"A name and a link are all you need. It appears in the list below as soon as you post.",
  s5_nick:"Your nickname (up to 20 characters)",s5_title:"Game name (up to 40 characters)",s5_desc:"One-line description (up to 120 characters)",s5_url:"Game link",
  s5_send:"Post",s5_wait:"It goes live right away. You can post again in 15 seconds.",
- s5_hint:"Games open right here on this site. The link must start with https://.",
+ s5_hint:"Games open right here on this site. The link must start with https://. Community games are outside sites made by other people and are not checked in advance. Please report problems with the 🚩 button.",
  s5_urlh:"Paste a public https:// link, such as a Claude/ChatGPT share link or a GitHub Pages URL.",
  s5_gq:"💡 How do I get a game link (https://...)?",
  s5_g1t:"Made it with Claude or ChatGPT",s5_g1p:"On the game screen, press Share, copy the public link, and paste that address as it is.",
@@ -639,26 +642,41 @@ function openPlayer(a){ var cg=a.getAttribute("data-cg"),slug=cg?cg.replace(/^cg
   var f=document.createElement("iframe"); f.src=url; f.title=name; f.setAttribute("allow","fullscreen; gamepad; accelerometer; gyroscope; autoplay"); f.setAttribute("allowfullscreen","");
   if(cg){ f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-pointer-lock"); f.setAttribute("referrerpolicy","no-referrer"); }
   pFrame.appendChild(f);
+  pRep.hidden=!cg; pRepId=cg?slug:""; pRepT.textContent=T(" 신고"," Report");
+  if(cg){ var w=el("div","cg-warn",T("다른 사람이 올린 외부 사이트입니다. 개인정보·비밀번호는 입력하지 마세요. 문제가 있으면 🚩 신고를 눌러 주세요. (눌러서 닫기)","This is an outside site posted by another person. Do not enter personal info or passwords. Tap 🚩 to report a problem. (tap to close)"));
+    w.addEventListener("click",function(){ w.remove(); }); pFrame.appendChild(w); setTimeout(function(){ if(w.parentNode) w.remove(); },9000); }
   mountThread(pThread,cg||("game: "+slug)); player.querySelector(".panel").scrollTop=0; player.classList.add("open"); document.body.style.overflow="hidden"; document.getElementById("pClose").focus();
   try{ history.replaceState(null,"",shareHash); }catch(e){} }
 function closePlayer(){ if(!player.classList.contains("open")) return; pFrame.textContent=""; pThread.textContent=""; player.classList.remove("open"); document.body.style.overflow="";
   try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){} if(pOpener) pOpener.focus(); }
 var pl=document.querySelectorAll("[data-play]"); for(i=0;i<pl.length;i++) pl[i].addEventListener("click",function(e){ if(e.ctrlKey||e.metaKey||e.shiftKey) return; e.preventDefault(); openPlayer(this); });
 document.getElementById("pClose").addEventListener("click",closePlayer);
+var pRep=document.getElementById("pRep"),pRepT=document.getElementById("pRepT"),pRepId="";
+pRep.addEventListener("click",function(){ if(!pRepId||!/^[0-9]{1,12}$/.test(pRepId)) return;
+  var done={}; try{ done=JSON.parse(store("arc-rep")||"{}")||{}; }catch(e){ done={}; }
+  if(done[pRepId]){ pRepT.textContent=T(" 접수됨"," Sent"); return; }
+  if(!window.confirm(T("이 게임을 신고할까요? (피싱, 성인물, 악성 사이트, 개인정보 요구 등)","Report this game? (phishing, adult content, malware, asking for personal info, etc.)"))) return;
+  withSb(function(ok){ if(!ok){ pRepT.textContent=T(" 실패"," Failed"); return; }
+    sb.from("comments").insert({thread:CG_REPORTS,nickname:"신고",body:pRepId}).then(function(r){
+      if(r.error){ pRepT.textContent=T(" 실패"," Failed"); return; }
+      done[pRepId]=1; store("arc-rep",JSON.stringify(done)); pRepT.textContent=T(" 접수됨"," Sent"); window.alert(T("신고가 접수되었습니다. 감사합니다. 신고가 여러 번 쌓이면 목록에서 자동으로 숨겨집니다.","Report received. Thank you. A game with several reports is hidden from the list automatically.")); }); }); });
 var pCmt=document.getElementById("pCmt"); pCmt.addEventListener("click",function(){ var t=player.querySelector(".c-title"); if(t) t.scrollIntoView({behavior:"smooth",block:"start"}); });
 player.addEventListener("click",function(e){ if(e.target===player) closePlayer(); });
 document.addEventListener("keydown",function(e){ if(e.key==="Escape") closePlayer(); });
 var boardMounted=false; function mountBoard(){ boardMounted=true; mountThread(document.getElementById("boardThread"),"board"); }
 
 /* 모두의 게임: 누구나 올린 웹 게임을 승인 없이 바로 등록한다. 게시판과 같은 comments 테이블에 thread="community-games" 로 쌓는다 */
-var CG_THREAD="community-games",CG_MAXBODY=1000,cgList=document.getElementById("cgList"),cgFormEl=document.getElementById("cgForm"),
+var CG_THREAD="community-games",CG_REPORTS="community-reports",CG_HIDE=3,CG_MAXBODY=1000,cgList=document.getElementById("cgList"),cgFormEl=document.getElementById("cgForm"),
     cgToggle=document.getElementById("cgToggle"),cgToggleT=document.getElementById("cgToggleT"),
     cgNick=document.getElementById("cgNick"),cgTitle=document.getElementById("cgTitle"),cgDesc=document.getElementById("cgDesc"),
     cgUrl=document.getElementById("cgUrl"),cgTrap=document.getElementById("cgTrap"),cgSend=document.getElementById("cgSend"),
     cgMsg=document.getElementById("cgMsg"),cgData=null,cgPending=null;
 function cgSay(text,ok){ if(!cgMsg) return; cgMsg.textContent=text||""; cgMsg.className="cg-msg"+(ok?" ok":""); }
-function cgSafeUrl(u){ u=String(u||"").trim(); if(u.length<12||u.length>500) return null; if(!/^https:\/\/[^\s"'<>]+$/i.test(u)) return null;
-  try{ var x=new URL(u); if(x.protocol!=="https:"||!x.hostname||x.hostname.indexOf(".")<0) return null; return x.href; }catch(e){ return null; } }
+var CG_BADHOST=/^(bit\.ly|tinyurl\.com|t\.co|goo\.gl|is\.gd|cutt\.ly|vo\.la|me2\.do|url\.kr|rebrand\.ly|ow\.ly|buff\.ly|shorturl\.at|t\.ly|rb\.gy|han\.gl|naver\.me|kakao\.me|lnkd\.in)$/i;
+function cgSafeUrl(u){ u=String(u||"").trim(); if(u.length<12||u.length>480) return null; if(!/^https:\/\/[^\s"'<>]+$/i.test(u)) return null;
+  try{ var x=new URL(u),h=x.hostname.toLowerCase(); if(x.protocol!=="https:"||!h||h.indexOf(".")<0) return null;
+    if(x.username||x.password) return null; if(/^[0-9.]+$/.test(h)||h.indexOf(":")>=0||h.indexOf("[")>=0) return null; if(/(^|\.)xn--/.test(h)) return null;
+    if(/(^|\.)(localhost|local|internal|test|invalid)$/.test(h)) return null; if(CG_BADHOST.test(h.replace(/^www\./,""))) return null; return x.href; }catch(e){ return null; } }
 function cgLabels(){ if(!cgToggleT) return; var open=cgFormEl.classList.contains("open");
   cgToggleT.textContent=open?T("닫기","Close"):T("+ 내 게임 올리기","+ Post my game");
   cgToggle.setAttribute("aria-label",open?T("내 게임 올리기 닫기","Close the post form"):T("내 게임 올리기","Post my game"));
@@ -692,7 +710,9 @@ function cgLoad(){ if(!cgList) return; cgList.textContent=""; cgList.appendChild
     sb.from("comments").select("id,nickname,body,created_at").eq("thread",CG_THREAD).order("created_at",{ascending:false}).limit(60).then(function(r){
       if(r.error){ cgList.textContent=""; cgList.appendChild(cgNote(T("게임 목록을 불러오지 못했습니다.","Could not load the game list."))); return; }
       var seen={},out=[]; (r.data||[]).forEach(function(x){ var g=cgParse(x); if(!g||seen[g.id]) return; seen[g.id]=1; out.push(g); });
-      cgData=out; cgRender(); }); }); }
+      sb.from("comments").select("body").eq("thread",CG_REPORTS).order("created_at",{ascending:false}).limit(1000).then(function(rr){
+        var cnt={}; if(!rr.error) (rr.data||[]).forEach(function(q){ var k=String(q.body||"").trim(); if(/^[0-9]{1,12}$/.test(k)) cnt[k]=(cnt[k]||0)+1; });
+        cgData=out.filter(function(g){ return (cnt[g.id]||0)<CG_HIDE; }); cgRender(); }); }); }); }
 if(cgToggle) cgToggle.addEventListener("click",function(){ cgOpen(!cgFormEl.classList.contains("open")); });
 if(cgFormEl) cgFormEl.addEventListener("submit",function(e){ e.preventDefault(); if(cgTrap.value) return;
   var nick=cgNick.value.trim().slice(0,20)||T("익명","Anonymous"),title=cgTitle.value.trim().slice(0,40),desc=cgDesc.value.trim().slice(0,120),url=cgSafeUrl(cgUrl.value);
