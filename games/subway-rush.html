@@ -173,6 +173,7 @@ var MUTE_KEY = 'uj_subway_rush_mute_v1';
 /* ---------- geometry ---------- */
 var W = 390, H = 700, dpr = 1;
 var cx = 195, horizonY = 232, bottomY = 690, roadHalf = 180, laneOff = 119;
+var boreRW = 240, boreRH = 460;
 
 var FAR      = 34;      // spawn depth
 var HIT_D    = 1.16;    // collision depth
@@ -191,10 +192,8 @@ var muted = false, audio = null;
 var overAt = 0, overToken = 0;
 
 /* cached gradients */
-var bgGrad = null, glowGrad = null, roadGrad = null, vigGrad = null, moonGrad = null, groundGrad = null;
-var skyline = [];
-var SIDE_N = 18, SIDE_GAP = 1.9;
-var sideShape = [];
+var wallGrad = null, wallShade = null, boreGrad = null, roadGrad = null, vigGrad = null, exitGlow = null;
+var boreRW = 240, boreRH = 460;
 
 /* =========================================================
    utils
@@ -309,61 +308,40 @@ function setMute(m){
    layout
    ========================================================= */
 function buildGrads(){
-  bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-  bgGrad.addColorStop(0, '#04050e');
-  bgGrad.addColorStop(0.34, '#080d24');
-  bgGrad.addColorStop(0.52, '#0b1440');
-  bgGrad.addColorStop(0.72, '#0a1030');
-  bgGrad.addColorStop(1, '#04050c');
+  /* tunnel wall base */
+  wallGrad = ctx.createLinearGradient(0, 0, 0, H);
+  wallGrad.addColorStop(0, '#05060f');
+  wallGrad.addColorStop(0.42, '#080d1f');
+  wallGrad.addColorStop(0.62, '#0a1226');
+  wallGrad.addColorStop(1, '#04060d');
 
-  glowGrad = ctx.createRadialGradient(cx, horizonY, 0, cx, horizonY, Math.max(W, H) * 0.62);
-  glowGrad.addColorStop(0, 'rgba(60,225,255,0.22)');
-  glowGrad.addColorStop(0.35, 'rgba(120,80,255,0.10)');
-  glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  /* corner shading so the frame reads as a cave */
+  wallShade = ctx.createRadialGradient(cx, horizonY, Math.min(W, H) * 0.10, cx, horizonY, Math.max(W, H) * 0.78);
+  wallShade.addColorStop(0, 'rgba(0,0,0,0)');
+  wallShade.addColorStop(0.55, 'rgba(0,0,0,0.28)');
+  wallShade.addColorStop(1, 'rgba(0,0,0,0.62)');
+
+  /* inside the bore */
+  boreGrad = ctx.createLinearGradient(0, bottomY, 0, horizonY);
+  boreGrad.addColorStop(0, '#060a14');
+  boreGrad.addColorStop(0.45, '#0a1226');
+  boreGrad.addColorStop(1, '#12244c');
 
   roadGrad = ctx.createLinearGradient(0, horizonY, 0, bottomY);
-  roadGrad.addColorStop(0, 'rgba(46,96,150,0.45)');
-  roadGrad.addColorStop(0.22, 'rgba(20,50,90,0.80)');
-  roadGrad.addColorStop(0.55, 'rgba(11,28,54,0.90)');
-  roadGrad.addColorStop(1, 'rgba(6,14,30,0.96)');
+  roadGrad.addColorStop(0, 'rgba(70,120,180,0.55)');
+  roadGrad.addColorStop(0.22, 'rgba(26,62,110,0.85)');
+  roadGrad.addColorStop(0.55, 'rgba(13,32,62,0.94)');
+  roadGrad.addColorStop(1, 'rgba(7,16,34,0.98)');
 
-  vigGrad = ctx.createRadialGradient(cx, H * 0.55, Math.min(W, H) * 0.34, cx, H * 0.55, Math.max(W, H) * 0.88);
+  vigGrad = ctx.createRadialGradient(cx, H * 0.56, Math.min(W, H) * 0.40, cx, H * 0.56, Math.max(W, H) * 0.95);
   vigGrad.addColorStop(0, 'rgba(0,0,0,0)');
-  vigGrad.addColorStop(1, 'rgba(0,0,0,0.42)');
+  vigGrad.addColorStop(1, 'rgba(0,0,0,0.48)');
 
-  groundGrad = ctx.createLinearGradient(0, horizonY, 0, bottomY);
-  groundGrad.addColorStop(0, 'rgba(12,22,44,0.0)');
-  groundGrad.addColorStop(0.30, 'rgba(10,18,38,0.35)');
-  groundGrad.addColorStop(1, 'rgba(6,10,22,0.85)');
-
-  var mcx = cx + W * 0.19, mcy = horizonY - H * 0.11, mr = Math.min(W, H) * 0.16;
-  moonGrad = ctx.createRadialGradient(mcx, mcy, 0, mcx, mcy, mr);
-  moonGrad.addColorStop(0, 'rgba(180,245,255,0.85)');
-  moonGrad.addColorStop(0.25, 'rgba(90,200,255,0.35)');
-  moonGrad.addColorStop(1, 'rgba(30,90,180,0)');
-
-  /* distant skyline (deterministic-ish) */
-  skyline = [];
-  var x = -20;
-  var seed = 1234567;
-  function rn(){ seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; }
-  while (x < W + 30) {
-    var bw = 18 + rn() * 46;
-    var bh = 12 + rn() * 66;
-    skyline.push({ x: x, w: bw, h: bh, hue: rn() });
-    x += bw + 5 + rn() * 16;
-  }
-
-  /* street-side buildings (perspective canyon) */
-  sideShape = [];
-  for (var s = 0; s < SIDE_N; s++) {
-    sideShape.push({
-      w: 0.75 + rn() * 1.15,
-      h: 0.34 + rn() * 0.92,
-      hue: rn(),
-      win: 0.35 + rn() * 0.65
-    });
-  }
+  exitGlow = ctx.createRadialGradient(cx, horizonY, 0, cx, horizonY, Math.max(W, H) * 0.34);
+  exitGlow.addColorStop(0, 'rgba(200,246,255,0.75)');
+  exitGlow.addColorStop(0.18, 'rgba(110,225,255,0.35)');
+  exitGlow.addColorStop(0.5, 'rgba(70,140,255,0.12)');
+  exitGlow.addColorStop(1, 'rgba(0,0,0,0)');
 }
 
 function layout(){
@@ -381,8 +359,10 @@ function layout(){
   cx = W / 2;
   horizonY = H * 0.335;
   bottomY = H * 0.985;
-  roadHalf = Math.min(W * 0.47, H * 0.335);
+  roadHalf = Math.min(W * 0.43, H * 0.30);
   laneOff = roadHalf * 0.66;
+  boreRW = roadHalf * 1.36;
+  boreRH = (bottomY - horizonY) * 1.06;
 
   buildGrads();
 }
@@ -690,160 +670,90 @@ function update(dt){
 /* =========================================================
    draw: world
    ========================================================= */
-function drawSky(){
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.fillStyle = glowGrad;
-  ctx.fillRect(0, 0, W, H);
-
-  /* moon / neon halo */
-  ctx.save();
-  ctx.globalAlpha = 0.5;
-  ctx.fillStyle = moonGrad;
+function borePath(d, closeIt){
+  var k = kOf(d);
+  var rw = boreRW * k, rh = boreRH * k;
+  var gy = yOf(d);
+  var topY = gy - rh;
+  var shoulder = topY + rh * 0.46;
   ctx.beginPath();
-  ctx.arc(cx + W * 0.19, horizonY - H * 0.11, Math.min(W, H) * 0.16, 0, 6.2832);
+  ctx.moveTo(cx - rw, gy);
+  ctx.lineTo(cx - rw, shoulder);
+  ctx.quadraticCurveTo(cx - rw, topY, cx, topY);
+  ctx.quadraticCurveTo(cx + rw, topY, cx + rw, shoulder);
+  ctx.lineTo(cx + rw, gy);
+  if (closeIt) ctx.closePath();
+}
+
+function drawWorld(){
+  /* tunnel wall */
+  ctx.fillStyle = wallGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  /* wall shading: darker at the corners, lighter toward the bore */
+  ctx.fillStyle = wallShade;
+  ctx.fillRect(0, 0, W, H);
+
+  /* bore interior */
+  borePath(1, true);
+  ctx.fillStyle = boreGrad;
+  ctx.fill();
+
+  /* light at the end of the tunnel */
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillStyle = exitGlow;
+  ctx.beginPath();
+  ctx.arc(cx, horizonY, Math.max(W, H) * 0.34, 0, 6.2832);
   ctx.fill();
   ctx.restore();
 
-  /* skyline */
-  for (var i = 0; i < skyline.length; i++) {
-    var b = skyline[i];
-    var by = horizonY - b.h;
-    ctx.fillStyle = 'rgba(9,17,40,0.92)';
-    ctx.fillRect(b.x, by, b.w, b.h + 2);
-    ctx.fillStyle = b.hue > 0.6 ? 'rgba(90,220,255,0.22)' : 'rgba(255,120,190,0.14)';
-    ctx.fillRect(b.x, by, b.w, 1.6);
-    /* windows */
-    var wy = by + 6;
-    while (wy < horizonY - 6) {
-      if (b.hue > 0.45) {
-        ctx.fillStyle = 'rgba(120,230,255,0.20)';
-        ctx.fillRect(b.x + 3, wy, Math.max(2, b.w * 0.16), 2);
-      }
-      wy += 7;
+  /* tunnel ribs + ceiling lights */
+  var gap = 2.7;
+  var off = dist % gap;
+  var ribs = [];
+  for (var i = 0; i < 16; i++) {
+    var d = 1 + i * gap - off;
+    if (d < 1.02 || d > FAR) continue;
+    ribs.push(d);
+  }
+  ribs.sort(function(a, b){ return b - a; });
+
+  for (var r = 0; r < ribs.length; r++) {
+    var dr = ribs[r];
+    var k = kOf(dr);
+    var a = Math.min(0.85, 0.03 + k * 1.15);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(96,214,255,' + a.toFixed(3) + ')';
+    ctx.lineWidth = Math.max(0.7, 3.2 * k);
+    borePath(dr, false);
+    ctx.stroke();
+    ctx.restore();
+
+    /* ceiling light */
+    if (k > 0.035) {
+      var rw = boreRW * k, rh = boreRH * k;
+      var topY = yOf(dr) - rh;
+      var lw = rw * 0.46, lh = Math.max(1.6, rh * 0.045);
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      var lg = ctx.createLinearGradient(cx - lw / 2, 0, cx + lw / 2, 0);
+      lg.addColorStop(0, 'rgba(90,220,255,0)');
+      lg.addColorStop(0.5, 'rgba(210,250,255,' + Math.min(0.95, 0.25 + k).toFixed(3) + ')');
+      lg.addColorStop(1, 'rgba(90,220,255,0)');
+      ctx.fillStyle = lg;
+      ctx.fillRect(cx - lw / 2, topY + rh * 0.045, lw, lh);
+      ctx.fillStyle = 'rgba(200,245,255,' + (0.10 + k * 0.25).toFixed(3) + ')';
+      ctx.beginPath();
+      ctx.ellipse(cx, topY + rh * 0.10, lw * 0.5, rh * 0.10, 0, 0, 6.2832);
+      ctx.fill();
+      ctx.restore();
     }
   }
-
-  /* horizon line */
-  ctx.save();
-  ctx.strokeStyle = 'rgba(90,230,255,0.35)';
-  ctx.lineWidth = 1.4;
-  ctx.shadowColor = 'rgba(80,220,255,0.9)';
-  ctx.shadowBlur = 14;
-  ctx.beginPath();
-  ctx.moveTo(0, horizonY);
-  ctx.lineTo(W, horizonY);
-  ctx.stroke();
-  ctx.restore();
-}
-
-function drawSides(){
-  /* ground plane on both sides of the track */
-  ctx.fillStyle = groundGrad;
-  ctx.fillRect(0, horizonY, W, H - horizonY);
-
-  var total = SIDE_N * SIDE_GAP;
-  var list = [];
-  for (var i = 0; i < SIDE_N; i++) {
-    var d = 1 + ((((i * SIDE_GAP - dist) % total) + total) % total);
-    if (d > 26) continue;
-    list.push({ d: d, sh: sideShape[i] });
-  }
-  list.sort(function(a, b){ return b.d - a.d; });
-
-  for (var j = 0; j < list.length; j++) {
-    var d1 = list[j].d, sh = list[j].sh;
-    var d2 = d1 + SIDE_GAP * 1.02;
-    var k1 = kOf(d1), k2 = kOf(d2);
-    if (k1 <= 0.013) continue;
-
-    var y1 = yOf(d1), y2 = yOf(d2);
-    var e1 = roadHalf * k1, e2 = roadHalf * k2;
-    var w1 = (roadHalf * 1.05 * sh.w + W * 0.10) * k1;
-    var w2 = (roadHalf * 1.05 * sh.w + W * 0.10) * k2;
-    var h1 = roadHalf * (0.85 + sh.h * 1.5) * k1, h2 = roadHalf * (0.85 + sh.h * 1.5) * k2;
-    var tone = sh.hue > 0.66 ? [120, 235, 255] : (sh.hue > 0.33 ? [255, 110, 170] : [150, 130, 255]);
-    var alpha = Math.min(1, 0.16 + k1 * 1.05);
-
-    for (var side = -1; side <= 1; side += 2) {
-      var bx1 = cx + side * e1, bx2 = cx + side * e2;
-      var ox1 = bx1 + side * w1, ox2 = bx2 + side * w2;
-      var tx1 = bx1, ty1 = y1 - h1, tx2 = bx2, ty2 = y2 - h2;
-
-      /* street-facing wall */
-      ctx.globalAlpha = alpha;
-      ctx.beginPath();
-      ctx.moveTo(bx1, y1);
-      ctx.lineTo(bx2, y2);
-      ctx.lineTo(ox2, y2 - h2);
-      ctx.lineTo(ox1, y1 - h1);
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(13,20,44,0.96)';
-      ctx.fill();
-
-      /* faint lit band */
-      ctx.beginPath();
-      ctx.moveTo(bx1, ty1 + (y1 - ty1) * 0.62);
-      ctx.lineTo(bx2, ty2 + (y2 - ty2) * 0.62);
-      ctx.lineTo(ox2, ty2);
-      ctx.lineTo(ox1, ty1);
-      ctx.closePath();
-      ctx.fillStyle = 'rgba(26,42,84,0.55)';
-      ctx.fill();
-
-      /* neon roof edges */
-      ctx.lineWidth = Math.max(1, 2.6 * k1);
-      ctx.strokeStyle = 'rgba(' + tone[0] + ',' + tone[1] + ',' + tone[2] + ',0.85)';
-      ctx.beginPath();
-      ctx.moveTo(bx1, ty1);
-      ctx.lineTo(bx2, ty2);
-      ctx.stroke();
-      ctx.strokeStyle = 'rgba(' + tone[0] + ',' + tone[1] + ',' + tone[2] + ',0.35)';
-      ctx.beginPath();
-      ctx.moveTo(ox1, ty1);
-      ctx.lineTo(ox2, ty2);
-      ctx.stroke();
-
-      /* windows along the wall */
-      if (k1 > 0.07 && w1 > 8) {
-        ctx.fillStyle = 'rgba(' + tone[0] + ',' + tone[1] + ',' + tone[2] + ',0.30)';
-        for (var u = 0.12; u < 0.95; u += 0.19) {
-          for (var v = 0.14; v < 0.88; v += 0.19) {
-            var lx = bx1 + (bx2 - bx1) * u;
-            var ly = y1 + (y2 - y1) * u;
-            var ux = tx1 + (tx2 - tx1) * u;
-            var uy = ty1 + (ty2 - ty1) * u;
-            var wx = lx + (ux - lx) * v;
-            var wy = ly + (uy - ly) * v;
-            var ww = Math.max(1, w1 * (1 - u * 0.75) * 0.12);
-            var wh = Math.max(1, h1 * (1 - v * 0.4) * 0.045);
-            ctx.fillRect(wx - side * ww, wy, ww, wh);
-          }
-        }
-      }
-
-      /* neon sign strip on some buildings */
-      if (sh.hue > 0.55 && k1 > 0.12) {
-        ctx.globalAlpha = Math.min(1, alpha * 1.2);
-        ctx.fillStyle = 'rgba(' + tone[0] + ',' + tone[1] + ',' + tone[2] + ',0.55)';
-        var sy1 = ty1 + (y1 - ty1) * 0.30;
-        var sy2 = ty2 + (y2 - ty2) * 0.30;
-        ctx.beginPath();
-        ctx.moveTo(bx1, sy1);
-        ctx.lineTo(bx2, sy2);
-        ctx.lineTo(bx2, sy2 + Math.max(1, 3 * k2));
-        ctx.lineTo(bx1, sy1 + Math.max(1, 3 * k1));
-        ctx.closePath();
-        ctx.fill();
-      }
-    }
-  }
-  ctx.globalAlpha = 1;
 }
 
 function drawRoad(){
-  /* road surface */
+  /* road surface inside the bore */
   ctx.beginPath();
   ctx.moveTo(cx - roadHalf, bottomY);
   ctx.lineTo(cx + roadHalf, bottomY);
@@ -855,7 +765,7 @@ function drawRoad(){
   /* edge neons */
   ctx.save();
   ctx.lineWidth = 2.6;
-  ctx.strokeStyle = 'rgba(70,230,255,0.85)';
+  ctx.strokeStyle = 'rgba(90,235,255,0.92)';
   ctx.shadowColor = 'rgba(60,215,255,0.95)';
   ctx.shadowBlur = 16;
   ctx.beginPath();
@@ -870,7 +780,7 @@ function drawRoad(){
   var gap = 1.55;
   var off = dist % gap;
   ctx.save();
-  ctx.strokeStyle = 'rgba(120,240,255,0.20)';
+  ctx.strokeStyle = 'rgba(130,240,255,0.22)';
   for (var i = -1; i < 26; i++) {
     var d = 1 + i * gap - off + gap;
     if (d < 1.02 || d > FAR) continue;
@@ -887,7 +797,7 @@ function drawRoad(){
   var dg = 2.05;
   var o2 = dist % dg;
   ctx.save();
-  ctx.strokeStyle = 'rgba(170,250,255,0.45)';
+  ctx.strokeStyle = 'rgba(180,250,255,0.55)';
   ctx.lineCap = 'round';
   for (var s = -1; s <= 1; s += 2) {
     var bx = s * 0.5 * laneOff;
@@ -897,7 +807,7 @@ function drawRoad(){
       if (n % 2 === 1) continue;
       var d2 = Math.min(FAR, dd + dg * 0.52);
       var k1 = kOf(dd), k2 = kOf(d2);
-      ctx.lineWidth = 0.7 + 2.2 * k1;
+      ctx.lineWidth = 0.7 + 2.6 * k1;
       ctx.beginPath();
       ctx.moveTo(cx + bx * k1, yOf(dd));
       ctx.lineTo(cx + bx * k2, yOf(d2));
@@ -1290,8 +1200,7 @@ function render(dt){
     ctx.translate(rnd(-m, m), rnd(-m, m));
   }
 
-  drawSky();
-  drawSides();
+  drawWorld();
   drawRoad();
 
   /* objects: far to near */
