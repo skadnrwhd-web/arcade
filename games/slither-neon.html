@@ -120,8 +120,8 @@
   /* ---------- overlays ---------- */
   .overlay{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;
     padding:calc(16px + env(safe-area-inset-top,0px)) 14px calc(16px + env(safe-area-inset-bottom,0px));
-    background:radial-gradient(circle at 50% 30%,rgba(10,30,60,.72),rgba(2,5,14,.93) 70%);
-    -webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px);overflow:auto;
+    background:radial-gradient(circle at 50% 32%,rgba(8,24,48,.55),rgba(2,5,14,.86) 72%);
+    -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);overflow:auto;
     animation:fadeIn .32s ease-out}
   .overlay.hide{display:none}
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
@@ -309,6 +309,7 @@ var BOOST_MIN_LEN = 20;
 var AI_COUNT = 12;
 var FOOD_TARGET = 540;
 var MAX_LEN = 420;
+var AI_LEN_CAP = 168;
 
 var cfg = {
   baseSpeed: 208,
@@ -484,7 +485,7 @@ function nearestNode(x,y,skipW,maxR){
         var n = arr[k];
         if(n._w === skipW) continue;
         var dx = n.x-x, dy = n.y-y;
-        var d = Math.sqrt(dx*dx+dy*dy) - n._w.r*0.9;
+        var d = Math.sqrt(dx*dx+dy*dy) - n._w.r*1.0;
         if(d < best){ best = d; bn = n; }
       }
     }
@@ -796,9 +797,10 @@ function addAI(initial){
 
 function spawnPlayer(){
   var skin = SKINS[G.skinIdx];
-  var spot = { x: rnd(-180,180), y: rnd(-180,180) };
+  var a0 = rnd(0, TAU), r0 = rnd(0, ARENA_R*0.42);
+  var spot = { x: Math.cos(a0)*r0, y: Math.sin(a0)*r0 };
   if(nearestNode(spot.x, spot.y, null, 400).d < 120){
-    spot = freeSpot(180);
+    spot = freeSpot(160);
   }
   var w = makeWorm({
     x: spot.x, y: spot.y, ang: rnd(0,TAU), len: 17,
@@ -893,11 +895,14 @@ function onPlayerKill(w){
 }
 
 function explode(w, by){
-  var n = Math.min(52, 10 + Math.round(w.len*0.85));
+  // corpse economy: total dropped value ~ 0.6x the worm's length (prevents runaway inflation)
+  var v = 0.8 + Math.min(1.5, w.len*0.006);
+  var N = Math.round((w.len*0.6) / (1.21*v));
+  N = Math.max(8, Math.min(44, N));
   var col = w.c1;
-  for(var i=0;i<n;i++){
+  for(var i=0;i<N;i++){
     var a = rnd(0,TAU), rr = Math.random()*Math.max(w.r*2, 18);
-    var o = makeOrb(w.x+Math.cos(a)*rr, w.y+Math.sin(a)*rr, { big:true, v: 2.2 + w.len*0.05, hue: rnd(0,360) });
+    var o = makeOrb(w.x+Math.cos(a)*rr, w.y+Math.sin(a)*rr, { big:true, v: v, hue: rnd(0,360) });
     o.vx = Math.cos(a)*rnd(30,120);
     o.vy = Math.sin(a)*rnd(30,120);
     G.orbs.push(o);
@@ -919,7 +924,7 @@ function showNote(txt, combo){
 /* ==================================================================
    12. update: worms
    ================================================================== */
-function headRadius(w){ return w.r*1.28; }
+function headRadius(w){ return w.r*1.12; }
 
 function reconcileNodes(w){
   var want = Math.max(6, Math.round(w.len));
@@ -1122,6 +1127,7 @@ function eatCheck(){
         // eat
         G.orbs.splice(i,1);
         var gain = (f.big ? f.v*1.55 : f.v) * cfg.growOrb;
+        if(!w.isPlayer && w.len + gain > AI_LEN_CAP){ gain = Math.max(0, AI_LEN_CAP - w.len); }
         w.len = Math.min(MAX_LEN, w.len + gain);
         if(w.isPlayer){
           G.lastLen = w.len;
@@ -1181,7 +1187,7 @@ function collideCheck(){
     var hr = headRadius(w);
     // body hit
     var nr = nearestNode(w.x, w.y, w, 300);
-    if(nr.n && nr.d < hr*0.52){
+    if(nr.n && nr.d < hr*0.5){
       if(w.isPlayer) killPlayer('ai');
       else killWorm(w, nr.n._w);
       continue;
@@ -1406,7 +1412,7 @@ function drawArenaFloor(t){
   for(var pass=0; pass<3; pass++){
     ctx.save();
     ctx.rotate(pass*Math.PI/3);
-    ctx.strokeStyle = pass === 0 ? 'rgba(70,160,235,0.085)' : 'rgba(60,140,215,0.055)';
+    ctx.strokeStyle = pass === 0 ? 'rgba(70,165,240,0.13)' : 'rgba(60,145,220,0.085)';
     ctx.beginPath();
     for(var y=-ext; y<=ext; y+=gs){
       ctx.moveTo(-ext, y);
@@ -1574,15 +1580,16 @@ function drawWorm(w, t, isLeader){
 
   // outer neon glow
   ctx.globalCompositeOperation = 'lighter';
-  wormStroke(w, w.r*3.6, rgba(body, boostGlow ? 0.13 : 0.06));
-  wormStroke(w, w.r*2.35, rgba(body, boostGlow ? 0.2 : 0.1));
-  wormStroke(w, w.r*1.5, rgba(mix(body,[255,255,255],0.25), boostGlow ? 0.4 : 0.26));
+  wormStroke(w, w.r*3.4, rgba(body, boostGlow ? 0.14 : 0.055));
+  wormStroke(w, w.r*2.15, rgba(body, boostGlow ? 0.2 : 0.09));
+  wormStroke(w, w.r*1.5, rgba(mix(body,[255,255,255],0.3), boostGlow ? 0.42 : 0.2));
   ctx.globalCompositeOperation = 'source-over';
 
-  // core body
-  wormStroke(w, w.r*1.62, rgba(dark(body, 0.22), 0.98));
-  wormStroke(w, w.r*1.06, rgba(mix(body, [255,255,255], 0.12), 0.96));
-  wormStroke(w, w.r*0.42, rgba(mix(body, [255,255,255], 0.72), 0.5));
+  // neon rim -> dark inner -> bright mid -> gloss
+  wormStroke(w, w.r*1.94, rgba(mix(body, [255,255,255], 0.42), 0.92));
+  wormStroke(w, w.r*1.66, rgba(dark(body, 0.34), 1));
+  wormStroke(w, w.r*1.22, rgba(mix(body, [0,0,0], 0.06), 1));
+  wormStroke(w, w.r*0.56, rgba(mix(body, [255,255,255], 0.85), 0.3));
 
   // energy cores along body
   var ns = w.nodes;
@@ -1887,8 +1894,8 @@ function buildRankRows(){
 }
 
 function updateHud(force){
-  if(!G.player) return;
   var p = G.player;
+  if(p){
   var lenNow = p.alive ? Math.round(p.len) : Math.round(G.lastLen);
   elLen.textContent = lenNow;
   elKills.textContent = G.kills;
@@ -1907,6 +1914,12 @@ function updateHud(force){
     html += '<div class="buff hyper"><span>⚡ 하이퍼</span><span class="bar"><i style="transform:scaleX('+(p.hyperT/4).toFixed(2)+')"></i></span><span>'+p.hyperT.toFixed(1)+'s</span></div>';
   }
   elBuffs.innerHTML = html;
+  } else {
+    elLen.textContent = '0';
+    elBest.textContent = Math.max(0, G.best);
+    elBoost.classList.add('off');
+    elBuffs.innerHTML = '';
+  }
 
   // ranking
   var list = [];
