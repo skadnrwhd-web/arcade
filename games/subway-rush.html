@@ -1030,21 +1030,27 @@ function drawTrainCar(lane, side, dN, dF){
   var rR_N = trainPt(lane, dN, 1, 1);
   var rR_F = trainPt(lane, dF, 1, 1);
   var rg = ctx.createLinearGradient(rL_N.x, rL_N.y, rR_N.x, rR_N.y);
-  rg.addColorStop(0, '#2c6c8c');
-  rg.addColorStop(0.5, '#1d4c66');
-  rg.addColorStop(1, '#12374b');
+  rg.addColorStop(0, '#1b4a63');
+  rg.addColorStop(0.34, '#3f88aa');
+  rg.addColorStop(0.60, '#1d5069');
+  rg.addColorStop(1, '#0c2839');
   quad(rL_N, rL_F, rR_F, rR_N, rg);
 
-  /* roof ribs, so a head-on carriage still reads as a long roof */
   ctx.save();
-  ctx.strokeStyle = 'rgba(150,240,255,0.22)';
-  ctx.lineWidth = Math.max(0.5, 1.4 * kN);
+  /* roof ribs and car joints, so a head-on carriage still reads as a long roof */
+  ctx.strokeStyle = 'rgba(168,246,255,0.34)';
+  ctx.lineWidth = Math.max(0.6, 1.6 * kN);
   var ribs = Math.max(2, Math.round((dF - dN) / 0.7));
   for (var m = 1; m < ribs; m++) {
     var dm = dN + (dF - dN) * (m / ribs);
     var p1 = trainPt(lane, dm, -1, 1), p2 = trainPt(lane, dm, 1, 1);
     ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
   }
+  /* bright edges along both roof corners give the body its volume */
+  ctx.strokeStyle = 'rgba(150,244,255,0.62)';
+  ctx.lineWidth = Math.max(0.8, 1.9 * kN);
+  ctx.beginPath(); ctx.moveTo(rL_N.x, rL_N.y); ctx.lineTo(rL_F.x, rL_F.y); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(rR_N.x, rR_N.y); ctx.lineTo(rR_F.x, rR_F.y); ctx.stroke();
   ctx.restore();
 }
 
