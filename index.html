@@ -146,6 +146,8 @@ h1,h2,h3{margin:0; line-height:1.15; letter-spacing:-.025em; text-wrap:balance}
 .cg-card .cg-art{position:absolute; inset:0; display:grid; place-items:center; z-index:0}
 .cg-card .cover .badge{z-index:2}
 .cg-card .cg-art b{position:relative; z-index:1; font-size:clamp(40px,8vw,58px); font-weight:900; letter-spacing:-.05em; color:#fff; text-shadow:0 10px 34px rgba(0,0,0,.5)}
+#cgList .cg-card .cg-art b.cg-emo{font-size:clamp(34px,9vw,46px); line-height:1; letter-spacing:0}
+.cg-card .cg-art:before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.3),transparent 58%)}
 .cg-card .cg-art:after{content:""; position:absolute; inset:0; background:repeating-linear-gradient(135deg, rgba(255,255,255,.09) 0 2px, transparent 2px 18px)}
 .cg-card .cg-dom{max-width:56%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12.5px}
 
@@ -761,11 +763,25 @@ function cgParse(x){ try{ var o=JSON.parse(x.body); if(!o||typeof o!=="object") 
     var title=String(o.title==null?"":o.title).trim().slice(0,40)||T("제목 없음","Untitled");
     return {id:String(x.id),nick:String(x.nickname==null?"":x.nickname).trim().slice(0,20),title:title,desc:String(o.desc==null?"":o.desc).trim().slice(0,120),url:url,host:host};
   }catch(e){ return null; } }
-function cgCard(g,idx){ var pal=[["#3a0f2a","#ff4d8d","--pink"],["#0a2a3d","#1aa3c9","--cyan"],["#3a2c06","#e0a81c","--yellow"],["#102a20","#22a57c","--lime"],["#1c1447","#6d5cff","--violet"]],c=pal[idx%pal.length];
+/* 모두의 게임 자동 커버: 제목·설명의 낱말로 이모지를 고르고, 게임마다 다른 색을 만든다 (외부 이미지는 쓰지 않는다) */
+var CG_EMO=[[/카드|포커|블랙잭|\bcards?\b|\bpoker\b/i,"🃏"],[/수박|과일|딸기|\bfruits?\b|\bsuika\b/i,"🍉"],[/오목|바둑|체스|장기|\bchess\b|\bgomoku\b/i,"♟️"],
+ [/퍼즐|매치|블록|테트리스|\bpuzzle\b|\bmatch\b|\bblocks?\b|\btetris\b/i,"🧩"],[/슈팅|비행|우주|전투|\bshoot\w*|\bspace\b|\bbattle\b/i,"🚀"],
+ [/레이싱|자동차|운전|드리프트|\bracing\b|\brace\b|\bdrive\b|\bdrift\b/i,"🏎️"],[/뱀|지렁이|\bsnake\b|\bworm\b|\bslither\b/i,"🐍"],
+ [/달리기|점프|지하철|도망|탈출|\brun\w*|\bjump\w*|\bescape\b/i,"🏃"],[/퀴즈|상식|문제|\bquiz\b|\btrivia\b/i,"❓"],
+ [/숫자|수학|계산|\bmath\b|\bnumbers?\b|\b2048\b/i,"🔢"],[/낚시|물고기|바다|\bfish\w*|\bocean\b/i,"🐟"],
+ [/축구|농구|야구|골프|\bsoccer\b|\bbasket\w*|\bgolf\b|\bball\b/i,"⚽"],[/주사위|보드게임|\bdice\b|\bboard\b/i,"🎲"],
+ [/던전|용사|몬스터|\brpg\b|\bsword\b|\bmonsters?\b|\bdragon\b|드래곤/i,"⚔️"],[/좀비|유령|공포|\bzombie\b|\bghost\b|\bhorror\b/i,"🧟"],
+ [/타워|디펜스|\btower\b|\bdefense\b|\bcastle\b/i,"🏰"],[/음악|리듬|피아노|노래|\bmusic\b|\brhythm\b|\bpiano\b/i,"🎵"],
+ [/단어|글자|타자|영어|\bwords?\b|\btyping\b/i,"🔤"],[/미로|길찾기|\bmaze\b/i,"🌀"],[/요리|음식|피자|케이크|\bcook\w*|\bfood\b|\bpizza\b/i,"🍳"],
+ [/고양이|냥|\bcats?\b/i,"🐱"],[/강아지|멍멍|\bdogs?\b/i,"🐶"],[/기억|짝맞추기|\bmemory\b|\bpairs?\b/i,"🧠"],[/클릭|키우기|방치|\bclicker\b|\bidle\b/i,"👆"],[/별|\bstars?\b/i,"⭐"]],
+ CG_GEN=["🎮","🕹️","👾","🎯","🎲","🧩","⭐","🚀","🔥","🌈"];
+function cgHash(t){ var h=5381; for(var i=0;i<t.length;i++) h=((h<<5)+h+t.charCodeAt(i))|0; return Math.abs(h); }
+function cgEmoji(text,h){ for(var i=0;i<CG_EMO.length;i++) if(CG_EMO[i][0].test(text)) return CG_EMO[i][1]; return CG_GEN[h%CG_GEN.length]; }
+function cgCard(g,idx){ var hs=cgHash(g.id+"|"+g.title),hu=hs%360,emo=cgEmoji(g.title+" "+(g.desc||""),hs);
   var a=document.createElement("a"); a.className="game cg-card in-view"; a.href=g.url; a.setAttribute("data-cg","cgame:"+g.id); a.setAttribute("data-url",g.url); a.setAttribute("data-title",g.title); a.target="_blank"; a.rel="noopener";
-  a.style.cssText="--hue:var("+c[2]+"); --c1:"+c[0]+"; --c2:"+c[1];
+  a.style.cssText="--hue:hsl("+hu+",85%,62%); --c1:hsl("+hu+",55%,13%); --c2:hsl("+((hu+35)%360)+",65%,44%)";
   var cov=el("div","cover"); cov.appendChild(el("span","badge","by "+(g.nick||T("익명","Anonymous"))));
-  var art=el("div","cg-art"),ini=el("b",null,String(g.title||"?").trim().slice(0,2).toUpperCase()); art.appendChild(ini); cov.appendChild(art);
+  var art=el("div","cg-art"),ini=el("b","cg-emo",emo); art.appendChild(ini); cov.appendChild(art);
   var b=el("div","b"); b.appendChild(el("h3",null,g.title)); b.appendChild(el("p",null,g.desc||T("설명이 없습니다.","No description.")));
   var meta=el("div","meta"),go=el("span","go"); go.appendChild(document.createTextNode("▶ ")); go.appendChild(el("span",null,T("플레이","Play")));
   meta.appendChild(el("span","cg-dom",g.host||"")); meta.appendChild(go); b.appendChild(meta);
