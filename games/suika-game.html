@@ -850,10 +850,11 @@
     cv.style.height = ch + 'px';
 
     var marginSide = Math.max(6, Math.round(cw * 0.022));
-    var boardW = Math.min(cw - marginSide * 2, ch * 0.585);
-    G.boardTop = Math.round(Math.min(6, ch * 0.012));
-    G.W = Math.max(160, Math.round(boardW));
-    G.H = Math.max(200, Math.round(ch - G.boardTop));
+    var padTop = Math.round(Math.min(6, ch * 0.012));
+    var padBottom = Math.round(Math.min(8, ch * 0.014));
+    G.boardTop = padTop;
+    G.W = Math.max(160, Math.round(Math.min(cw - marginSide * 2, (ch - padTop - padBottom) * 0.585)));
+    G.H = Math.max(200, Math.round(ch - padTop - padBottom));
     G.boardLeft = Math.round((cw - G.W) / 2);
     G.wall = Math.max(7, Math.round(G.W * 0.028));
     G.floor = Math.max(10, Math.round(G.H * 0.024));
@@ -1310,17 +1311,17 @@
     ctx.fillRect(0, 0, G.cw, G.ch);
 
     if (G.cw - G.W > 60) {
-      var side = Math.min(140, (G.cw - G.W) / 2 - 10);
+      var side = Math.min(180, (G.cw - G.W) / 2 - 12);
+      var rr = Math.max(22, side * 0.44);
       ctx.save();
-      ctx.globalAlpha = 0.16;
-      var rr = side * 0.42;
+      ctx.globalAlpha = 0.15;
       ctx.save();
-      ctx.translate(G.boardLeft / 2, G.ch * 0.3);
+      ctx.translate(G.boardLeft / 2, G.ch * 0.37);
       art(10, ctx, rr);
       ctx.restore();
       ctx.save();
-      ctx.translate(G.cw - G.boardLeft / 2, G.ch * 0.72);
-      art(9, ctx, rr * 0.8);
+      ctx.translate(G.cw - G.boardLeft / 2, G.ch * 0.66);
+      art(9, ctx, rr * 0.82);
       ctx.restore();
       ctx.restore();
     }
@@ -1328,6 +1329,15 @@
 
   function drawBoard() {
     var W = G.W, H = G.H, rad = Math.max(12, W * 0.055);
+    ctx.save();
+    ctx.shadowColor = 'rgba(150,95,65,0.20)';
+    ctx.shadowBlur = Math.max(10, W * 0.055);
+    ctx.shadowOffsetY = Math.max(3, W * 0.02);
+    roundRect(ctx, 0, 0, W, H, rad);
+    ctx.fillStyle = '#fffaf4';
+    ctx.fill();
+    ctx.restore();
+
     ctx.save();
     roundRect(ctx, 0, 0, W, H, rad);
     var pg = ctx.createLinearGradient(0, 0, 0, H);
