@@ -547,6 +547,9 @@ function makeWorm(opt){
 }
 
 function freeSpot(minDist){
+  // the spatial grid is otherwise only rebuilt inside the frame loop, so a spawn
+  // placed between frames (resetArena / startGame) would test stale positions
+  buildGrid();
   var bestP = { x:0, y:0 }, bestD = -1;
   for(var attempt=0; attempt<40; attempt++){
     var a = rnd(0,TAU), rr = rnd(160, ARENA_R*0.82);
@@ -816,6 +819,7 @@ function resetArena(){
   seedFood(FOOD_TARGET);
   for(var i=0;i<AI_COUNT;i++) addAI(i===0);
   for(var p=0;p<2;p++) spawnPower();
+  buildGrid();
 }
 
 function addAI(initial){
