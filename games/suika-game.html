@@ -1559,8 +1559,33 @@
   cv.addEventListener('pointerleave', function (e) { if (e.pointerType !== 'touch') pressing = false; });
   cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
 
-  cv.addEventListener('touchstart', function (e) { if (e.cancelable) e.preventDefault(); }, { passive: false });
-  cv.addEventListener('touchmove', function (e) { if (e.cancelable) e.preventDefault(); }, { passive: false });
+  function touchWorldX(e) {
+    var t = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
+    return pointerWorldX(t ? t.clientX : 0);
+  }
+
+  // 포인터 이벤트가 없는 구형 브라우저용 터치 폴백 (현대 iOS/안드로이드는 포인터 + touch-action:none 으로 동작)
+  if (!window.PointerEvent) {
+    cv.addEventListener('touchstart', function (e) {
+      if (state !== 'play') return;
+      if (e.cancelable) e.preventDefault();
+      A.resume();
+      pressing = true;
+      aimX = clampAim(touchWorldX(e));
+    }, { passive: false });
+    cv.addEventListener('touchmove', function (e) {
+      if (state !== 'play' || !pressing) return;
+      if (e.cancelable) e.preventDefault();
+      aimX = clampAim(touchWorldX(e));
+    }, { passive: false });
+    cv.addEventListener('touchend', function (e) {
+      if (e.cancelable) e.preventDefault();
+      if (!pressing) return;
+      pressing = false;
+      tryDrop();
+    }, { passive: false });
+    cv.addEventListener('touchcancel', function () { pressing = false; });
+  }
 
   function onKey(e) {
     var k = e.key;
