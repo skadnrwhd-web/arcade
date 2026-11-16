@@ -21,7 +21,7 @@
     padding:8px 10px 7px;background:linear-gradient(180deg,#fffaf4,#fff2e7);
     border-bottom:1px solid rgba(190,140,110,0.16);
   }
-  .rowTop{display:flex;align-items:center;gap:7px;}
+  .rowTop{display:flex;align-items:center;gap:7px;width:min(100%,var(--hudw,100%));margin:0 auto;}
   .pill{
     display:flex;align-items:center;gap:6px;padding:3px 9px;border-radius:12px;background:#fff;
     box-shadow:0 1px 3px rgba(150,90,60,0.12);
@@ -42,7 +42,7 @@
     display:flex;align-items:center;justify-content:center;padding:0;color:#8a5a45;
   }
   #muteBtn:active{transform:scale(0.94);}
-  .rowChain{display:flex;align-items:center;gap:6px;}
+  .rowChain{display:flex;align-items:center;gap:6px;width:min(100%,var(--hudw,100%));margin:0 auto;}
   .chainLabel{flex:0 0 auto;font-size:9px;letter-spacing:.09em;color:#bd9276;font-weight:800;}
   #chain{flex:1 1 auto;display:flex;align-items:center;justify-content:space-between;min-width:0;}
   .chainItem{flex:0 0 auto;width:clamp(14px,4.4vw,20px);height:clamp(14px,4.4vw,20px);}
@@ -479,7 +479,15 @@
       c.fill();
       c.restore();
     }
-    face(c, r * 0.82, r * 0.12, '#2c1240');
+    c.restore();
+    c.save();
+    var halo = c.createRadialGradient(0, r * 0.12, r * 0.02, 0, r * 0.12, r * 0.44);
+    halo.addColorStop(0, 'rgba(255,255,255,0.26)');
+    halo.addColorStop(1, 'rgba(255,255,255,0)');
+    c.fillStyle = halo;
+    c.beginPath(); c.arc(0, r * 0.12, r * 0.44, 0, TAU); c.fill();
+    c.restore();
+    face(c, r * 0.8, r * 0.14, '#20112f');
   }
 
   function art3(c, r) { // 한라봉
@@ -652,26 +660,29 @@
   }
 
   function art9(c, r) { // 멜론
-    ball(c, r * 0.94, '#e2f19a', '#54901f');
+    ball(c, r * 0.94, '#e6f0a0', '#5b9424');
     c.save();
     c.beginPath();
     c.arc(0, 0, r * 0.93, 0, TAU);
     c.clip();
     var rng = makeRng(53);
-    c.strokeStyle = 'rgba(250,252,228,0.75)';
-    c.lineWidth = Math.max(0.7, r * 0.042);
-    for (var i = 0; i < 9; i++) {
-      var x0 = -r * 0.9 + i * r * 0.24 + rng() * r * 0.1;
+    c.strokeStyle = 'rgba(252,253,236,0.62)';
+    c.lineWidth = Math.max(0.6, r * 0.032);
+    c.lineCap = 'round';
+    for (var i = 0; i < 8; i++) {
+      var x0 = -r * 0.85 + i * r * 0.24 + rng() * r * 0.08;
+      var bend = (rng() - 0.5) * r * 0.5;
       c.beginPath();
-      c.moveTo(x0, -r * 1.05);
-      c.bezierCurveTo(x0 + r * 0.35, -r * 0.35, x0 - r * 0.32, r * 0.4, x0 + r * 0.06, r * 1.05);
+      c.moveTo(x0, -r * 1.02);
+      c.bezierCurveTo(x0 + bend, -r * 0.45, x0 - bend * 0.8, r * 0.35, x0 + bend * 0.4, r * 1.02);
       c.stroke();
     }
-    for (var j = 0; j < 4; j++) {
-      var y0 = -r * 0.55 + j * r * 0.34;
+    for (var j = 0; j < 5; j++) {
+      var y0 = -r * 0.62 + j * r * 0.31;
+      var bend2 = (rng() - 0.5) * r * 0.34;
       c.beginPath();
-      c.moveTo(-r * 1.05, y0);
-      c.bezierCurveTo(-r * 0.3, y0 + r * 0.3, r * 0.3, y0 - r * 0.28, r * 1.05, y0 + r * 0.04);
+      c.moveTo(-r * 1.02, y0);
+      c.bezierCurveTo(-r * 0.4, y0 + bend2, r * 0.4, y0 - bend2, r * 1.02, y0 + bend2 * 0.4);
       c.stroke();
     }
     c.restore();
@@ -865,6 +876,10 @@
     }
     if (aimX === null) aimX = G.W / 2;
     else aimX = clampAim(aimX);
+
+    if (document.documentElement && document.documentElement.style && document.documentElement.style.setProperty) {
+      document.documentElement.style.setProperty('--hudw', (G.W + 28) + 'px');
+    }
 
     buildSprites();
     buildChain();
