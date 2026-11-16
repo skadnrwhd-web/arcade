@@ -36,6 +36,11 @@ h1,h2,h3{margin:0; line-height:1.15; letter-spacing:-.025em; text-wrap:balance}
 .logo i{width:34px; height:34px; border-radius:10px; background:linear-gradient(135deg,var(--pink),var(--violet) 55%,var(--cyan)); display:grid; place-items:center; font-style:normal; font-size:15px}
 .menu{display:flex; align-items:center; gap:22px; font-size:15px; font-weight:700}
 .menu a.l{color:var(--body)} .menu a.l:hover{color:#fff}
+.vis{display:inline-flex; align-items:center; gap:7px; font-size:12.5px; font-weight:800; color:var(--body); white-space:nowrap}
+.vis[hidden]{display:none}
+.vis i{width:7px; height:7px; border-radius:50%; background:var(--lime); box-shadow:0 0 0 3px rgba(125,255,155,.18)}
+.vis b{color:#fff; font-variant-numeric:tabular-nums}
+@media (max-width:420px){ .nav .in{gap:8px} .menu{gap:10px} .vis{font-size:11.5px; gap:5px} }
 .lang{display:inline-flex; border:1px solid var(--line); border-radius:999px; overflow:hidden}
 .lang button{border:0; background:none; padding:6px 12px; font-size:12.5px; font-weight:800; color:var(--muted)}
 .lang button[aria-pressed="true"]{background:#fff; color:var(--bg)}
@@ -239,6 +244,7 @@ footer a:hover{color:#fff}
       <a class="l" href="#play" data-i="n1">미니게임</a>
       <a class="l" href="#board" data-i="n4">게시판</a>
       <a class="l" href="#how" data-i="n3">만든 방법</a>
+      <span class="vis" id="vis" hidden title="오늘 방문자 수"><i aria-hidden="true"></i><span id="visT"></span></span>
       <span class="lang" role="group" aria-label="Language">
         <button type="button" data-lang="ko">KO</button><button type="button" data-lang="en">EN</button>
       </span>
@@ -478,7 +484,7 @@ function setLang(l){ lang=l; var d=l==="en"?EN:KO;
   for(var j=0;j<nodes.length;j++){var key=nodes[j].getAttribute("data-i"); if(d[key]!=null) nodes[j].textContent=d[key];}
   document.documentElement.lang=l; document.title=l==="en"?"UJ ARCADE | Games made with AI":"UJ ARCADE | AI로 만든 게임";
   var b=document.querySelectorAll("[data-lang]"); for(j=0;j<b.length;j++) b[j].setAttribute("aria-pressed",String(b[j].getAttribute("data-lang")===l));
-  store("arc-lang",l); showBests(); if(typeof boardMounted!=="undefined"&&boardMounted) mountBoard(); if(typeof shareLabels==="function") shareLabels(); if(typeof cgLabels==="function") cgLabels(); if(typeof cgRender==="function"&&cgData) cgRender(); }
+  store("arc-lang",l); showBests(); if(typeof boardMounted!=="undefined"&&boardMounted) mountBoard(); if(typeof shareLabels==="function") shareLabels(); if(typeof cgLabels==="function") cgLabels(); if(typeof visLabel==="function") visLabel(); if(typeof cgRender==="function"&&cgData) cgRender(); }
 var lb=document.querySelectorAll("[data-lang]"); for(i=0;i<lb.length;i++) lb[i].addEventListener("click",function(){ setLang(this.getAttribute("data-lang")); });
 
 /* 최고 기록 */
@@ -754,6 +760,15 @@ if("IntersectionObserver" in window){ var io=new IntersectionObserver(function(e
 
 mountBoard();
 cgLoad();
+/* 오늘 방문자 수: 하루에 한 번만 센다(브라우저가 오늘 왔는지 기억). 이름·IP는 저장하지 않는다 */
+var visN=null;
+function visLabel(){ var v=document.getElementById("vis"),t=document.getElementById("visT"); if(!v||visN===null) return;
+  t.textContent=""; var b=document.createElement("b"); b.textContent=Number(visN).toLocaleString(lang==="en"?"en-US":"ko-KR");
+  t.appendChild(document.createTextNode(T("오늘 ","Today "))); t.appendChild(b); t.appendChild(document.createTextNode(T("명"," visitors")));
+  v.title=T("오늘 방문자 수 (한국 시간 기준)","Visitors today (Korea time)"); v.hidden=false; }
+(function(){ var kst=new Date(Date.now()+9*3600*1000).toISOString().slice(0,10),first=store("arc-visit")!==kst&&!/^(localhost|127[.])/.test(location.hostname);
+  withSb(function(ok){ if(!ok) return; sb.rpc("hit_visit",{count_it:first}).then(function(r){
+    if(r.error||typeof r.data!=="number") return; if(first) store("arc-visit",kst); visN=r.data; visLabel(); }); }); })();
 setLang(store("arc-lang")||((navigator.language||"en").toLowerCase().indexOf("ko")===0?"ko":"en"));
 if(location.hash.indexOf("#game-")===0){ var want=document.querySelector('[data-play="'+location.hash.slice(6).replace(/[^A-Za-z0-9_-]/g,"")+'"]'); if(want) openPlayer(want); }
 else if(location.hash.indexOf("#cgame-")===0){ var cgWant=location.hash.replace(/^#cgame-/,"").replace(/[^0-9A-Za-z_-]/g,""); if(cgWant){ var cgEl=document.querySelector('[data-cg="cgame:'+cgWant+'"]'); if(cgEl) openPlayer(cgEl); else cgPending=cgWant; } }
