@@ -32,7 +32,7 @@
     font-variant-numeric:tabular-nums;color:#f4feff;
     text-shadow:0 0 20px rgba(70,225,255,.85),0 0 6px rgba(120,240,255,.75)}
   .lenrow .unit{font-size:clamp(8px,2.3vw,10px);font-weight:800;letter-spacing:.22em;color:rgba(140,205,235,.72)}
-  .statrow{display:flex;align-items:center;gap:7px;font-size:clamp(9px,2.6vw,11px);font-weight:800;
+  .statrow{display:flex;align-items:center;gap:7px;margin-top:3px;font-size:clamp(9px,2.6vw,11px);font-weight:800;
     letter-spacing:.12em;color:rgba(150,205,232,.78)}
   .statrow b{color:#9ff3ff;font-variant-numeric:tabular-nums;letter-spacing:.02em}
   .statrow .sep{width:1px;height:9px;background:rgba(120,190,220,.35)}
@@ -802,8 +802,10 @@ function spawnPlayer(){
   if(nearestNode(spot.x, spot.y, null, 400).d < 120){
     spot = freeSpot(160);
   }
+  // player spawn heading points to the arena centre
+  var headAng = Math.atan2(-spot.y, -spot.x) + rnd(-0.5, 0.5);
   var w = makeWorm({
-    x: spot.x, y: spot.y, ang: rnd(0,TAU), len: 17,
+    x: spot.x, y: spot.y, ang: headAng, len: 17,
     isPlayer: true, name: '나', c1: skin.a, c2: skin.b, skinId: skin.id
   });
   G.player = w;
@@ -1649,8 +1651,8 @@ function drawHead(w, t, isLeader, body){
   var blink = blinkPhase > 4.0 ? 1 - Math.abs(blinkPhase-4.1)*9 : 0;
   blink = clamp(blink, 0, 1);
   var eyeOff = hr*0.44;
-  var eyeFwd = hr*0.3;
-  var er = hr*0.35;
+  var eyeFwd = hr*0.28;
+  var er = hr*0.42;
   for(var s=-1; s<=1; s+=2){
     var ex = w.x + px*eyeOff*s + Math.cos(a)*eyeFwd;
     var ey = w.y + py*eyeOff*s + Math.sin(a)*eyeFwd;
@@ -1668,18 +1670,18 @@ function drawHead(w, t, isLeader, body){
   // crown for leader
   if(isLeader){
     var bob = Math.sin(t*2.4)*hr*0.14;
-    var cy3 = w.y - hr*1.55 + bob;
+    var cy3 = w.y - hr*1.75 + bob;
     ctx.save();
     ctx.translate(w.x, cy3);
     ctx.rotate(Math.sin(t*1.2)*0.08);
     ctx.globalCompositeOperation = 'lighter';
-    var cg = ctx.createRadialGradient(0,6,0, 0,6, hr*1.9);
-    cg.addColorStop(0, 'rgba(255,215,90,0.55)');
+    var cg = ctx.createRadialGradient(0,6,0, 0,6, hr*2.6);
+    cg.addColorStop(0, 'rgba(255,215,90,0.6)');
     cg.addColorStop(1, 'rgba(255,180,40,0)');
     ctx.fillStyle = cg;
-    ctx.beginPath(); ctx.arc(0, 6, hr*1.9, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 6, hr*2.6, 0, TAU); ctx.fill();
     ctx.globalCompositeOperation = 'source-over';
-    var cw = hr*1.15, ch = hr*0.95;
+    var cw = hr*1.45, ch = hr*1.15;
     ctx.beginPath();
     ctx.moveTo(-cw, ch*0.42);
     ctx.lineTo(-cw, -ch*0.32);
@@ -1707,13 +1709,25 @@ function drawHead(w, t, isLeader, body){
     ctx.restore();
   }
 
-  // name tag for AI
-  if(!w.isPlayer){
-    ctx.font = '600 ' + (w.r*0.95).toFixed(1) + 'px -apple-system,sans-serif';
+  // name tag: leader only (the rest live in the TOP 5 panel)
+  if(!w.isPlayer && isLeader){
+    ctx.font = '800 ' + (w.r*1.15).toFixed(1) + 'px -apple-system,sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = 'rgba(180,220,240,0.5)';
-    ctx.fillText(w.name, w.x, w.y - hr*1.75 - (isLeader ? hr*0.9 : 0));
+    var tw = ctx.measureText(w.name).width;
+    var ty = w.y - hr*3.35;
+    ctx.fillStyle = 'rgba(6,12,22,0.55)';
+    ctx.beginPath();
+    var bx = w.x - tw/2 - 6, by = ty - w.r*0.86, bw = tw + 12, bh = w.r*1.72;
+    ctx.moveTo(bx + bh/2, by);
+    ctx.lineTo(bx + bw - bh/2, by);
+    ctx.arc(bx + bw - bh/2, by + bh/2, bh/2, -Math.PI/2, Math.PI/2);
+    ctx.lineTo(bx + bh/2, by + bh);
+    ctx.arc(bx + bh/2, by + bh/2, bh/2, Math.PI/2, Math.PI*1.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,225,150,0.9)';
+    ctx.fillText(w.name, w.x, ty);
   }
 }
 
@@ -1757,7 +1771,7 @@ function drawMinimap(){
   var cx = w/2, cy = h/2, rad = w*0.44;
   var k = rad / ARENA_R;
 
-  mctx.fillStyle = 'rgba(3,10,20,0.55)';
+  mctx.fillStyle = 'rgba(8,20,38,0.82)';
   mctx.beginPath(); mctx.arc(cx, cy, rad, 0, TAU); mctx.fill();
   mctx.strokeStyle = 'rgba(255,90,130,0.55)';
   mctx.lineWidth = 1;
@@ -1797,7 +1811,7 @@ function drawMinimap(){
     mctx.fillStyle = '#ffe066';
     mctx.beginPath();
     for(var s=0;s<10;s++){
-      var rr2 = s%2 ? 1.6 : 3.6;
+      var rr2 = s%2 ? 2.2 : 5.2;
       var aa = -Math.PI/2 + s*Math.PI/5;
       var px2 = lx + Math.cos(aa)*rr2, py2 = ly + Math.sin(aa)*rr2;
       if(s===0) mctx.moveTo(px2,py2); else mctx.lineTo(px2,py2);
@@ -1868,6 +1882,18 @@ function render(t){
   ctx.restore();
 
   drawVignette();
+
+  // wall danger warning
+  if(G.player && G.player.alive){
+    var wd = ARENA_R - Math.hypot(G.player.x, G.player.y);
+    if(wd < 140){
+      var wk = clamp(1 - wd/140, 0, 1);
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.fillStyle = 'rgba(255,50,80,' + (wk*0.20*(0.55+0.45*Math.sin(G.time*11))).toFixed(3) + ')';
+      ctx.fillRect(0,0,W,H);
+      ctx.globalCompositeOperation = 'source-over';
+    }
+  }
 
   if(G.flashT > 0){
     ctx.globalCompositeOperation = 'lighter';
