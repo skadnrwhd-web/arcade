@@ -27,7 +27,7 @@
 
   /* ── 상단 HUD ── */
   #hud{position:fixed;top:0;left:0;right:0;z-index:6;display:flex;align-items:center;gap:10px;
-    padding:calc(env(safe-area-inset-top) + 9px) 14px 8px;max-width:640px;margin:0 auto;pointer-events:none}
+    padding:calc(env(safe-area-inset-top) + 9px) 14px 8px;max-width:620px;margin:0 auto;pointer-events:none}
   #hud .fl{line-height:1;min-width:64px}
   #hud .lab{display:block;font-size:10px;letter-spacing:.16em;color:#7f8db8;font-weight:800;margin-bottom:3px}
   #hud b#floor{font-size:30px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.01em;
@@ -60,7 +60,7 @@
 
   /* ── 하단 2버튼 ── */
   #ctrls{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;gap:10px;
-    padding:0 12px calc(env(safe-area-inset-bottom) + 14px)}
+    padding:0 12px calc(env(safe-area-inset-bottom) + 14px);max-width:620px;margin:0 auto}
   .pad{flex:1;height:clamp(92px,15vh,134px);border:0;border-radius:26px;margin:0;padding:0;
     display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;color:#f2f9ff;
     font-family:inherit;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none;
@@ -203,7 +203,7 @@
   /* ══════════ 캔버스 / 레이아웃 ══════════ */
   var cv = $('stage'), ctx = cv.getContext('2d', { alpha: false });
   var W = 360, H = 640, DPR = 1;
-  var L = { hud: 92, padH: 134, playTop: 96, playBottom: 500, playH: 400, charY: 330, stepH: 100, colW: 62, rungW: 108 };
+  var L = { hud: 92, padH: 134, playTop: 96, playBottom: 500, playH: 400, charY: 330, stepH: 100, colW: 62, rungW: 108, k: 1 };
 
   function colX(c) { return W / 2 + (c || 0) * L.colW; }
 
@@ -223,9 +223,10 @@
     L.playBottom = H - L.padH - 6;
     L.playH = Math.max(180, L.playBottom - L.playTop);
     L.charY = Math.round(L.playTop + L.playH * 0.76);
-    L.stepH = Math.max(72, Math.min(128, L.playH * 0.225));
-    L.colW = Math.round(Math.min(W * 0.168, 74));
-    L.rungW = Math.round(Math.min(W * 0.3, 124));
+    L.k = Math.max(1, Math.min(1.8, W / 430));
+    L.stepH = Math.max(72, Math.min(128 * L.k, L.playH * 0.235));
+    L.colW = Math.round(Math.min(W * 0.168, 74) * L.k);
+    L.rungW = Math.round(Math.min(W * 0.3, 124) * L.k);
     buildBG(); buildSprites();
   }
 
@@ -238,7 +239,10 @@
     return { c: c, g: g, h: h };
   }
   function rnd(seed) { /* 고정 난수: 매번 같은 그림 */ var s = seed % 2147483647; if (s <= 0) s += 2147483646; return function () { s = s * 16807 % 2147483647; return (s - 1) / 2147483646; }; }
-  function vgrad(g, top, bot) { var gr = g.createLinearGradient(0, 0, 0, H * 1.4); gr.addColorStop(0, top); gr.addColorStop(1, bot); return gr; }
+  function vgrad(g, top, bot) {   /* 위·아래 색이 같아 이어 붙여도 경계가 보이지 않는다 */
+    var gr = g.createLinearGradient(0, 0, 0, H * 1.45);
+    gr.addColorStop(0, top); gr.addColorStop(.5, bot); gr.addColorStop(1, top); return gr;
+  }
 
   function buildBG() {
     bgTiles = []; bgHs = [];
@@ -304,7 +308,6 @@
       }
       sky(th * 0.52, 90, 0.55, '#0a0d20');
       sky(th * 0.66, 130, 0.95, '#0d1226');
-      sky(th * 1.02, 120, 0.95, '#0d1226');
       bgTiles.push(t.c); bgHs.push(th);
     })();
 
@@ -319,7 +322,7 @@
         g.beginPath(); g.arc(sx, sy, sr, 0, 6.2832); g.fill();
       }
       for (var c = 0; c < 7; c++) {   /* 은은한 구름 띠 */
-        var cy = th * (c / 7 + 0.03), cw = W * (0.7 + r() * 0.9), cx = W * (r() * 0.6) - W * 0.2;
+        var cy = th * (0.08 + c * 0.115), cw = W * (0.7 + r() * 0.9), cx = W * (r() * 0.6) - W * 0.2;
         g.fillStyle = 'rgba(190,205,255,.055)';
         g.beginPath(); g.ellipse(cx + cw / 2, cy, cw / 2, 26 + r() * 26, 0, 0, 6.2832); g.fill();
         g.fillStyle = 'rgba(215,225,255,.035)';
@@ -851,19 +854,20 @@
     /* 캐릭터 */
     var sk = curSkin();
     var cx, cy = L.charY;
-    if (state === 'fall' && fall) { cx = fall.x; drawChar(ctx, cx, cy, 1, sk, facing, tmNow, fall); }
+    if (state === 'fall' && fall) { cx = fall.x; drawChar(ctx, cx, cy, L.k, sk, facing, tmNow, fall); }
     else if (state === 'play' && anim) {
       cx = colX(anim.fromCol) + (colX(cur.col) - colX(anim.fromCol)) * ease(anim.t);
-      drawChar(ctx, cx, cy, 1, sk, facing, tmNow, null);
+      drawChar(ctx, cx, cy, L.k, sk, facing, tmNow, null);
     } else {
       cx = colX(cur.col);
-      drawChar(ctx, cx, cy, 1, sk, facing, tmNow, null);
+      drawChar(ctx, cx, cy, L.k, sk, facing, tmNow, null);
     }
 
     /* 캐릭터 뒤 광원 */
     var gs = glowSpr[sk.id === 'cat' ? 'pink' : sk.id === 'bot' ? 'gold' : sk.id === 'alien' ? 'mint' : 'cyan'];
+    var gw = 104 * L.k;
     ctx.globalAlpha = 0.55;
-    ctx.drawImage(gs, cx - 52, cy - 84, 104, 104);
+    ctx.drawImage(gs, cx - gw / 2, cy - gw * 0.8, gw, gw);
     ctx.globalAlpha = 1;
 
     /* 파티클 */
@@ -879,7 +883,7 @@
     if (feverT > 0) {
       ctx.globalAlpha = 0.10 + 0.05 * Math.sin(tmNow * 22);
       var fg = zoneGlow(1);
-      ctx.drawImage(fg, cx - 90, cy - 110, 180, 180);
+      ctx.drawImage(fg, cx - 90 * L.k, cy - 110 * L.k, 180 * L.k, 180 * L.k);
       ctx.globalAlpha = 1;
     }
 
