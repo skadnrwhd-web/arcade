@@ -877,7 +877,7 @@ function cgLoad(){ if(!cgList){ cgDone(); return; } cgReady=false; cgList.textCo
       var seen={},out=[]; (r.data||[]).forEach(function(x){ var g=cgParse(x); if(!g||seen[g.id]) return; seen[g.id]=1; out.push(g); });
       sb.from("comments").select("body").eq("thread",CG_REPORTS).order("created_at",{ascending:false}).limit(1000).then(function(rr){
         var cnt={}; if(!rr.error) (rr.data||[]).forEach(function(q){ var k=String(q.body||"").trim(); if(/^[0-9]{1,12}$/.test(k)) cnt[k]=(cnt[k]||0)+1; });
-        cgData=out.filter(function(g){ return (cnt[g.id]||0)<CG_HIDE; }); cgRender(); cgDone(); }); }); }); }
+        cgData=out.filter(function(g){ var h=""; try{ h=new URL(g.url).hostname.toLowerCase(); }catch(e){} return (cnt[g.id]||0)<CG_HIDE && !CG_NOFRAME.test(h); }); /* 신고가 쌓였거나, 상점·스토어 주소면 목록에서 숨긴다(데이터는 지우지 않음) */ cgRender(); cgDone(); }); }); }); }
 var cgRf=document.getElementById("cgRefresh"); if(cgRf) cgRf.addEventListener("click",function(){ if(cgRf.disabled) return; cgRf.disabled=true; cgRf.textContent="↻ "+T("불러오는 중…","Loading…"); track('refresh',{area:'community_games'}); cgLoad(); cgThen(function(){ cgRf.disabled=false; cgRf.textContent="↻ "+T("새로고침","Refresh"); }); });
 if(cgToggle) cgToggle.addEventListener("click",function(){ cgOpen(!cgFormEl.classList.contains("open")); });
 /* 상점 주소를 붙여 넣으면 바로 알려 준다(막지는 않는다) */
