@@ -490,6 +490,7 @@
 
   /* ══════════════════════════ 그리기 (3D) ══════════════════════════ */
   var TAU = Math.PI * 2;
+  var POUR_SCALE = 0.84;          /* 붓는 동안 병은 살짝 작게(공중에 든 느낌) */
   var KY = 0.15;                        /* 단면 타원 세로/가로 (살짝 위에서 본 원근) */
   var SPR = { shade: null, floor: null };
 
@@ -850,14 +851,14 @@
       c.save();
       c.translate(ap.cx, ap.cy);
       if (ap.ang) c.rotate(ap.ang);
-      tubePath(c, -A.sg.w / 2 + 5, -A.sg.h / 2 + 10, A.sg.w, A.sg.h, A.sg.w * 0.46, Math.min(A.sg.w * 0.16, 7));
-      c.fillStyle = 'rgba(0,0,0,.34)';
+      tubePath(c, -A.sg.w * POUR_SCALE / 2 + 4, -A.sg.h * POUR_SCALE / 2 + 8, A.sg.w * POUR_SCALE, A.sg.h * POUR_SCALE, A.sg.w * POUR_SCALE * 0.46, Math.min(A.sg.w * POUR_SCALE * 0.16, 7));
+      c.fillStyle = 'rgba(0,0,0,.26)';
       c.fill();
       c.restore();
-      drawTube(S.bottles[A.src], ap.cx, ap.cy, A.sg.w, A.sg.h, ap.ang, animSrcLen, { tailColor: A.color, glow: 1, idx: A.src });
+      drawTube(S.bottles[A.src], ap.cx, ap.cy, A.sg.w * POUR_SCALE, A.sg.h * POUR_SCALE, ap.ang, animSrcLen, { tailColor: A.color, glow: 1, idx: A.src });
       if (pourP > 0.001 && pourP < 0.999) {
-        var sx = ap.cx + (A.sg.h / 2) * Math.sin(ap.ang);
-        var sy = ap.cy - (A.sg.h / 2) * Math.cos(ap.ang);
+        var sx = ap.cx + (A.sg.h * POUR_SCALE / 2) * Math.sin(ap.ang);
+        var sy = ap.cy - (A.sg.h * POUR_SCALE / 2) * Math.cos(ap.ang);
         var dg = A.dg;
         drawStream(sx, sy, dg.cx, dg.y + 4, animColor, pourP);
       }
@@ -975,9 +976,9 @@
     var sign = sg.cx <= dg.cx ? 1 : -1;
     var ang = 0.82 * sign;
     var mouthX = dg.cx;
-    var mouthY = dg.y - 32;
-    var pcx = mouthX - (sg.h / 2) * Math.sin(ang);
-    var pcy = mouthY + (sg.h / 2) * Math.cos(ang);
+    var mouthY = dg.y - 34;
+    var pcx = mouthX - (sg.h * POUR_SCALE / 2) * Math.sin(ang);
+    var pcy = mouthY + (sg.h * POUR_SCALE / 2) * Math.cos(ang);
     A = {
       t: 0, src: i, dst: j, count: count, color: bTop(from),
       sg: { cx: sg.cx, cy: sg.y + sg.h / 2, w: sg.w, h: sg.h },
@@ -1041,8 +1042,8 @@
     var sign = sg.cx <= dg.cx ? 1 : -1;
     var ang = 0.82 * sign;
     var sg0 = { cx: sg.cx, cy: sg.cy };
-    var pcx = dg.cx - (sg.h / 2) * Math.sin(ang);
-    var pcy = (dg.y - 32) + (sg.h / 2) * Math.cos(ang);
+    var pcx = dg.cx - (sg.h * POUR_SCALE / 2) * Math.sin(ang);
+    var pcy = (dg.y - 34) + (sg.h * POUR_SCALE / 2) * Math.cos(ang);
     if (A.t < A.t1) {
       var p = easeOut(A.t / A.t1);
       A.pos = { cx: sg0.cx, cy: sg0.cy - 12 * p, ang: 0 };
