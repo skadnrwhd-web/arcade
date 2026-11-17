@@ -21,7 +21,7 @@
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#05060f;color:#eaf2ff;
     font-family:"Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR","Malgun Gothic",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
-    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;touch-action:manipulation}
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;touch-action:manipulation;word-break:keep-all}
   body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;background:
     radial-gradient(120% 58% at 50% -12%, rgba(96,74,255,.30), rgba(96,74,255,0) 62%),
     radial-gradient(98% 52% at 6% 102%, rgba(0,214,255,.16), rgba(0,214,255,0) 62%),
@@ -436,14 +436,15 @@
     var gap = cols <= 4 ? 16 : (cols <= 6 ? 10 : 8);
     var padX = 12;
     var availH = bot - top - 12;
+    var ASPECT = 2.9;                       /* 시험관 세로/가로 비율 */
     var tw = (W - 2 * padX - gap * (cols - 1)) / cols;
-    var th = tw * 2.45;
-    var rowGap = Math.max(20, th * 0.13);
+    tw = Math.min(tw, 84);
+    var th = tw * ASPECT;
+    var rowGap = Math.max(18, th * 0.11);
     var maxTh = (availH - rowGap * (rows - 1)) / rows;
-    if (th > maxTh) { th = maxTh; tw = Math.min(tw, th / 2.45); }
-    tw = Math.min(tw, 80); th = Math.min(th, 196);
-    tw = Math.max(30, tw); th = Math.max(74, Math.min(th, tw * 2.6));
-    rowGap = Math.max(16, th * 0.12);
+    if (th > maxTh) { th = maxTh; tw = th / ASPECT; }
+    tw = Math.max(26, tw); th = Math.max(64, th);
+    rowGap = Math.max(13, th * 0.11);
 
     L.tubes = [];
     var totalH = rows * th + (rows - 1) * rowGap;
@@ -500,8 +501,9 @@
     opt = opt || {};
     var c = ctx;
     var accent = b.length ? b[b.length - 1] : -1;
-    var ins = Math.max(2.6, w * 0.055);
-    var ix = -w / 2 + ins, iw = w - 2 * ins, ih = h - 2 * ins, iy = -h / 2 + ins;
+    var ins = Math.max(2.4, w * 0.055);
+    var neck = h * 0.045;                    /* 입구 쪽 여유 공간 */
+    var ix = -w / 2 + ins, iw = w - 2 * ins, ih = h - 2 * ins - neck, iy = -h / 2 + ins + neck;
     var u = ih / CAP;
 
     c.save();
@@ -567,10 +569,13 @@
     c.stroke();
 
     /* 입구 테두리 */
-    c.lineWidth = 2;
-    c.strokeStyle = 'rgba(214,236,255,.62)';
-    c.beginPath(); c.moveTo(-w / 2 - 1.5, -h / 2); c.lineTo(-w / 2 + w * 0.2, -h / 2); c.stroke();
-    c.beginPath(); c.moveTo(w / 2 - w * 0.2, -h / 2); c.lineTo(w / 2 + 1.5, -h / 2); c.stroke();
+    c.lineWidth = Math.max(2, w * 0.045);
+    c.lineCap = 'round';
+    c.strokeStyle = 'rgba(222,240,255,.78)';
+    c.beginPath(); c.moveTo(-w / 2 - 2.2, -h / 2); c.lineTo(w / 2 + 2.2, -h / 2); c.stroke();
+    c.lineWidth = 1;
+    c.strokeStyle = 'rgba(160,200,255,.30)';
+    c.beginPath(); c.moveTo(-w / 2 + 1, -h / 2 + 4); c.lineTo(w / 2 - 1, -h / 2 + 4); c.stroke();
 
     /* 봉인(코르크) */
     if (opt.sealed) {
