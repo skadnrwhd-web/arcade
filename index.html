@@ -1052,10 +1052,10 @@ function chalCopy(text,url,btn){ function done(){ chalToast(T("도전장 링크�
   if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text+"\n"+url).then(done,ask); else ask(); }
 function chalShare(slug,score,by,name,btn){ var url=chalURL(slug,score,by),text=chalText(slug,score,by),who=by||T("도전자","Challenger");
   try{ track('challenge_send',{game_id:slug,has_score:score==null?0:1}); }catch(e){}
-  function simple(){ if(navigator.share){ navigator.share({title:"⚔️ "+who+T("님의 도전장","'s challenge"),text:text,url:url}).catch(function(){}); return; } chalCopy(text,url,btn); }
-  if(!KAKAO_JS_KEY||isInApp||typeof navigator.share==="function") return simple();
-  withKakao(function(ok){ if(!ok) return simple();
-    try{ window.Kakao.Share.sendDefault({objectType:"feed",content:{title:"⚔️ "+who+T("님의 도전장","'s challenge"),description:chalLine(slug,score,by),imageUrl:"https://skadnrwhd-web.github.io/arcade/og.png",imageWidth:1200,imageHeight:630,link:{webUrl:url,mobileWebUrl:url}},buttons:[{title:T("지금 도전하기","Accept the challenge"),link:{webUrl:url,mobileWebUrl:url}}]}); }catch(e){ simple(); } }); }
+  /* 도전장은 긴 문구+링크를 그대로 보내야 해서, 기기의 기본 공유창(카톡 포함) 또는 클립보드 복사를 쓴다.
+     카톡 SDK 는 카톡 로그인이 필요해 PC에서 로그인 화면이 뜨므로 도전장에는 쓰지 않는다. */
+  if(typeof navigator.share==="function"){ try{ navigator.share({title:"⚔️ "+who+T("님의 도전장","'s challenge"),text:text,url:url}).catch(function(){}); return; }catch(e){} }
+  chalCopy(text,url,btn); }
 function chalHide(){ if(chalBar) chalBar.className=""; document.body.classList.remove("challenge-on"); }
 function chalBanner(kind,data){ var c=chalState; if(!c) return;
   if(!chalBar){ chalBar=document.createElement("div"); chalBar.id="chalBar"; chalBar.setAttribute("role","status"); chalBar.setAttribute("aria-live","polite"); document.body.appendChild(chalBar); }
@@ -1080,10 +1080,13 @@ function chalResult(d){ if(!chalState) return; var r=Number(d&&d.result); if(r!=
   if(d.score!=null) chalScores[chalSlug(d.slug)]=d.score;
   if(r===1){ chalBanner("win",d); try{ track('challenge_win',{game_id:chalSlug(d.slug)}); }catch(e){} }
   else if(chalBar&&/(^| )on( |$)/.test(chalBar.className)) chalBanner(r===0?"tie":"lose",d); }
+function chalSrcOk(e){ var f=document.querySelector("#pFrame iframe"); return !!(f&&f.contentWindow&&e.source===f.contentWindow); }
 window.addEventListener("message",function(e){ var d=e&&e.data; if(!d||typeof d!=="object") return;
   if(d.arcade==="challenge-hello"){ if(!chalState) return; try{ if(e.source) e.source.postMessage({arcade:"challenge",slug:chalState.slug,score:chalState.score,by:chalState.by},"*"); }catch(err){} return; }
+  if(d.arcade!=="score"&&d.arcade!=="challenge-result") return;
+  if(!chalSrcOk(e)) return;   /* 지금 열린 게임 창이 보낸 것만 받는다(다른 iframe 이 장난하지 못하게) */
   if(d.arcade==="score"){ var s=chalSlug(d.slug); if(s&&d.score!=null){ chalScores[s]=d.score; if(pChal&&!pChal.hidden&&pChal._slug===s) pChal._score=d.score; if(mChal&&!mChal.hidden&&mChal._slug===s) mChal._score=d.score; } return; }
-  if(d.arcade==="challenge-result"){ chalResult(d); return; } });
+  chalResult(d); });
 window.addEventListener("arcade-challenge-result",function(e){ chalResult(e.detail||{}); });
 function chalBtnGo(){ if(!this._slug) return; chalShare(this._slug,this._score==null?null:this._score,chalMyName(),this._name||chalGName(this._slug),this); }
 if(pChal) pChal.addEventListener("click",chalBtnGo);
