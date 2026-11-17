@@ -156,8 +156,11 @@ h1,h2,h3{margin:0; line-height:1.15; letter-spacing:-.025em; text-wrap:balance}
 .cg-card .cover .badge{z-index:2}
 .cg-card .cg-art b{position:relative; z-index:1; font-size:clamp(40px,8vw,58px); font-weight:900; letter-spacing:-.05em; color:#fff; text-shadow:0 10px 34px rgba(0,0,0,.5)}
 #cgList .cg-card .cg-art b.cg-emo{font-size:clamp(34px,9vw,46px); line-height:1; letter-spacing:0}
-.cg-card .cg-art:before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 30% 22%,rgba(255,255,255,.3),transparent 58%)}
-.cg-card .cg-art:after{content:""; position:absolute; inset:0; background:repeating-linear-gradient(135deg, rgba(255,255,255,.09) 0 2px, transparent 2px 18px)}
+.cg-card .cg-art:before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 30% 20%,rgba(255,255,255,.16),transparent 55%)}
+.cg-card .cg-art:after{content:none}
+.cg-card .cover{background:linear-gradient(var(--ang,135deg),var(--c1),var(--c2))}
+.cg-card .cg-ico{position:relative; z-index:1; width:76%; height:76%; display:block; filter:drop-shadow(0 6px 10px rgba(0,0,0,.3))}
+.cg-card .cg-ico svg{width:100%; height:100%; display:block; overflow:visible}
 .cg-card .cg-dom{max-width:56%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12.5px}
 
 /* how */
@@ -205,7 +208,8 @@ footer a:hover{color:#fff}
 @keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 
 /* 휴대폰: 게임이 화면 전체를 쓰고, 댓글은 아래로 내리면 나온다 */
-.cg-fb{position:absolute; left:50%; top:10px; transform:translateX(-50%); z-index:6; max-width:calc(100% - 20px); background:rgba(15,10,30,.92); border:1px solid var(--cyan,#37e0ff); border-radius:999px; padding:8px 14px; font-size:13px; font-weight:800; color:#fff; text-decoration:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.cg-fb{position:absolute; left:50%; top:14px; transform:translateX(-50%); z-index:6; width:calc(100% - 28px); max-width:420px; text-align:center; background:linear-gradient(135deg,#ff4d8d,#8f6bff); border:2px solid rgba(255,255,255,.85); border-radius:999px; padding:15px 18px; font-size:17px; font-weight:900; color:#fff; text-decoration:none; box-shadow:0 10px 30px rgba(0,0,0,.55); -webkit-tap-highlight-color:transparent}
+.cg-fb:active{transform:translateX(-50%) scale(.97)}
 .cg-nf{height:100%; display:grid; place-content:center; justify-items:center; gap:12px; padding:24px; text-align:center}
 .cg-nf-i{font-size:44px; color:var(--cyan)}.cg-nf h3{margin:0; font-size:20px}.cg-nf p{margin:0; max-width:34ch; color:var(--body); font-size:15px; line-height:1.6}
 .cg-warn{position:absolute; left:10px; right:10px; bottom:10px; z-index:5; background:rgba(15,10,30,.92); border:1px solid var(--pink); border-radius:12px; padding:10px 12px; font-size:13px; line-height:1.5; color:#fff; cursor:pointer}
@@ -790,7 +794,7 @@ function openPlayer(a){ var cg=a.getAttribute("data-cg"),slug=cg?cg.replace(/^cg
     w.addEventListener("click",function(){ w.remove(); }); pFrame.appendChild(w); setTimeout(function(){ if(w.parentNode) w.remove(); },9000);
     /* 사이트가 iframe 안에서 열리는 걸 막으면 화면이 검게/비어 보이고 우리는 그걸 알 수 없다. 그래서 새 창으로 여는 길을 항상 열어 둔다 */
     setTimeout(function(){ if(!f||!pFrame.contains(f)) return; var fb=document.createElement("a"); fb.className="cg-fb"; fb.href=url; fb.target="_blank"; fb.rel="noopener noreferrer"; fb.textContent=T("↗ 화면이 안 나오면 새 창에서 열기","↗ Blank screen? Open in a new tab");
-      fb.addEventListener("click",function(){ track('cg_open_newtab',{game_id:slug}); }); pFrame.appendChild(fb); },2500); }
+      fb.addEventListener("click",function(){ track('cg_open_newtab',{game_id:slug}); }); pFrame.appendChild(fb); setTimeout(function(){ if(fb.parentNode) fb.remove(); },20000); },2500); }  /* 정상 게임의 위쪽 조작을 가리지 않도록 20초 뒤 사라진다 */
   mountThread(pThread,cg||("game: "+slug)); player.querySelector(".panel").scrollTop=0; player.classList.add("open"); document.body.style.overflow="hidden"; document.getElementById("pClose").focus();
   try{ history.replaceState(null,"",shareHash); }catch(e){} }
 function closePlayer(){ if(!player.classList.contains("open")) return; pFrame.textContent=""; pThread.textContent=""; player.classList.remove("open"); document.body.style.overflow="";
@@ -850,15 +854,49 @@ var CG_EMO=[[/카드|포커|블랙잭|\bcards?\b|\bpoker\b/i,"🃏"],[/수박|�
  [/던전|용사|몬스터|\brpg\b|\bsword\b|\bmonsters?\b|\bdragon\b|드래곤/i,"⚔️"],[/좀비|유령|공포|\bzombie\b|\bghost\b|\bhorror\b/i,"🧟"],
  [/타워|디펜스|\btower\b|\bdefense\b|\bcastle\b/i,"🏰"],[/음악|리듬|피아노|노래|\bmusic\b|\brhythm\b|\bpiano\b/i,"🎵"],
  [/단어|글자|타자|영어|\bwords?\b|\btyping\b/i,"🔤"],[/미로|길찾기|\bmaze\b/i,"🌀"],[/요리|음식|피자|케이크|\bcook\w*|\bfood\b|\bpizza\b/i,"🍳"],
- [/고양이|냥|\bcats?\b/i,"🐱"],[/강아지|멍멍|\bdogs?\b/i,"🐶"],[/기억|짝맞추기|\bmemory\b|\bpairs?\b/i,"🧠"],[/클릭|키우기|방치|\bclicker\b|\bidle\b/i,"👆"],[/별|\bstars?\b/i,"⭐"]],
+ [/고양이|냥|\bcats?\b/i,"🐱"],[/강아지|멍멍|\bdogs?\b/i,"🐶"],[/기억|짝맞추기|\bmemory\b|\bpairs?\b/i,"🧠"],[/클릭|키우기|방치|\bclicker\b|\bidle\b/i,"👆"],[/별|\bstars?\b/i,"⭐"],[/전당포|상점|가게|마트|\bshop\b|\bstore\b/i,"🏪"],[/카페|커피|포차|꼬치|술집|\bcafe\b|\bcoffee\b/i,"☕"],[/유령|상태창|시스템|\bsystem\b|\bstatus\b/i,"👻"]],
  CG_GEN=["🎮","🕹️","👾","🎯","🎲","🧩","⭐","🚀","🔥","🌈"];
 function cgHash(t){ var h=5381; for(var i=0;i<t.length;i++) h=((h<<5)+h+t.charCodeAt(i))|0; return Math.abs(h); }
-function cgEmoji(text,h){ for(var i=0;i<CG_EMO.length;i++) if(CG_EMO[i][0].test(text)) return CG_EMO[i][1]; return CG_GEN[h%CG_GEN.length]; }
-function cgCard(g,idx){ var hs=cgHash(g.id+"|"+g.title),hu=hs%360,emo=cgEmoji(g.title+" "+(g.desc||""),hs);
+
+/* 모두의 게임 아이콘: 공식 게임 아이콘처럼 단순한 도형 그림. 게임 이름·설명의 낱말로 종류를 고르고, 못 고르면 이름으로 만든 도형 조합(게임마다 다름) */
+var CG_ICO={"🧩":function(a,b,c){return '<circle cx="30" cy="54" r="14" fill="'+a+'" stroke="#fff" stroke-width="3"/><rect x="48" y="40" width="28" height="28" rx="8" fill="'+b+'" stroke="#fff" stroke-width="3"/><path d="M62 28 L74 18 L82 30Z" fill="'+c+'"/>';},
+"🚀":function(a,b,c){return '<path d="M50 20 L70 66 L50 56 L30 66Z" fill="#d9ccff" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><circle cx="26" cy="32" r="4" fill="'+a+'"/><circle cx="76" cy="26" r="4" fill="'+b+'"/><circle cx="50" cy="82" r="6" fill="'+c+'"/>';},
+"🏎️":function(a,b,c){return '<rect x="33" y="22" width="34" height="58" rx="12" fill="'+a+'" stroke="#fff" stroke-width="3"/><rect x="39" y="34" width="22" height="13" rx="4" fill="#15182e"/><rect x="26" y="30" width="7" height="14" rx="3" fill="#fff"/><rect x="67" y="30" width="7" height="14" rx="3" fill="#fff"/><rect x="26" y="58" width="7" height="14" rx="3" fill="#fff"/><rect x="67" y="58" width="7" height="14" rx="3" fill="#fff"/><circle cx="50" cy="66" r="5" fill="'+b+'"/>';},
+"🐍":function(a,b,c){return '<path d="M14 68 C28 36 42 82 56 54 S78 44 84 34" fill="none" stroke="'+a+'" stroke-width="13" stroke-linecap="round"/><circle cx="84" cy="34" r="8" fill="'+a+'" stroke="#fff" stroke-width="3"/><circle cx="30" cy="26" r="4" fill="'+b+'"/><circle cx="74" cy="76" r="4" fill="'+c+'"/>';},
+"🏃":function(a,b,c){return '<rect x="26" y="20" width="36" height="60" rx="7" fill="none" stroke="#fff" stroke-width="4"/><circle cx="54" cy="52" r="3.5" fill="'+a+'"/><path d="M70 60 H90 M82 52 L90 60 L82 68" fill="none" stroke="'+b+'" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';},
+"❓":function(a,b,c){return '<circle cx="50" cy="50" r="32" fill="'+a+'" stroke="#fff" stroke-width="3"/><text x="50" y="65" font-size="46" font-weight="900" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif">?</text><circle cx="78" cy="24" r="5" fill="'+b+'"/>';},
+"🔢":function(a,b,c){return '<text x="50" y="50" font-size="26" font-weight="900" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif">7 <tspan fill="'+a+'">×</tspan> 8</text><text x="50" y="76" font-size="26" font-weight="900" text-anchor="middle" fill="'+b+'" font-family="system-ui,sans-serif">= ?</text>';},
+"🐟":function(a,b,c){return '<ellipse cx="44" cy="48" rx="26" ry="16" fill="'+a+'" stroke="#fff" stroke-width="3"/><path d="M68 48 L86 34 L86 62Z" fill="'+b+'" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><circle cx="32" cy="44" r="3.5" fill="#15182e"/><path d="M18 74 Q30 66 42 74 T66 74 T90 74" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8"/>';},
+"⚽":function(a,b,c){return '<circle cx="50" cy="50" r="30" fill="#fff"/><polygon points="50,36 62,45 57,59 43,59 38,45" fill="#15182e"/><path d="M50 36 V22 M62 45 L74 40 M57 59 L66 70 M43 59 L34 70 M38 45 L26 40" stroke="#15182e" stroke-width="3" stroke-linecap="round"/><circle cx="80" cy="24" r="4" fill="'+a+'"/>';},
+"🎲":function(a,b,c){return '<rect x="26" y="26" width="48" height="48" rx="11" fill="#fff" stroke="'+a+'" stroke-width="3"/><g fill="#15182e"><circle cx="40" cy="40" r="4.5"/><circle cx="60" cy="40" r="4.5"/><circle cx="50" cy="50" r="4.5"/><circle cx="40" cy="60" r="4.5"/><circle cx="60" cy="60" r="4.5"/></g><circle cx="82" cy="22" r="4" fill="'+b+'"/>';},
+"⚔️":function(a,b,c){return '<g transform="rotate(35 50 50)"><rect x="46" y="14" width="8" height="52" rx="3" fill="#fff"/><rect x="34" y="64" width="32" height="8" rx="3" fill="'+a+'"/><rect x="47" y="72" width="6" height="14" rx="2" fill="'+b+'"/></g><circle cx="24" cy="26" r="4" fill="'+c+'"/>';},
+"👻":function(a,b,c){return '<path d="M26 78 V46 A24 24 0 0 1 74 46 V78 L64 70 L56 78 L48 70 L40 78 L34 70Z" fill="#fff"/><circle cx="42" cy="46" r="4.5" fill="#15182e"/><circle cx="58" cy="46" r="4.5" fill="#15182e"/><circle cx="80" cy="24" r="4" fill="'+a+'"/><circle cx="22" cy="30" r="3" fill="'+b+'"/>';},
+"🏰":function(a,b,c){return '<rect x="24" y="44" width="52" height="36" fill="'+a+'" stroke="#fff" stroke-width="3"/><rect x="24" y="32" width="12" height="12" fill="#fff"/><rect x="44" y="32" width="12" height="12" fill="#fff"/><rect x="64" y="32" width="12" height="12" fill="#fff"/><rect x="43" y="60" width="14" height="20" rx="7" fill="#15182e"/><circle cx="82" cy="24" r="4" fill="'+b+'"/>';},
+"🎵":function(a,b,c){return '<circle cx="36" cy="70" r="11" fill="'+a+'" stroke="#fff" stroke-width="3"/><rect x="45" y="24" width="7" height="46" rx="3" fill="#fff"/><path d="M52 26 Q76 30 72 52" fill="none" stroke="'+b+'" stroke-width="7" stroke-linecap="round"/>';},
+"🔤":function(a,b,c){return '<text x="50" y="62" font-size="44" font-weight="900" text-anchor="middle" fill="#fff" font-family="system-ui,sans-serif">Aa</text><rect x="24" y="72" width="52" height="7" rx="3.5" fill="'+a+'"/><circle cx="80" cy="26" r="4" fill="'+b+'"/>';},
+"🌀":function(a,b,c){return '<path d="M50 50 m0 0 a6 6 0 1 1 12 0 a14 14 0 1 1 -28 0 a22 22 0 1 1 44 0" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="50" cy="50" r="5" fill="'+a+'"/><circle cx="80" cy="76" r="4" fill="'+b+'"/>';},
+"☕":function(a,b,c){return '<path d="M26 44 H66 V62 Q66 78 46 78 Q26 78 26 62Z" fill="#fff"/><path d="M66 50 H72 Q82 50 82 59 Q82 68 70 68" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M38 34 Q34 28 38 22 M52 34 Q48 28 52 22" fill="none" stroke="'+a+'" stroke-width="4" stroke-linecap="round"/><circle cx="46" cy="60" r="5" fill="'+b+'"/>';},
+"🍳":function(a,b,c){return CG_ICO["☕"](a,b,c);},
+"🐱":function(a,b,c){return '<polygon points="28,44 30,20 48,34" fill="'+a+'" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><polygon points="72,44 70,20 52,34" fill="'+a+'" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><circle cx="50" cy="56" r="24" fill="'+a+'" stroke="#fff" stroke-width="3"/><circle cx="41" cy="52" r="3.5" fill="#15182e"/><circle cx="59" cy="52" r="3.5" fill="#15182e"/><path d="M46 62 Q50 66 54 62" fill="none" stroke="#15182e" stroke-width="3" stroke-linecap="round"/>';},
+"🧠":function(a,b,c){return '<rect x="22" y="22" width="26" height="26" rx="8" fill="'+a+'" stroke="#fff" stroke-width="3"/><rect x="52" y="22" width="26" height="26" rx="8" fill="'+b+'" stroke="#fff" stroke-width="3"/><rect x="22" y="52" width="26" height="26" rx="8" fill="'+b+'" stroke="#fff" stroke-width="3"/><rect x="52" y="52" width="26" height="26" rx="8" fill="'+a+'" stroke="#fff" stroke-width="3"/>';},
+"👆":function(a,b,c){return '<circle cx="50" cy="50" r="12" fill="'+a+'"/><circle cx="50" cy="50" r="24" fill="none" stroke="#fff" stroke-width="3" opacity=".85"/><circle cx="50" cy="50" r="36" fill="none" stroke="#fff" stroke-width="3" opacity=".45"/><circle cx="80" cy="22" r="4" fill="'+b+'"/>';},
+"⭐":function(a,b,c){return '<polygon points="50,18 59,40 82,42 64,57 70,80 50,67 30,80 36,57 18,42 41,40" fill="'+a+'" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><circle cx="80" cy="24" r="3.5" fill="'+b+'"/>';},
+"🏪":function(a,b,c){return '<rect x="24" y="28" width="52" height="16" fill="'+a+'"/><path d="M24 28 H36 V44 H24Z M48 28 H60 V44 H48Z" fill="#fff"/><rect x="28" y="44" width="44" height="34" fill="none" stroke="#fff" stroke-width="4"/><rect x="42" y="58" width="16" height="20" rx="3" fill="'+b+'"/>';},
+"♟️":function(a,b,c){return '<g stroke="#fff" stroke-width="2.5" opacity=".6"><path d="M22 30 H78 M22 50 H78 M22 70 H78 M30 22 V78 M50 22 V78 M70 22 V78"/></g><circle cx="50" cy="50" r="9" fill="#15182e" stroke="#fff" stroke-width="2.5"/><circle cx="30" cy="50" r="9" fill="#15182e" stroke="#fff" stroke-width="2.5"/><circle cx="50" cy="30" r="9" fill="#fff"/><circle cx="70" cy="70" r="9" fill="#fff"/>';},
+"🃏":function(a,b,c){return '<g transform="rotate(-12 40 50)"><rect x="24" y="24" width="34" height="48" rx="6" fill="#fff"/><text x="41" y="56" font-size="24" text-anchor="middle" fill="#15182e" font-family="system-ui,sans-serif">♠</text></g><g transform="rotate(12 62 52)"><rect x="44" y="26" width="34" height="48" rx="6" fill="#fff" stroke="'+a+'" stroke-width="3"/><text x="61" y="58" font-size="24" text-anchor="middle" fill="'+b+'" font-family="system-ui,sans-serif">♥</text></g>';},
+"🍉":function(a,b,c){return '<path d="M26 78 V40 M74 78 V40 M26 78 H74" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/><circle cx="50" cy="64" r="12" fill="'+a+'"/><circle cx="34" cy="68" r="9" fill="'+b+'"/><circle cx="66" cy="68" r="9" fill="'+c+'"/><circle cx="50" cy="30" r="6" fill="#d9ccff"/>';}};
+function cgAbstract(h,a,b,c){ var K=[function(x,y,col){return '<circle cx="'+x+'" cy="'+y+'" r="14" fill="'+col+'" stroke="#fff" stroke-width="3"/>';},function(x,y,col){return '<rect x="'+(x-13)+'" y="'+(y-13)+'" width="26" height="26" rx="8" fill="'+col+'" stroke="#fff" stroke-width="3"/>';},function(x,y,col){return '<path d="M'+x+' '+(y-15)+' L'+(x+15)+' '+(y+12)+' L'+(x-15)+' '+(y+12)+'Z" fill="'+col+'" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>';},function(x,y,col){return '<circle cx="'+x+'" cy="'+y+'" r="13" fill="none" stroke="'+col+'" stroke-width="6"/>';},function(x,y,col){return '<rect x="'+(x-16)+'" y="'+(y-7)+'" width="32" height="14" rx="7" fill="'+col+'"/>';},function(x,y,col){return '<path d="M'+x+' '+(y-15)+' L'+(x+15)+' '+y+' L'+x+' '+(y+15)+' L'+(x-15)+' '+y+'Z" fill="'+col+'" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>';}];
+  var cols=[a,b,c],P=[[30,36],[68,34],[50,70]],o="",i,seed=h; for(i=0;i<3;i++){ o+=K[seed%K.length](P[i][0],P[i][1],cols[i]); seed=Math.floor(seed/7)+i*3+1; }
+  return o+'<circle cx="80" cy="76" r="4" fill="'+a+'"/><circle cx="20" cy="70" r="3" fill="'+b+'"/>'; }
+var CG_ACC=["#ffd23f","#37e0ff","#ff4d8d","#b6ff3b","#ff9f43","#c9b8ff"];
+function cgKey(text){ for(var i=0;i<CG_EMO.length;i++) if(CG_EMO[i][0].test(text)) return CG_EMO[i][1]; return null; }
+function cgIcon(text,h){ var k=cgKey(text),r=h%CG_ACC.length,a=CG_ACC[r],b=CG_ACC[(r+2)%CG_ACC.length],c=CG_ACC[(r+4)%CG_ACC.length],inner=(k&&CG_ICO[k])?CG_ICO[k](a,b,c):cgAbstract(h,a,b,c);
+  var w=document.createElement("span"); w.className="cg-ico"; w.innerHTML='<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">'+inner+'</svg>'; return w; }
+function cgCard(g,idx){ var hs=cgHash(g.id+"|"+g.title),hu=hs%360;
   var a=document.createElement("a"); a.className="game cg-card in-view"; a.href=g.url; a.setAttribute("data-cg","cgame:"+g.id); a.setAttribute("data-url",g.url); a.setAttribute("data-title",g.title); a.target="_blank"; a.rel="noopener";
-  a.style.cssText="--hue:hsl("+hu+",85%,62%); --c1:hsl("+hu+",55%,13%); --c2:hsl("+((hu+35)%360)+",65%,44%)";
+  a.style.cssText="--hue:hsl("+hu+",85%,62%); --c1:hsl("+hu+",55%,13%); --c2:hsl("+((hu+[25,40,70,150,200][(hs>>4)%5])%360)+",65%,44%); --ang:"+[135,160,115,200,90][(hs>>7)%5]+"deg";
   var cov=el("div","cover"); cov.appendChild(el("span","badge","by "+(g.nick||T("익명","Anonymous"))));
-  var art=el("div","cg-art"),ini=el("b","cg-emo",emo); art.appendChild(ini); cov.appendChild(art);
+  var art=el("div","cg-art"); art.appendChild(cgIcon(g.title+" "+(g.desc||""),hs)); cov.appendChild(art);
   var b=el("div","b"); b.appendChild(el("h3",null,g.title)); b.appendChild(el("p",null,g.desc||T("설명이 없습니다.","No description.")));
   var meta=el("div","meta"),go=el("span","go"); go.appendChild(document.createTextNode("▶ ")); go.appendChild(el("span",null,T("플레이","Play")));
   meta.appendChild(el("span","cg-dom",g.host||"")); meta.appendChild(go); b.appendChild(meta);
