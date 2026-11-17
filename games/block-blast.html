@@ -145,6 +145,7 @@
   var parts = [], texts = [], flashes = [];
   var drag = { active: false, slot: -1, id: -1, px: 0, py: 0, gx: 0, gy: 0, vx: 0, vy: 0, tx: -1, ty: -1, ok: false, sx: 0, sy: 0, moved: false };
   var sel = { i: -1 };
+  var hover = { on: false, r: -1, c: -1, ok: false };
   var shakeX = 0, shakeY = 0;
 
   /* ================= 유틸 ================= */
@@ -496,7 +497,7 @@
     G.lines = 0; G.placed = 0; G.shake = 0; G.hintT = 6; G.started = true;
     parts.length = 0; texts.length = 0; flashes.length = 0;
     drag.active = false; drag.slot = -1; drag.tx = -1;
-    sel.i = -1;
+    sel.i = -1; hover.on = false;
     if (overEl) overEl.hidden = true;
     updateHud();
   }
@@ -645,7 +646,22 @@
   }
 
   function pointerMove(e) {
-    if (!drag.active) return;
+    if (!drag.active) {
+      // 조각을 집어 든 상태에서 마우스를 움직이면 착지 미리보기
+      if (sel.i >= 0 && G.tray[sel.i]) {
+        var hx = e.clientX || 0, hy = e.clientY || 0;
+        var p = G.tray[sel.i];
+        if (hx >= boardX - 6 && hx <= boardX + BW + 6 && hy >= boardY - 6 && hy <= boardY + BW + 6) {
+          hover.r = clamp(Math.floor((hy - boardY) / cell), 0, N - p.h);
+          hover.c = clamp(Math.floor((hx - boardX) / cell), 0, N - p.w);
+          hover.ok = canPlace(G.board, p, hover.r, hover.c);
+          hover.on = true;
+        } else {
+          hover.on = false;
+        }
+      }
+      return;
+    }
     if (e.pointerId !== undefined && drag.id !== -1 && e.pointerId !== drag.id) return;
     drag.px = e.clientX || 0;
     drag.py = e.clientY || 0;
@@ -675,9 +691,10 @@
     if (!moved) {
       // 살짝 탭: 조각을 집어 든 상태로 두고, 다음에 판을 탭하면 놓인다
       sel.i = (sel.i === slot) ? -1 : slot;
+      if (sel.i < 0) hover.on = false;
       sfxPick();
     } else if (ok && canPlace(G.board, piece, tr, tc)) {
-      sel.i = -1;
+      sel.i = -1; hover.on = false;
       commitPlace(slot, tr, tc);
     } else {
       sfxBad();
@@ -694,7 +711,7 @@
     var c = clamp(col, 0, N - piece.w);
     if (!canPlace(G.board, piece, r, c)) { sfxBad(); return false; }
     var slot = sel.i;
-    sel.i = -1;
+    sel.i = -1; hover.on = false;
     commitPlace(slot, r, c);
     updateHud();
     return true;
@@ -746,12 +763,20 @@
   }
 
   function drawPreview() {
-    var piece = G.tray[drag.slot];
-    if (!piece || !drag.active) return;
-    var row = drag.ty, col = drag.tx, i, rr, cc, x, y;
+    if (drag.active && drag.slot >= 0) {
+      drawGhost(drag.slot, drag.ty, drag.tx, drag.ok);
+    } else if (sel.i >= 0 && hover.on) {
+      drawGhost(sel.i, hover.r, hover.c, hover.ok);
+    }
+  }
+
+  function drawGhost(slot, row, col, ok) {
+    var piece = G.tray[slot];
+    if (!piece) return;
+    var i, rr, cc, x, y;
 
     // 줄 완성 예고
-    if (drag.ok) {
+    if (ok) {
       var test = cloneBoard(G.board);
       for (i = 0; i < piece.cells.length; i++)
         test[row + piece.cells[i][0]][col + piece.cells[i][1]] = piece.col + 1;
@@ -780,7 +805,7 @@
       if (rr < 0 || cc < 0 || rr >= N || cc >= N) continue;
       x = boardX + cc * cell;
       y = boardY + rr * cell;
-      if (drag.ok) {
+      if (ok) {
         blit(x, y, cell, piece.col, 0.55);
         roundPath(ctx, x + 2, y + 2, cell - 4, cell - 4, Math.max(3, cell * 0.16));
         ctx.strokeStyle = 'rgba(255,255,255,.75)';
@@ -1025,6 +1050,7 @@
     lift: function () { return lift; },
     setMuted: function (m) { muted = !!m; },
     sel: function () { return sel.i; },
+    hoverState: function () { return { on: hover.on, r: hover.r, c: hover.c, ok: hover.ok }; },
     placeSelected: placeSelected,
     state: function () { return { score: G.score, best: G.best, combo: G.combo, over: G.over, lines: G.lines, placed: G.placed, parts: parts.length, texts: texts.length }; }
   };
