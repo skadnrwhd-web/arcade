@@ -503,7 +503,7 @@
   var rungArr = [0], visL = 0, anim = null, fall = null;
   var streak = 0, lastTapAt = 0, fever = 0, feverT = 0;
   var shake = 0, parts = [], tmNow = 0, bgScroll = 0;
-  var lastMile = 0, lastZone = -1, chalTarget = null, chalHit = false;
+  var lastMile = 0, lastZone = -1, chalTarget = null, chalHit = false, overCause = 'air';
   var skinIdx = Math.max(0, Math.min(3, num(store('stairs-skin'))));
   var muted = store('stairs-mute') === '1';
   var bestEver = num(store('stairs-best'));
@@ -611,6 +611,7 @@
   function startFall(reason, targetCol) {
     if (state !== 'play') return;
     state = 'fall'; fall = { y: 0, vy: -190, rot: 0, vrot: (Math.random() < .5 ? -1 : 1) * 7.5, t: 0 };
+    overCause = reason;
     fall.x = targetCol == null ? colX(cur.col) : colX(targetCol);
     shake = 14;
     streak = 0; fever = 0; feverT = 0;
@@ -625,9 +626,10 @@
     var rec = floorN > bestEver;
     if (rec) { bestEver = floorN; store('stairs-best', String(bestEver)); }
     $('ovFloor').textContent = floorN;
-    $('ovBest').textContent = '최고 기록 ' + bestEver + '층';
+    $('ovBest').textContent = rec ? '🎉 새 최고 기록! ' + bestEver + '층' : '최고 기록 ' + bestEver + '층';
     $('ovBest').className = 'best' + (rec ? ' new' : '');
-    $('ovR').textContent = floorN >= bestEver && rec ? '새 최고 기록입니다!' : (floorN >= 150 ? '별빛 구름 위까지 올라갔습니다' : floorN >= 50 ? '지하철역을 벗어났습니다' : '다시 한 번 올라가 볼까요?');
+    var zs = floorN >= 300 ? '우주 성층권까지 올라갔습니다' : floorN >= 150 ? '별빛 구름 너머까지 올라갔습니다' : floorN >= 50 ? '네온 지하철역을 벗어났습니다' : floorN >= 10 ? '조금만 더 오르면 50층입니다' : '다시 한 번 올라가 볼까요?';
+    $('ovR').textContent = (overCause === 'time' ? '체력이 바닥났습니다 · ' : '허공을 밟았습니다 · ') + zs;
     $('over').hidden = false;
     paintHud();
     if (window.ArcadeRank) {
@@ -1037,6 +1039,16 @@
     layout: function () { return { W: W, H: H, charY: L.charY, stepH: L.stepH, colW: L.colW, padH: L.padH, playTop: L.playTop }; },
     nextRung: function () { return rungArr[cur.L + 1]; },
     setHp: function (v) { hp = v; },
+    jump: function (n) {   /* 확인용: 특정 층에서 시작 */
+      if (state !== 'play') start();
+      n = Math.max(1, Math.min(9999, Math.floor(n || 1)));
+      rungArr = [0]; genTo(n + 24);
+      var c = rungArr[n] === 0 ? 1 : rungArr[n];
+      cur = { L: n, col: c }; floorN = n; visL = n; anim = null; hp = 100; facing = c;
+      lastMile = Math.floor(n / 50) * 50; lastZone = zoneOf(n);
+      $('zone').textContent = ZONE_NAMES[zoneOf(n)];
+      paintArrows(); paintHud();
+    },
     errors: function () { return ERR.slice(); }
   };
 
