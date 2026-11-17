@@ -7,12 +7,12 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>네온 폴리트랙 - 0.01초 타임어택 로우폴리 레이싱 | UJ ARCADE</title>
-<meta name="description" content="각진 로우폴리 차량으로 0.01초를 줄이는 네온 타임어택 레이싱. 커브·점프대·터보 패드·체크포인트가 있는 코스 3종과 내 최고 기록 고스트 카. 설치 없이 바로 플레이.">
+<meta name="description" content="각진 로우폴리 차량으로 0.01초를 줄이는 네온 타임어택 레이싱. S자 시케인·내리막 가속·연속 터보 패드·체크포인트 5개가 있는 3.1km 롱코스 3종과 내 최고 기록 고스트 카. 설치 없이 바로 플레이.">
 <link rel="canonical" href="https://skadnrwhd-web.github.io/arcade/games/poly-track.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="UJ ARCADE">
 <meta property="og:title" content="네온 폴리트랙 - 0.01초 타임어택 로우폴리 레이싱">
-<meta property="og:description" content="각진 로우폴리 차량으로 0.01초를 줄이는 네온 타임어택 레이싱. 커브·점프대·터보 패드·체크포인트 코스 3종, 내 최고 기록 고스트 카.">
+<meta property="og:description" content="각진 로우폴리 차량으로 0.01초를 줄이는 네온 타임어택 레이싱. 시케인·점프대·연속 터보·체크포인트 5개를 품은 3.1km 롱코스 3종, 내 최고 기록 고스트 카.">
 <meta property="og:url" content="https://skadnrwhd-web.github.io/arcade/games/poly-track.html">
 <meta property="og:image" content="https://skadnrwhd-web.github.io/arcade/og.png">
 <meta property="og:image:width" content="1200">
@@ -76,19 +76,19 @@
 
   /* ── 하단 조작 ── */
   #pads{position:fixed;left:0;right:0;bottom:0;z-index:7;display:flex;justify-content:space-between;align-items:flex-end;
-    padding:0 12px calc(env(safe-area-inset-bottom) + 14px);max-width:680px;margin:0 auto;pointer-events:none}
+    padding:0 14px calc(env(safe-area-inset-bottom) + 16px);max-width:680px;margin:0 auto;pointer-events:none}
   #pads[hidden]{display:none}
-  #pads .pl,#pads .pr{display:flex;gap:10px;pointer-events:auto}
-  #pads .pr{flex-direction:column;gap:8px;align-items:flex-end}
+  #pads .pl{display:flex;gap:24px;pointer-events:auto;align-items:flex-end}
+  #pads .pr{display:flex;flex-direction:column;gap:16px;align-items:flex-end;pointer-events:auto}
   .pb{margin:0;padding:0;border:0;font-family:inherit;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none;
     color:#eef7ff;display:flex;align-items:center;justify-content:center;font-weight:900;
     transition:transform .06s ease,filter .08s ease;backdrop-filter:none}
-  .pb.lr{width:clamp(70px,19vw,92px);height:clamp(70px,19vw,92px);border-radius:50%;
+  .pb.lr{width:clamp(72px,19.5vw,94px);height:clamp(72px,19.5vw,94px);border-radius:50%;
     background:radial-gradient(circle at 50% 35%,rgba(60,232,255,.3),rgba(14,32,64,.82));
     border:1.5px solid rgba(90,220,255,.55);box-shadow:0 8px 24px rgba(20,140,255,.18);font-size:26px}
-  .pb.gas{width:clamp(84px,23vw,108px);height:clamp(58px,15vw,68px);border-radius:20px;font-size:15px;letter-spacing:.04em;
+  .pb.gas{width:clamp(86px,24vw,112px);height:clamp(58px,15vw,68px);border-radius:20px;font-size:15px;letter-spacing:.04em;
     background:linear-gradient(165deg,rgba(125,255,155,.28),rgba(10,54,36,.85));border:1.5px solid rgba(125,255,155,.5)}
-  .pb.brk{width:clamp(84px,23vw,108px);height:clamp(50px,13vw,58px);border-radius:18px;font-size:14px;letter-spacing:.04em;
+  .pb.brk{width:clamp(86px,24vw,112px);height:clamp(50px,13vw,58px);border-radius:18px;font-size:14px;letter-spacing:.04em;
     background:linear-gradient(165deg,rgba(255,77,141,.28),rgba(58,8,32,.85));border:1.5px solid rgba(255,110,160,.5)}
   .pb.on{transform:scale(.94);filter:brightness(1.5)}
   #pads.dim .pb.lr{opacity:.5}
@@ -190,7 +190,7 @@
   <div class="panel">
     <div class="brand"><span class="dot"></span>UJ ARCADE</div>
     <h1>네온 폴리트랙</h1>
-    <p class="sub">각진 로우폴리 차량으로 0.01초를 줄이는 타임어택 레이싱.<br>내 최고 기록이 고스트 카로 함께 달립니다.</p>
+    <p class="sub">각진 로우폴리 차량으로 0.01초를 줄이는 타임어택 레이싱.<br>3.1km 롱코스 3종 · 내 최고 기록이 고스트 카로 함께 달립니다.</p>
     <div id="cards"></div>
     <div class="opts">
       <button class="chipbtn on" id="optAuto">자동 가속 ON</button>
@@ -232,6 +232,8 @@ var PI=Math.PI, TAU=PI*2;
 function clamp(v,a,b){return v<a?a:(v>b?b:v);}
 function lerp(a,b,u){return a+(b-a)*u;}
 function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){}return null;}
+/* 코스 길이가 바뀌었으므로 기존 짧은 코스 기록·고스트와 섞이지 않게 v2 키를 쓴다 */
+var KVER='pt2.';
 function mulberry(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
 function fmt2(v){return (Math.round(v*100)/100).toFixed(2);}
 function fmtC(c){return (c/100).toFixed(2);}
@@ -261,70 +263,113 @@ var TH={
 /* ══════════════════ 코스 ══════════════════ */
 var COURSES=[
   { id:'circuit', name:'네온 서킷', en:'NEON CIRCUIT', emoji:'🏁', hw:12.5, theme:'circuit', seed:11,
-    desc:'넓은 커브 · 완만한 언덕 · 첫 기록용',
+    desc:'S자 시케인 · 내리막 가속 · 3.1km 롱코스',
     segs:[
+      {len:80},
+      {len:170,curve:85},
+      {len:110,boost:true},
+      {len:140,curve:-60},
+      {len:60,curve:70},
+      {len:70,curve:-80},
+      {len:60,curve:55},
+      {len:120,dy:14},
+      {len:130,dy:-30},
+      {len:150,curve:-90},
+      {len:90,boost:true},
       {len:70},
-      {len:150,curve:80},
-      {len:80,boost:true},
-      {len:120,curve:-55},
-      {len:110,dy:12},
-      {len:130,curve:70},
-      {len:50},
-      {len:40,dy:14,linear:true},
-      {len:44,dy:-13,linear:true},
-      {len:70,dy:2},
-      {len:150,curve:-95,boost:true},
+      {len:44,dy:15,linear:true},
+      {len:40,dy:-14,linear:true,road:false},
       {len:80},
-      {len:110,curve:55},
-      {len:100,curve:-55},
-      {len:90,dy:-10},
-      {len:80},
-      {len:60,curve:40},
-      {len:50}
+      {len:170,curve:100,boost:true},
+      {len:90},
+      {len:80,curve:-55},
+      {len:80,curve:65},
+      {len:120,curve:50},
+      {len:110,dy:-16},
+      {len:100,boost:true,boostN:2},
+      {len:90},
+      {len:140,curve:-70},
+      {len:120},
+      {len:90,curve:75},
+      {len:60,curve:-50},
+      {len:70},
+      {len:120,curve:-60},
+      {len:100,curve:50},
+      {len:70}
     ]},
   { id:'sky', name:'스카이 점프', en:'SKY JUMP', emoji:'🛫', hw:11.5, theme:'sky', seed:23,
-    desc:'구름 위 다리 · 진짜 공중 점프 3연속',
+    desc:'구름 위 다리 · 공중 점프 4연속 · 3.1km',
     segs:[
+      {len:80},
+      {len:130,curve:60},
       {len:70},
-      {len:120,curve:60},
-      {len:60},
       {len:34,dy:13,linear:true},
       {len:34,dy:-10,linear:true,road:false},
       {len:60,dy:-6,linear:true},
-      {len:150,curve:-80},
-      {len:60},
+      {len:160,curve:-80},
+      {len:70},
       {len:34,dy:15,linear:true},
       {len:36,dy:-12,linear:true,road:false},
-      {len:70},
-      {len:70,boost:true},
-      {len:160,curve:90},
       {len:80},
+      {len:80,boost:true},
+      {len:170,curve:90},
+      {len:90},
       {len:40,dy:16,linear:true},
       {len:40,dy:-13,linear:true,road:false},
-      {len:80},
-      {len:140,curve:-70},
       {len:90},
+      {len:150,curve:-70},
+      {len:100},
       {len:40,curve:50},
-      {len:80}
+      {len:90},
+      {len:60,curve:-60},
+      {len:60,curve:65},
+      {len:120,curve:55},
+      {len:120,dy:-18},
+      {len:100,boost:true,boostN:2},
+      {len:90},
+      {len:40,dy:14,linear:true},
+      {len:40,dy:-12,linear:true,road:false},
+      {len:90},
+      {len:150,curve:85},
+      {len:80},
+      {len:70,curve:-45},
+      {len:140,curve:-60},
+      {len:100},
+      {len:110}
     ]},
   { id:'canyon', name:'사이버 캐니언', en:'CYBER CANYON', emoji:'🏜', hw:9.6, theme:'canyon', seed:37,
-    desc:'좁은 길 · 급커브 · 기록 단축의 끝판',
+    desc:'좁은 길 · 급커브 · 연속 터보 · 3.1km',
     segs:[
-      {len:60},
-      {len:120,curve:-90},
-      {len:150,curve:120},
-      {len:100,dy:-14},
-      {len:100,curve:-60},
-      {len:60,boost:true},
-      {len:38,dy:13,linear:true},
+      {len:70},
+      {len:140,curve:-95},
+      {len:160,curve:120},
+      {len:120,dy:-16},
+      {len:110,curve:-65},
+      {len:70,boost:true},
+      {len:38,dy:14,linear:true},
       {len:40,dy:-11,linear:true},
-      {len:170,curve:110},
-      {len:110,dy:16},
-      {len:140,curve:-90},
-      {len:110,curve:60},
-      {len:110,curve:-60},
-      {len:100,dy:-12},
-      {len:90,curve:45},
+      {len:180,curve:110},
+      {len:120,dy:17},
+      {len:150,curve:-95},
+      {len:130,curve:65},
+      {len:120,curve:-70},
+      {len:110,dy:-14},
+      {len:100,curve:50},
+      {len:70,boost:true},
+      {len:60},
+      {len:55,curve:-85},
+      {len:55,curve:90},
+      {len:55,curve:-80},
+      {len:120,curve:60},
+      {len:110,dy:-18},
+      {len:100,boost:true,boostN:2},
+      {len:80},
+      {len:150,curve:-100},
+      {len:90},
+      {len:120,curve:70},
+      {len:80,curve:-55},
+      {len:140,curve:70},
+      {len:70},
       {len:60}
     ]}
 ];
@@ -377,15 +422,24 @@ function buildWorld(def){
   for(i=0;i<N;i++){ if(nodes[i].y<minY) minY=nodes[i].y; if(nodes[i].y>maxY) maxY=nodes[i].y; }
   floorY=minY-34;
 
-  /* 체크포인트: 28% · 52% · 78% */
-  cps=[0, Math.round(trackLen*0.28), Math.round(trackLen*0.52), Math.round(trackLen*0.78)];
+  /* 체크포인트: 17% · 34% · 51% · 68% · 85% (5개) */
+  cps.length=0; cps.push(0);
+  var cpF=[0.17,0.34,0.51,0.68,0.85];
+  for(i=0;i<cpF.length;i++) cps.push(Math.round(trackLen*cpF[i]));
 
-  /* 터보 패드 */
+  /* 터보 패드 (boostN 개수만큼 연속 배치) */
   pads.length=0;
   var rs=0;
   for(i=0;i<def.segs.length;i++){
     var g=def.segs[i];
-    if(g.boost){ var mid=rs+g.len*0.5; pads.push({s0:mid-g.len*0.22,s1:mid+g.len*0.22,lat:0,hw:5.6,done:false}); }
+    if(g.boost){
+      var cnt=Math.max(1,g.boostN||1);
+      var span=g.len*0.84, each=span/cnt, pl=Math.min(24,each*0.62);
+      for(var bi=0;bi<cnt;bi++){
+        var pmid=rs+g.len*0.08+each*(bi+0.5);
+        pads.push({s0:pmid-pl/2,s1:pmid+pl/2,lat:0,hw:6.0,done:false});
+      }
+    }
     rs+=g.len;
   }
 
@@ -508,7 +562,7 @@ var bestCourse=null;
 
 /* ══════════════════ 고스트 ══════════════════ */
 function loadGhost(id){
-  var raw=store('pt.g.'+id); if(!raw) return null;
+  var raw=store(KVER+'g.'+id); if(!raw) return null;
   try{
     var g=JSON.parse(raw);
     if(!g||!g.d||g.d.length<12) return null;
@@ -554,7 +608,7 @@ function startRun(id, instant){
   course=bestCourse;
   buildWorld(course);
   buildBG();
-  best=parseFloat(store('pt.b.'+course.id))||0;
+  best=parseFloat(store(KVER+'b.'+course.id))||0;
   ghost=loadGhost(course.id);
   resetCar();
   $('menu').hidden=true; $('finish').hidden=true;
@@ -639,7 +693,7 @@ function paintMenu(){
       var bs=document.createElement('div'); bs.className='bs';
       var lb=document.createElement('i'); lb.textContent='BEST';
       var bb=document.createElement('span');
-      var v=parseFloat(store('pt.b.'+c.id))||0;
+      var v=parseFloat(store(KVER+'b.'+c.id))||0;
       bb.textContent=v>0?fmt2(v)+'초':'—';
       if(!(v>0)) bs.className='bs none';
       bs.appendChild(lb); bs.appendChild(bb);
@@ -712,21 +766,21 @@ function physStep(dt){
 
   var smp=sampleAt(car.s);
   var ground=groundAt(car.s);
-  var maxV=car.boost>0?86:60;
+  var maxV=car.boost>0?106:80;
   var gase=input.gas||autoGas;
 
-  if(input.brake){ car.v-=118*dt; }
-  else if(gase){ car.v+=(maxV-car.v)*(car.boost>0?2.1:1.5)*dt; }
-  else { car.v-=(car.v>0?16:0)*dt; }
-  if(car.boost>0){ car.boost-=dt; car.v+=22*dt; }
+  if(input.brake){ car.v-=150*dt; }
+  else if(gase){ car.v+=(maxV-car.v)*(car.boost>0?2.35:1.75)*dt; }
+  else { car.v-=(car.v>0?22:0)*dt; }
+  if(car.boost>0){ car.boost-=dt; car.v+=10*dt; }
   var sl=ground!=null?slopeAt(car.s):0;
   car.v-=sl*48*dt;
   if(car.air) car.v-=1.5*dt;
-  car.v=clamp(car.v,0,102);
+  car.v=clamp(car.v,0,118);
 
   /* 조향 */
   var st=(input.right?1:0)-(input.left?1:0);
-  var agil=7.5+Math.min(car.v,70)*0.16;
+  var agil=8.2+Math.min(car.v,80)*0.17;
   var kk=1-Math.exp(-dt*(car.air?4:9));
   car.lv+=(st*agil-car.lv)*kk;
   car.lat+=car.lv*dt;
@@ -756,8 +810,8 @@ function physStep(dt){
     if(gg!=null && car.y<=gg){
       if(car.y>gg-6){
         car.y=gg;
-        if(car.vy<-16){ shake=Math.max(shake,Math.min(9,-car.vy*0.22)); Snd.land(); car.v*=0.97;
-          addParts(car.wx,gg,car.wz,8,'#ffffff',3.2); }
+        if(car.vy<-16){ shake=Math.max(shake,Math.min(12,-car.vy*0.2)); Snd.land(); car.v*=0.97;
+          addParts(car.wx,gg,car.wz,11,'#ffffff',3.7); }
         car.vy=0; car.air=false;
       } else { doFall(); return; }
     }
@@ -783,19 +837,19 @@ function physStep(dt){
   for(var p=0;p<pads.length;p++){
     var pd=pads[p];
     if(!pd.done && car.s>=pd.s0 && car.s<=pd.s1 && Math.abs(car.lat-pd.lat)<pd.hw){
-      pd.done=true; car.boost=1.7; car.v=Math.min(car.v+13,100);
-      Snd.boost(); shake=Math.max(shake,4);
-      addParts(car.wx,car.y+0.6,car.wz,10,'#2ee8ff',4.2);
+      pd.done=true; car.boost=1.9; car.v=Math.min(car.v+16,114);
+      Snd.boost(); shake=Math.max(shake,5.5);
+      addParts(car.wx,car.y+0.6,car.wz,14,'#2ee8ff',5.0);
     }
   }
 
   /* 드리프트 스파크 */
-  if(Math.abs(car.lv)>20 && car.v>30 && Math.random()<0.5){
+  if(Math.abs(car.lv)>16 && car.v>36 && Math.random()<0.65){
     var side=car.lv>0?1:-1;
-    addParts(car.wx+rx*side*1.6,car.y+0.25,car.wz+rz*side*1.6,1,'#ff9f43',2.2);
+    addParts(car.wx+rx*side*1.6,car.y+0.25,car.wz+rz*side*1.6,2,'#ff9f43',2.6);
   }
-  if(car.boost>0 && Math.random()<0.7){
-    addParts(car.wx,car.y+0.7,car.wz,1,'#2ee8ff',3);
+  if(car.boost>0 && Math.random()<0.8){
+    addParts(car.wx,car.y+0.7,car.wz,2,'#2ee8ff',3.6);
   }
 
   /* 고스트 기록 */
@@ -823,8 +877,8 @@ function doFinish(){
   var isRec=(best<=0 || time<best);
   var prevBest=best;
   if(isRec){
-    best=time; store('pt.b.'+course.id,String(time));
-    try{ store('pt.g.'+course.id, JSON.stringify({t:time,d:rec})); }catch(e){}
+    best=time; store(KVER+'b.'+course.id,String(time));
+    try{ store(KVER+'g.'+course.id, JSON.stringify({t:time,d:rec})); }catch(e){}
     ghost=loadGhost(course.id);
   }
   Snd.finish(); Snd.set(0,false);
@@ -870,16 +924,27 @@ function stepParts(dt){
 }
 
 /* ══════════════════ 카메라 & 투영 ══════════════════ */
-var cam={px:0,py:0,pz:0, rx:0,ry:0,rz:0, ux:0,uy:0,uz:0, fx:0,fy:0,fz:0, focal:600, cx:0, cy:0};
-var W=0,H=0,DPR=1,bg=null,bgH=0,glow=null;
+var cam={px:0,py:0,pz:0, rx:0,ry:0,rz:0, ux:0,uy:0,uz:0, fx:0,fy:0,fz:0, focal:600, fb:600, cx:0, cy:0};
+var W=0,H=0,DPR=1,bg=null,bgH=0,glow=null,vign=null,speedK=0;
 
 function resize(){
   DPR=Math.min(window.devicePixelRatio||1,2);
   W=window.innerWidth; H=window.innerHeight;
   cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
-  cam.focal=clamp(Math.min(W*0.94,H*1.02),250,760);
+  cam.fb=clamp(Math.min(W*0.94,H*1.02),250,760);
+  cam.focal=cam.fb;
   cam.cx=W/2; cam.cy=H*0.52;
-  buildBG();
+  buildBG(); buildVign();
+}
+/* 터널 비전(고속 비네트)은 리사이즈 1회만 생성한다 */
+function buildVign(){
+  var vw=Math.max(8,Math.round(cv.width)), vh=Math.max(8,Math.round(cv.height));
+  vign=document.createElement('canvas'); vign.width=vw; vign.height=vh;
+  var g=vign.getContext('2d');
+  var rg=g.createRadialGradient(vw*0.5,vh*0.52,Math.min(vw,vh)*0.16,vw*0.5,vh*0.52,Math.max(vw,vh)*0.72);
+  rg.addColorStop(0,'rgba(0,0,0,0)'); rg.addColorStop(0.45,'rgba(0,0,0,0)');
+  rg.addColorStop(0.78,'rgba(0,0,0,0.45)'); rg.addColorStop(1,'rgba(0,0,0,0.9)');
+  g.fillStyle=rg; g.fillRect(0,0,vw,vh);
 }
 function buildBG(){
   if(!course){ theme=TH.circuit; }
@@ -951,7 +1016,10 @@ function updateCamera(dt){
   var target=look.yaw;
   var diff=((target-camYaw+PI)%TAU+TAU)%TAU-PI;
   camYaw+=diff*(1-Math.exp(-dt*7));
-  var back=16.2, up=6.9;
+  /* 속도가 오를수록 카메라가 뒤로 물러나고 FOV가 넓어진다(줌아웃·터널 비전) */
+  speedK=clamp((car.v-30)/76,0,1);
+  var sk=speedK;
+  var back=16.0+sk*2.8, up=6.9+sk*0.9;
   cam.px=car.wx-Math.sin(camYaw)*back;
   cam.pz=car.wz-Math.cos(camYaw)*back;
   cam.py=car.y+up;
@@ -966,9 +1034,11 @@ function updateCamera(dt){
   /* up = f × right */
   var ux=fy*rz-fz*ry, uy=fz*rx-fx*rz, uz=fx*ry-fy*rx;
   cam.rx=rx; cam.ry=ry; cam.rz=rz; cam.ux=ux; cam.uy=uy; cam.uz=uz;
+  cam.focal=cam.fb*(1-0.2*sk-(car.boost>0?0.04:0));
   if(shake>0){ shake=Math.max(0,shake-dt*26); }
-  cam.cx=W/2+Math.sin(t*61)*shake*0.6;
-  cam.cy=H*0.52+Math.cos(t*53)*shake*0.5;
+  var rum=sk*sk*1.5+((car.boost>0)?0.9:0);
+  cam.cx=W/2+Math.sin(t*61)*shake*0.6+Math.sin(t*39.1)*rum;
+  cam.cy=H*0.52+Math.cos(t*53)*shake*0.5+Math.cos(t*43.7)*rum*0.8;
 }
 
 function camP(x,y,z){
@@ -1236,20 +1306,20 @@ function drawCar(isGhost){
       var lc=camP(lp.x,lp.y,lp.z);
       if(lc.z>NEAR){
         var sx=cam.cx+lc.x*cam.focal/lc.z, sy2=cam.cy-lc.y*cam.focal/lc.z;
-        var sz=clamp(22*cam.focal/lc.z,3,110)*sizing;
+        var sz=clamp(22*cam.focal/lc.z,3,76)*sizing;
         ctx.globalAlpha=brake?0.95:0.55; ctx.drawImage(glow,sx-sz/2,sy2-sz/2,sz,sz); ctx.globalAlpha=1;
       }
     }
     /* 부스트 화염 */
     if(car.boost>0){
       for(i=-1;i<=1;i+=2){
-        var fx2=px+(i*0.9)*cy+(-4.5)*sy+(Math.random()-0.5)*0.3;
-        var fz2=pz-(i*0.9)*sy+(-4.5)*cy;
+        var fx2=px+(i*0.9)*cy+(-4.6)*sy+(Math.random()-0.5)*0.35;
+        var fz2=pz-(i*0.9)*sy+(-4.6)*cy;
         var fc=camP(fx2,py+0.6,fz2);
         if(fc.z>NEAR){
           var fsx=cam.cx+fc.x*cam.focal/fc.z, fsy=cam.cy-fc.y*cam.focal/fc.z;
-          var fsz=clamp(52*cam.focal/fc.z,8,170);
-          ctx.globalAlpha=0.65; ctx.drawImage(glow,fsx-fsz/2,fsy-fsz/2,fsz,fsz); ctx.globalAlpha=1;
+          var fsz=clamp(64*cam.focal/fc.z,10,168);
+          ctx.globalAlpha=0.72; ctx.drawImage(glow,fsx-fsz/2,fsy-fsz/2,fsz,fsz); ctx.globalAlpha=1;
         }
       }
     }
@@ -1284,20 +1354,20 @@ function drawParts(){
 var LINES=[];
 (function(){
   var rnd=mulberry(5);
-  for(var i=0;i<16;i++) LINES.push({x:rnd(),y:rnd(),l:0.06+rnd()*0.16});
+  for(var i=0;i<28;i++) LINES.push({x:rnd(),y:rnd(),l:0.06+rnd()*0.2});
 })();
 function drawSpeed(v){
-  var k=clamp((v-40)/56,0,1);
-  if(k<=0.03) return;
-  ctx.strokeStyle='rgba(190,240,255,'+(k*0.3).toFixed(3)+')';
-  ctx.lineWidth=1.4;
+  var k=clamp((v-26)/80,0,1);
+  if(k<=0.02) return;
+  ctx.strokeStyle='rgba(200,242,255,'+Math.min(0.5,k*0.44).toFixed(3)+')';
+  ctx.lineWidth=1.5;
   var cx=cam.cx, cy=cam.cy, m=Math.min(W,H);
   for(var i=0;i<LINES.length;i++){
     var L=LINES[i];
     var ang=(L.x*TAU);
-    var rad=m*(0.34+((L.y+t*1.1*(1+L.l))%1)*0.46);
+    var rad=m*(0.3+((L.y+t*(1.3+k*1.2)*(1+L.l))%1)*0.52);
     var x0=cx+Math.cos(ang)*rad, y0=cy+Math.sin(ang)*rad*0.86;
-    var len=16+k*46;
+    var len=16+k*(54+L.l*90);
     ctx.beginPath();
     ctx.moveTo(x0,y0);
     ctx.lineTo(cx+Math.cos(ang)*(rad+len),cy+Math.sin(ang)*(rad+len)*0.86);
@@ -1383,6 +1453,11 @@ function draw(dt){
   drawCar(false);
   drawParts();
   drawSpeed(car.v);
+  if(vign && speedK>0.06){
+    ctx.globalAlpha=clamp((speedK-0.06)*0.62,0,0.5);
+    ctx.drawImage(vign,0,0,W,H);
+    ctx.globalAlpha=1;
+  }
 
   Snd.set(car.v, state==='play'&&!document.hidden);
   if(state==='finish'||state==='play'||state==='count') paintBar();
