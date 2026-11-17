@@ -442,7 +442,7 @@
     tw = Math.min(tw, 84);
     var th = tw * ASPECT;
     var rowGap = Math.max(18, th * 0.11);
-    var maxTh = (availH - rowGap * (rows - 1)) / rows;
+    var maxTh = (availH - rowGap * (rows - 1) - 26) / rows;   /* 판 여백만큼 병을 살짝 줄인다 */
     if (th > maxTh) { th = maxTh; tw = th / ASPECT; }
     tw = Math.max(26, tw); th = Math.max(64, th);
     rowGap = Math.max(13, th * 0.11);
@@ -672,7 +672,7 @@
       if (A && i === A.src) continue;
       var lift = (S.sel === i && !A) ? 11 : 0;
       var isDone = bComplete(b) && !(A && A.dst === i && A.t < A.t3);
-      var glow = 0;
+      var glow = b.length ? 0.3 : 0.14;
       if (S.sel === i) glow = 1;
       if (isDone) glow = Math.max(glow, 0.45 + 0.2 * Math.sin(S.clock * 2.4 + i));
       if (flash[i] != null && S.clock - flash[i] < 0.32) glow = 1;
