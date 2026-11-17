@@ -802,7 +802,14 @@ function openPlayer(a){ var cg=a.getAttribute("data-cg"),slug=cg?cg.replace(/^cg
     /* 사이트가 iframe 안에서 열리는 걸 막으면 화면이 검게/비어 보이고 우리는 그걸 알 수 없다. 그래서 새 창으로 여는 길을 항상 열어 둔다 */
     setTimeout(function(){ if(!f||!pFrame.contains(f)) return; var fb=document.createElement("a"); fb.className="cg-fb"; fb.href=url; fb.target="_blank"; fb.rel="noopener noreferrer"; fb.textContent=T("↗ 화면이 안 나오면 새 창에서 열기","↗ Blank screen? Open in a new tab");
       fb.addEventListener("click",function(){ track('cg_open_newtab',{game_id:slug}); }); pFrame.appendChild(fb); var fh=null; if(/iPhone|iPad|iPod/i.test(navigator.userAgent)){ fh=el("p","cg-fb-h",T("새 창에서 아래쪽이 잘리면, 아래 버튼 줄의 나침반(🧭) 모양을 눌러 사파리로 열어 보세요.","If the bottom is cut off in the new tab, tap the compass (🧭) in the bottom bar to open it in Safari.")); pFrame.appendChild(fh); }
-      setTimeout(function(){ if(fb.parentNode) fb.remove(); if(fh&&fh.parentNode) fh.remove(); },20000); },2500); }  /* 정상 게임의 위쪽 조작을 가리지 않도록 20초 뒤 사라진다 */
+      /* 게임 화면이 떠서 사용자가 화면을 만지면(=iframe이 포커스를 받으면) 바로 사라진다. 남 사이트라 '떴는지'는 직접 알 수 없어서 만지는 것으로 판단한다.
+         안 만져도 8초 뒤엔 사라지고, 팝업을 한 번 눌러도 닫힌다 */
+      var gone=false; function dismiss(){ if(gone) return; gone=true; window.removeEventListener("blur",onBlur); if(fb.parentNode) fb.remove(); if(fh&&fh.parentNode) fh.remove(); }
+      function onBlur(){ setTimeout(function(){ if(document.activeElement===f) dismiss(); },0); }
+      window.addEventListener("blur",onBlur); if(fh) fh.addEventListener("click",dismiss);
+      var fx=document.createElement("span"); fx.textContent="✕"; fx.setAttribute("aria-label",T("닫기","Close")); fx.style.cssText="position:absolute;right:14px;top:50%;transform:translateY(-50%);padding:6px 8px;font-size:16px;opacity:.9";
+      fx.addEventListener("click",function(e){ e.preventDefault(); e.stopPropagation(); dismiss(); }); fb.appendChild(fx);
+      setTimeout(dismiss,8000); },2500); }
   mountThread(pThread,cg||("game: "+slug)); player.querySelector(".panel").scrollTop=0; player.classList.add("open"); document.body.style.overflow="hidden"; document.getElementById("pClose").focus();
   try{ history.replaceState(null,"",shareHash); }catch(e){} }
 function closePlayer(){ if(!player.classList.contains("open")) return; pFrame.textContent=""; pThread.textContent=""; player.classList.remove("open"); document.body.style.overflow="";
