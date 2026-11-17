@@ -231,7 +231,9 @@
         withSb(function (c) {
           if (!c) { btn.disabled = false; setMsg(T("err")); return; }
           c.from("comments").insert({ thread: thread(id), nickname: name, body: myKey }).then(function (res) {
-            if (res.error) { btn.disabled = false; setMsg(/too many/i.test(res.error.message || "") ? T("many") : T("err")); return; }
+            if (res.error) { btn.disabled = false; var em = String(res.error.message || ""), ec = String(res.error.code || "");
+              /* 실패 원인을 알 수 있도록 짧은 코드/메시지를 함께 보여 준다 (원인 파악용) */
+              setMsg(/too many|rate|limit|429/i.test(em + ec) ? T("many") : T("err") + " [" + (ec || "?") + (em ? ": " + em.slice(0, 60) : "") + "]"); try { console.warn("rank insert", res.error); } catch (e3) { } return; }
             store("arc-nick", name); store("arc-rank-last", String(Date.now()));
             submitted = true; myName = name; formBox.textContent = ""; setMsg(T("done"), true);
             if (window.track) { try { window.track("rank_submit", { game_id: id }); } catch (e2) { } }
