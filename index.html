@@ -1093,11 +1093,17 @@ if(pChal) pChal.addEventListener("click",chalBtnGo);
 if(mChal) mChal.addEventListener("click",chalBtnGo);
 function chalSend(delay){ setTimeout(function(){ if(!chalState) return; var f=document.querySelector("#pFrame iframe"); if(!f||!f.contentWindow) return;
   try{ f.contentWindow.postMessage({arcade:"challenge",slug:chalState.slug,score:chalState.score,by:chalState.by},"*"); }catch(e){} },delay||0); }
+/* rank.js 가 늦게 로딩되면(느린 회선) 띠의 점수 표기가 기본값으로 나오므로,
+   rank.js 가 준비되면 띠를 다시 그려 게임별 표기(초·번·레벨)로 맞춘다. */
+function chalWaitRank(n){ n=n||0;
+  if(!window.ArcadeChallenge){ if(n<25) setTimeout(function(){ chalWaitRank(n+1); },120); return; }
+  if(!chalBar) return; var cl=chalBar.className||""; if(!/(^| )on( |$)/.test(cl)) return;
+  chalBanner(cl.indexOf("win")>=0?"win":(cl.indexOf("lose")>=0?"lose":"chal")); }
 function chalInit(){ var q; try{ q=new URLSearchParams(location.search); }catch(e){ return; }
   var slug=chalSlug(q.get("challenge")); if(!slug) return;
   chalState={slug:slug,score:chalNum(q.get("score")),by:chalBy(q.get("by"))}; window.__arcadeChallenge=chalState;
   try{ track('challenge_open',{game_id:slug,has_score:chalState.score==null?0:1}); }catch(e){}
-  var card=chalCard(slug); chalBanner("chal"); if(!card) return;
+  var card=chalCard(slug); chalBanner("chal"); chalWaitRank(0); if(!card) return;
   if(card.hasAttribute("data-play")){ openPlayer(card); chalSend(0); chalSend(500); chalSend(1600); }
   else openGame(slug,card); }
 setTimeout(chalInit,0);
