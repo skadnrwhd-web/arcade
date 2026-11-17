@@ -133,7 +133,8 @@
     over: false, lines: 0, placed: 0, shake: 0, hintT: 0, started: false
   };
   var parts = [], texts = [], flashes = [];
-  var drag = { active: false, slot: -1, id: -1, px: 0, py: 0, gx: 0, gy: 0, vx: 0, vy: 0, tx: -1, ty: -1, ok: false };
+  var drag = { active: false, slot: -1, id: -1, px: 0, py: 0, gx: 0, gy: 0, vx: 0, vy: 0, tx: -1, ty: -1, ok: false, sx: 0, sy: 0, moved: false };
+  var sel = { i: -1 };
   var shakeX = 0, shakeY = 0;
 
   /* ================= 유틸 ================= */
@@ -485,6 +486,7 @@
     G.lines = 0; G.placed = 0; G.shake = 0; G.hintT = 6; G.started = true;
     parts.length = 0; texts.length = 0; flashes.length = 0;
     drag.active = false; drag.slot = -1; drag.tx = -1;
+    sel.i = -1;
     if (overEl) overEl.hidden = true;
     updateHud();
   }
@@ -528,6 +530,7 @@
     if (!res.ok) return false;
 
     G.tray[slot] = null;
+    if (sel.i === slot) sel.i = -1;
     G.shake = res.lines >= 3 ? 8 : res.lines === 2 ? 5 : res.lines === 1 ? 3 : 0;
 
     // 착지 파티클/사운드
@@ -569,9 +572,8 @@
   /* ================= 트레이 지오메트리 ================= */
   function slotGeom(i) {
     var gap = 10;
-    var totalW = W - 24;
-    var sw = (totalW - gap * 2) / 3;
-    var sx = 12 + i * (sw + gap);
+    var sw = (BW - gap * 2) / 3;
+    var sx = boardX + i * (sw + gap);
     var g = { x: sx, y: trayY, w: sw, h: trayH, tc: cell * 0.5, ox: sx, oy: trayY, pw: 0, ph: 0 };
     var p = G.tray[i];
     if (!p) return g;
@@ -596,6 +598,18 @@
     if (G.over) return;
     var p = e;
     var x = p.clientX || 0, y = p.clientY || 0;
+
+    // 선택된 조각이 있으면 판을 탭해서 놓기
+    if (sel.i >= 0) {
+      var onBoard = x >= boardX - 6 && x <= boardX + BW + 6 && y >= boardY - 6 && y <= boardY + BW + 6;
+      if (onBoard) {
+        var tr = Math.floor((y - boardY) / cell), tc = Math.floor((x - boardX) / cell);
+        placeSelected(tr, tc);
+        if (p.preventDefault) p.preventDefault();
+        return;
+      }
+    }
+
     for (var i = 0; i < 3; i++) {
       if (!G.tray[i]) continue;
       var g = slotGeom(i);
@@ -604,6 +618,7 @@
         drag.slot = i;
         drag.id = p.pointerId === undefined ? 1 : p.pointerId;
         drag.px = x; drag.py = y;
+        drag.sx = x; drag.sy = y; drag.moved = false;
         var px0 = clamp(Math.floor((x - g.ox) / g.tc), 0, G.tray[i].w - 1);
         var py0 = clamp(Math.floor((y - g.oy) / g.tc), 0, G.tray[i].h - 1);
         drag.gx = px0; drag.gy = py0;
@@ -623,6 +638,7 @@
     if (e.pointerId !== undefined && drag.id !== -1 && e.pointerId !== drag.id) return;
     drag.px = e.clientX || 0;
     drag.py = e.clientY || 0;
+    if (Math.abs(drag.px - drag.sx) + Math.abs(drag.py - drag.sy) > 12) drag.moved = true;
     var o = calcOrigin(drag.px, drag.py, drag.gx, drag.gy, lift);
     drag.vx = o.vx; drag.vy = o.vy;
     updateTarget();
@@ -640,16 +656,37 @@
 
   function pointerUp(e) {
     if (!drag.active) return;
-    var slot = drag.slot, piece = G.tray[slot];
+    var slot = drag.slot, piece = G.tray[slot], moved = drag.moved;
+    var ok = drag.ok, tr = drag.ty, tc = drag.tx;
     drag.active = false;
     drag.slot = -1;
-    if (!piece) return;
-    if (drag.ok && canPlace(G.board, piece, drag.ty, drag.tx)) {
-      commitPlace(slot, drag.ty, drag.tx);
+    if (!piece) { sel.i = -1; return; }
+    if (!moved) {
+      // 살짝 탭: 조각을 집어 든 상태로 두고, 다음에 판을 탭하면 놓인다
+      sel.i = (sel.i === slot) ? -1 : slot;
+      sfxPick();
+    } else if (ok && canPlace(G.board, piece, tr, tc)) {
+      sel.i = -1;
+      commitPlace(slot, tr, tc);
     } else {
       sfxBad();
     }
     updateHud();
+  }
+
+  /* 선택한 조각을 탭한 칸 기준으로 놓는다 */
+  function placeSelected(row, col) {
+    var piece = G.tray[sel.i];
+    if (!piece) { sel.i = -1; return false; }
+    if (row < 0 || col < 0 || row >= N || col >= N) return false;
+    var r = clamp(row, 0, N - piece.h);
+    var c = clamp(col, 0, N - piece.w);
+    if (!canPlace(G.board, piece, r, c)) { sfxBad(); return false; }
+    var slot = sel.i;
+    sel.i = -1;
+    commitPlace(slot, r, c);
+    updateHud();
+    return true;
   }
 
   /* ================= 렌더 ================= */
@@ -761,6 +798,13 @@
       ctx.stroke();
       var p = G.tray[i];
       if (!p) continue;
+      if (sel.i === i && !drag.active) {
+        var pl = 0.45 + 0.3 * Math.sin(nowSec() * 7);
+        roundPath(ctx, g.x + 1.5, g.y + 1.5, g.w - 3, g.h - 3, 13);
+        ctx.strokeStyle = 'rgba(150,240,255,' + pl.toFixed(2) + ')';
+        ctx.lineWidth = 2.4;
+        ctx.stroke();
+      }
       if (drag.active && drag.slot === i) continue;
       for (j = 0; j < p.cells.length; j++) {
         r = p.cells[j][0]; c = p.cells[j][1];
@@ -834,7 +878,7 @@
   function drawHint() {
     if (G.hintT <= 0 || G.over || G.placed > 0 || drag.active) return;
     var a = Math.min(1, G.hintT / 1.2);
-    var txt = '아래 블록을 끌어서 판에 놓으세요';
+    var txt = '블록을 끌어서 판에 놓으세요';
     ctx.font = '700 14px -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif';
     var tw = ctx.measureText(txt).width;
     var cx = boardX + BW / 2, cy = boardY + BW / 2;
@@ -969,6 +1013,8 @@
     },
     lift: function () { return lift; },
     setMuted: function (m) { muted = !!m; },
+    sel: function () { return sel.i; },
+    placeSelected: placeSelected,
     state: function () { return { score: G.score, best: G.best, combo: G.combo, over: G.over, lines: G.lines, placed: G.placed, parts: parts.length, texts: texts.length }; }
   };
   window.__BB = API;
