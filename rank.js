@@ -26,6 +26,7 @@
     "order":         { title: ["순서 터치", "Tap in Order"], better: "low", fmt: "tenths", unit: ["초", "s"], label: ["시간", "Time"], bounds: [30, 6000] },
     "block-blast":  { title: ["네온 블록 블라스트", "Neon Block Blast"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 500000] },
     "wobble-tower":  { title: ["워블 타워", "Wobble Tower"], better: "high", unit: ["개", " blocks"], label: ["쌓은 블록", "Blocks"], bounds: [1, 150] },
+    "infinite-stairs": { title: ["네온 무한의 계단", "Neon Infinite Stairs"], better: "high", unit: ["층", "F"], label: ["층수", "Floor"], bounds: [1, 100000] },
     "water-ring":    { title: ["물 고리 걸기", "Water Ring Toss"], better: "low", fmt: "tenths", unit: ["초", "s"], label: ["시간", "Time"], bounds: [20, 6000] }
   };
   /* 하노이탑: 클래식 모드만. 점수 = 이동 횟수*10000 + 걸린 초(최대 9999). 횟수가 적을수록, 같으면 빨리 푼 사람이 위 */
