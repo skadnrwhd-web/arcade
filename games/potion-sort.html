@@ -560,6 +560,10 @@
   /* ── 실험대 바닥(원근 그리드 + 빛무리)을 한 번만 그려 캐시 ── */
   function buildFloor() {
     var W = Math.max(1, Math.round(L.W)), H = Math.max(1, Math.round(L.H));
+    var bd0 = L.board || { x: 0, y: 0, w: 0, h: 0 };
+    var key = W + 'x' + H + '@' + L.dpr + ':' + Math.round(bd0.x) + ',' + Math.round(bd0.y) + ',' + Math.round(bd0.w) + ',' + Math.round(bd0.h);
+    if (SPR.floor && SPR.floorKey === key) return;      /* 같은 화면이면 다시 만들지 않는다 */
+    SPR.floorKey = key;
     var pad = document.createElement('canvas');
     pad.width = Math.round(W * L.dpr);
     pad.height = Math.round(H * L.dpr);
