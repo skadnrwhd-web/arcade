@@ -138,6 +138,7 @@ h1,h2,h3{margin:0; line-height:1.15; letter-spacing:-.025em; text-wrap:balance}
 .cg-msg{margin:10px 0 0; min-height:1px; font-size:14px; color:var(--pink)}
 .cg-msg.ok{color:var(--lime)}
 /* 게임 주소 안내: 입력란 아래 한 줄 힌트 + 접었다 펴는 1분 가이드 */
+.cg-urlwarn{color:var(--yellow); font-weight:700}.cg-urlwarn[hidden]{display:none}
 .cg-urlhint{margin:0; font-size:12.5px; line-height:1.55; color:var(--muted)}
 .cg-guide{margin:14px 0 2px; border:1px solid var(--line); border-radius:14px; background:linear-gradient(150deg, rgba(55,224,255,.08), rgba(143,107,255,.09)); overflow:hidden}
 .cg-guide>summary{display:flex; align-items:flex-start; gap:8px; list-style:none; cursor:pointer; padding:12px 15px; font-size:13.5px; font-weight:800; color:var(--cyan); line-height:1.5; transition:background .15s}
@@ -426,7 +427,7 @@ footer a:hover{color:#fff}
         <div class="cg-field"><label for="cgTitle" data-i="s5_title">게임 이름 (최대 40자)</label><input id="cgTitle" type="text" maxlength="40"></div>
       </div>
       <div class="cg-field"><label for="cgDesc" data-i="s5_desc">한 줄 설명 (최대 120자)</label><input id="cgDesc" type="text" maxlength="120"></div>
-      <div class="cg-field"><label for="cgUrl" data-i="s5_url">게임 주소</label><input id="cgUrl" type="url" inputmode="url" maxlength="500" placeholder="https://..."><p class="cg-urlhint" data-i="s5_urlh">클로드·ChatGPT 공유 링크나 GitHub Pages처럼 https:// 로 시작하는 공개 주소를 넣어 주세요.</p></div>
+      <div class="cg-field"><label for="cgUrl" data-i="s5_url">게임 주소</label><input id="cgUrl" type="url" inputmode="url" maxlength="500" placeholder="https://..."><p class="cg-urlhint" data-i="s5_urlh">바로 플레이할 수 있는 게임 주소만 올려 주세요. 클로드·ChatGPT 공유 링크나 GitHub Pages처럼 https:// 로 시작하는 공개 주소가 좋아요. (Steam·앱스토어 같은 상점 페이지는 게임이 아니라서 이 화면 안에서 열리지 않아요.)</p><p class="cg-urlhint cg-urlwarn" id="cgUrlWarn" hidden></p></div>
       <details class="cg-guide" id="cgGuide">
         <summary><span data-i="s5_gq">💡 게임 주소(https://...)는 어떻게 만드나요?</span></summary>
         <ol class="cg-steps">
@@ -560,7 +561,7 @@ var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",inst:"📲 Add to Home Screen"
  s5_nick:"Your nickname (up to 20 characters)",s5_title:"Game name (up to 40 characters)",s5_desc:"One-line description (up to 120 characters)",s5_url:"Game link",
  s5_send:"Post",s5_wait:"It goes live right away. You can post again in 15 seconds.",
  s5_hint:"Games open right here on this site. The link must start with https://. Community games are outside sites made by other people and are not checked in advance. Please report problems with the 🚩 button.",
- s5_urlh:"Paste a public https:// link, such as a Claude/ChatGPT share link or a GitHub Pages URL.",
+ s5_urlh:"Only post links where the game can be played right away, such as a Claude/ChatGPT share link or a GitHub Pages URL (public https://). Store pages like Steam or the App Store are not games and cannot be opened inside this page.",
  s5_gq:"💡 How do I get a game link (https://...)?",
  s5_g1t:"Made it with Claude or ChatGPT",s5_g1p:"On the game screen, press Share, copy the public link, and paste that address as it is.",
  s5_g2t:"Made it as an HTML file",s5_g2p:"Upload the file to a free host such as GitHub Pages or Netlify Drop, then paste the https:// address you get. A file:// path on your own PC, or a private link that needs a login, cannot be opened by other people.",
@@ -879,6 +880,8 @@ function cgLoad(){ if(!cgList){ cgDone(); return; } cgReady=false; cgList.textCo
         cgData=out.filter(function(g){ return (cnt[g.id]||0)<CG_HIDE; }); cgRender(); cgDone(); }); }); }); }
 var cgRf=document.getElementById("cgRefresh"); if(cgRf) cgRf.addEventListener("click",function(){ if(cgRf.disabled) return; cgRf.disabled=true; cgRf.textContent="↻ "+T("불러오는 중…","Loading…"); track('refresh',{area:'community_games'}); cgLoad(); cgThen(function(){ cgRf.disabled=false; cgRf.textContent="↻ "+T("새로고침","Refresh"); }); });
 if(cgToggle) cgToggle.addEventListener("click",function(){ cgOpen(!cgFormEl.classList.contains("open")); });
+/* 상점 주소를 붙여 넣으면 바로 알려 준다(막지는 않는다) */
+if(cgUrl){ var cgUw=document.getElementById("cgUrlWarn"); cgUrl.addEventListener("input",function(){ var bad=false; try{ var u=new URL(cgUrl.value.trim()); bad=CG_NOFRAME.test(u.hostname.toLowerCase()); }catch(e){} if(!cgUw) return; cgUw.hidden=!bad; cgUw.textContent=bad?T("⚠ 상점·스토어 주소 같아요. 게임을 바로 할 수 있는 주소가 아니면 이 화면 안에서 열리지 않고, 새 창으로만 열려요.","⚠ This looks like a store page. It can't be played inside this page and will only open in a new tab."):""; }); }
 if(cgFormEl) cgFormEl.addEventListener("submit",function(e){ e.preventDefault(); if(cgTrap.value) return;
   var nick=cgNick.value.trim().slice(0,20)||T("익명","Anonymous"),title=cgTitle.value.trim().slice(0,40),desc=cgDesc.value.trim().slice(0,120),url=cgSafeUrl(cgUrl.value);
   if(!title){ cgSay(T("게임 이름을 적어 주세요.","Please enter the game name.")); cgTitle.focus(); return; }
