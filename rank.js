@@ -23,8 +23,16 @@
     "gem-match":     { title: ["Gem Match", "Gem Match"], better: "high", fmt: "level", label: ["기록", "Record"], bounds: [100001, 9999999] },
     "dodge":         { title: ["네온 닷지", "Neon Dodge"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 100000] },
     "pairs":         { title: ["짝 맞추기", "Pair Match"], better: "low", unit: ["번", " moves"], label: ["횟수", "Moves"], bounds: [8, 300] },
-    "order":         { title: ["순서 터치", "Tap in Order"], better: "low", fmt: "tenths", unit: ["초", "s"], label: ["시간", "Time"], bounds: [30, 6000] }
+    "order":         { title: ["순서 터치", "Tap in Order"], better: "low", fmt: "tenths", unit: ["초", "s"], label: ["시간", "Time"], bounds: [30, 6000] },
+    "wobble-tower":  { title: ["워블 타워", "Wobble Tower"], better: "high", unit: ["개", " blocks"], label: ["쌓은 블록", "Blocks"], bounds: [1, 150] },
+    "water-ring":    { title: ["물 고리 걸기", "Water Ring Toss"], better: "low", fmt: "tenths", unit: ["초", "s"], label: ["시간", "Time"], bounds: [20, 6000] }
   };
+  /* 하노이탑: 클래식 모드만. 점수 = 이동 횟수*10000 + 걸린 초(최대 9999). 횟수가 적을수록, 같으면 빨리 푼 사람이 위 */
+  [[3, 3, 7], [3, 4, 15], [3, 5, 31], [3, 6, 63], [3, 7, 127]].forEach(function (d) { addHanoi("hanoi3d-" + d[1], "하노이탑 3D", "Tower of Hanoi 3D", d[1], d[2]); });
+  [[4, 4, 9], [4, 5, 13], [4, 6, 17], [4, 7, 25], [4, 8, 33]].forEach(function (d) { addHanoi("hanoi4-" + d[1], "4기둥 하노이탑", "4-Peg Hanoi", d[1], d[2]); });
+  function addHanoi(id, ko, en, n, optimal) {
+    GAMES[id] = { title: [ko + " · " + n + "개", en + " · " + n + " disks"], better: "low", fmt: "movesec", label: ["기록", "Record"], bounds: [optimal * 10000, 800 * 10000 + 9999] };
+  }
 
   /* 이름에 쓰면 안 되는 말(전부는 못 막는다). 띄어쓰기·기호를 빼고 비교한다 */
   var BAD = ["시발", "씨발", "ㅅㅂ", "ㅆㅂ", "병신", "ㅂㅅ", "개새끼", "새끼", "좆", "존나", "지랄", "미친놈", "미친년", "섹스", "야동", "fuck", "shit", "bitch", "nigger", "nigga", "asshole", "porn"];
@@ -54,6 +62,7 @@
   function inBounds(cfg, m) { return typeof m === "number" && isFinite(m) && Math.floor(m) === m && m >= cfg.bounds[0] && m <= cfg.bounds[1]; }
   function fmt(cfg, m) {
     if (cfg.fmt === "level") return (lang() ? "Level " : "레벨 ") + Math.floor(m / 100000) + " · " + (m % 100000).toLocaleString() + (lang() ? " pts" : "점");
+    if (cfg.fmt === "movesec") return Math.floor(m / 10000) + (lang() ? " moves · " : "번 · ") + (m % 10000) + (lang() ? "s" : "초");
     if (cfg.fmt === "tenths") return (m / 10).toFixed(1) + tx(cfg.unit);
     return m.toLocaleString() + tx(cfg.unit);
   }
