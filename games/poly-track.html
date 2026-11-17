@@ -1033,7 +1033,8 @@ function seg(a,b,i){
     var N1=camP(b.x-brx*cw,b.y+0.04,b.z-brz*cw), N2=camP(b.x+brx*cw,b.y+0.04,b.z+brz*cw);
     poly([M1,M2,N2,N1],theme.line,alpha*0.45);
   }
-  /* 럼블 스트립 */
+  /* 럼블 스트립 (카메라 바로 아래 구간은 생략) */
+  if(a.s<car.s-8) return;
   var ew=1.5;
   var rim=(Math.floor(i/2)%2)?theme.rimA:theme.rimB;
   var A1=camP(a.x-arx*ay,a.y+0.05,a.z-arz*ay), A2=camP(a.x-arx*(ay-ew),a.y+0.05,a.z-arz*(ay-ew));
