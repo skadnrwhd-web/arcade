@@ -601,7 +601,7 @@ GAMES.dodge=function(){
     cv.width=W*dpr; cv.height=H*dpr; cv.style.width=W+"px"; cv.style.height=H+"px"; }
   function reset(){ t=0; score=0; bonus=0; spawn=.4; orbT=2; blocks=[]; orbs=[]; px=tx=W/2; alive=true; last=0; hudV1.textContent="0"; cancelAnimationFrame(raf); raf=requestAnimationFrame(loop); }
   function end(){ alive=false; var rec=saveBest("dodge",score,false); hudV2.textContent=fmt("dodge",best("dodge"));
-    overlay(T("게임 끝","Game over"),T("점수 ","Score ")+score+(rec?T(" · 새 기록!"," · New best!"):""),T("다시 하기","Play again"),reset); }
+    var ov=overlay(T("게임 끝","Game over"),T("점수 ","Score ")+score+(rec?T(" · 새 기록!"," · New best!"):""),T("다시 하기","Play again"),reset); if(window.ArcadeRank){ ArcadeRank.show({id:"dodge",score:score,cancelIf:function(){ return !ov.isConnected; }}); } }
   function loop(now){ if(!alive) return; if(!last) last=now; var dt=Math.min(.05,(now-last)/1000); last=now; t+=dt;
     if(keys.l) tx-=420*dt; if(keys.r) tx+=420*dt; tx=Math.max(14,Math.min(W-14,tx)); px+=(tx-px)*Math.min(1,dt*18);
     spawn-=dt; if(spawn<=0){ spawn=Math.max(.17,.55-t*.012); var bw=26+Math.random()*52; blocks.push({x:Math.random()*(W-bw),y:-16,w:bw,h:14,v:Math.min(540,150+t*9)*(0.85+Math.random()*.3)}); }
@@ -640,7 +640,7 @@ GAMES.pairs=function(){
     if(a._v===c._v){ a.classList.add("done"); c.classList.add("done"); found++; if(found===8) timer=setTimeout(win,450); }
     else{ lock=true; timer=setTimeout(function(){ a.classList.remove("up"); c.classList.remove("up"); lock=false; },700); } }
   function win(){ var rec=saveBest("pairs",moves,true); hudV2.textContent=fmt("pairs",best("pairs"));
-    overlay(T("완성!","Cleared!"),moves+T("번 만에 찾았습니다"," moves")+(rec?T(" · 새 기록!"," · New best!"):""),T("다시 하기","Play again"),build); }
+    var ov=overlay(T("완성!","Cleared!"),moves+T("번 만에 찾았습니다"," moves")+(rec?T(" · 새 기록!"," · New best!"):""),T("다시 하기","Play again"),build); if(window.ArcadeRank){ ArcadeRank.show({id:"pairs",score:moves,cancelIf:function(){ return !ov.isConnected; }}); } }
   return { title:function(){ return T("짝 맞추기","Pair Match"); }, l1:function(){ return T("뒤집은 횟수","Moves"); },
     help:function(){ return T("카드 두 장을 뒤집어 같은 그림을 찾으세요. 횟수가 적을수록 좋습니다.","Flip two cards to find a matching pair. Fewer moves is better."); },
     start:build, stop:function(){ clearTimeout(timer); }, _dbg:function(){ return {moves:moves,found:found}; } };
@@ -658,7 +658,7 @@ GAMES.order=function(){
     if(next===1){ t0=performance.now(); tick=setInterval(function(){ hudV1.textContent=((performance.now()-t0)/1000).toFixed(1); },100); }
     b.classList.add("hit"); next++;
     if(next>25){ done=true; clearInterval(tick); var s=Math.round((performance.now()-t0)/100)/10; hudV1.textContent=s.toFixed(1); var rec=saveBest("order",s,true); hudV2.textContent=fmt("order",best("order"));
-      overlay(T("완료!","Done!"),s.toFixed(1)+T("초","s")+(rec?T(" · 새 기록!"," · New best!"):""),T("다시 하기","Play again"),build); } }
+      var ov=overlay(T("완료!","Done!"),s.toFixed(1)+T("초","s")+(rec?T(" · 새 기록!"," · New best!"):""),T("다시 하기","Play again"),build); if(window.ArcadeRank){ ArcadeRank.show({id:"order",score:Math.round(s*10),cancelIf:function(){ return !ov.isConnected; }}); } } }
   return { title:function(){ return T("순서 터치","Tap in Order"); }, l1:function(){ return T("시간(초)","Time (s)"); },
     help:function(){ return T("1을 누르면 시간이 흐르기 시작합니다. 25까지 순서대로 누르세요.","The clock starts when you tap 1. Tap up to 25 in order."); },
     start:build, stop:function(){ clearInterval(tick); }, _dbg:function(){ return {next:next,done:done}; } };
@@ -931,5 +931,6 @@ if(location.hash.indexOf("#game-")===0){ var want=document.querySelector('[data-
 else if(location.hash.indexOf("#cgame-")===0){ var cgWant=location.hash.replace(/^#cgame-/,"").replace(/[^0-9A-Za-z_-]/g,""); if(cgWant){ var cgEl=document.querySelector('[data-cg="cgame:'+cgWant+'"]'); if(cgEl) openPlayer(cgEl); else cgPending=cgWant; } }
 })();
 </script>
+<script src="rank.js"></script>
 </body>
 </html>

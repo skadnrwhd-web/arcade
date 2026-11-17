@@ -919,6 +919,7 @@ function showOver(){
     : (G.deathCause === 'ai' ? 'AI 지렁이 몸통에 부딪혔습니다' : '아레나에서 밀려났습니다');
   elOver.classList.remove('hide');
   G.phase = 'dead';
+  if (window.ArcadeRank) ArcadeRank.show({ id: 'slither-neon', score: finalLen, cancelIf: function () { return G.phase !== 'dead'; } });
 }
 
 function killPlayer(cause){
@@ -2257,5 +2258,6 @@ boot();
 
 })();
 </script>
+<script src="../rank.js"></script>
 </body>
 </html>

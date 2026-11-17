@@ -201,7 +201,8 @@ async function afterTurn(){
   var win=goals.every(function(g){ return g.n<=0; });
   if(win){ gameOver=true; store("gm-best",String(Math.max(+store("gm-best")||1,level+1)));
     show("레벨 "+level+" 클리어!","점수 "+score,"다음 레벨",function(){ level++; start(); }); return; }
-  if(moves<=0){ gameOver=true; show("아쉬워요","목표를 다 모으지 못했어요","다시 도전",function(){ start(); }); return; }
+  if(moves<=0){ gameOver=true; show("아쉬워요","목표를 다 모으지 못했어요","다시 도전",function(){ start(); });
+    if(window.ArcadeRank) ArcadeRank.show({ id:"gem-match", score:level*100000+Math.min(score,99999), cancelIf:function(){ return !gameOver; } }); return; }
   if(!hasMove()){ say("움직일 곳이 없어 섞는 중"); await sleep(600); do{ fill(); }while(findRuns().length||!hasMove()); await waitSettle(); }
   busy=false;
 }
@@ -286,5 +287,6 @@ var saved=+store("gm-best")||1; level=Math.min(saved,60);
 size(); start(); requestAnimationFrame(frame);
 })();
 </script>
+<script src="../rank.js"></script>
 </body>
 </html>

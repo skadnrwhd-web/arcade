@@ -1124,6 +1124,7 @@
     overlay.setAttribute('aria-hidden', 'false');
     A.over();
     updateHUD(false);
+    if (window.ArcadeRank) ArcadeRank.show({ id: 'suika-game', score: score, cancelIf: function () { return state !== 'over'; } });
   }
 
   function restart() {
@@ -1770,5 +1771,6 @@
   boot();
 })();
 </script>
+<script src="../rank.js"></script>
 </body>
 </html>

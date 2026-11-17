@@ -542,6 +542,7 @@ function gameOver(){
   elBest.textContent = fmt(best);
   elNewRec.classList.toggle('on', isBest);
   elDist.textContent = '달린 거리 ' + fmt(dist * 0.6) + 'm';
+  if (window.ArcadeRank) ArcadeRank.show({ id: 'subway-rush', score: sc, cancelIf: function () { return state !== 'over'; } });
 
   var msgs = [
     '열차에 부딪혔어요. 다음 열차는 3분 뒤…',
@@ -1631,5 +1632,6 @@ function boot(){
 boot();
 })();
 </script>
+<script src="../rank.js"></script>
 </body>
 </html>

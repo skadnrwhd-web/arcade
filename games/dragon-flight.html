@@ -1950,6 +1950,7 @@
     elNewBest.className = 'newBest' + (isBest ? '' : ' off');
     overOv.classList.remove('hidden');
     hudAll(true);
+    if (window.ArcadeRank) ArcadeRank.show({ id: 'dragon-flight', score: G.score, cancelIf: function () { return G.state !== 'over'; } });
   }
 
   /* ---------------- 메인 업데이트 ---------------- */
@@ -2536,5 +2537,6 @@
   };
 })();
 </script>
+<script src="../rank.js"></script>
 </body>
 </html>
