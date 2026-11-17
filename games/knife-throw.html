@@ -531,10 +531,7 @@
       hudCache.need = need; hudCache.own = own;
     }
     if (hudCache.shards !== shards) { $('shardNum').textContent = shards; $('skShards').textContent = shards; hudCache.shards = shards; }
-    if (chalTarget) {
-      var tip = $('chalTip');
-      if (!chalHit) { tip.hidden = false; tip.textContent = '⚔️ 도전장 목표 ' + chalTarget.toLocaleString() + '점 깨기!'; }
-    }
+    if (chalTarget && !chalHit) { $('chalTip').hidden = false; }
   }
 
   var toastT = 0;
