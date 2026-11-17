@@ -1009,6 +1009,15 @@ function buildGlow(){
   g.fillStyle=rg; g.fillRect(0,0,64,64);
 }
 buildGlow();
+/* 부스트 화염용 시안 글로우 (1회 생성) */
+var glowC=null;
+function buildGlowC(){
+  glowC=document.createElement('canvas'); glowC.width=64; glowC.height=64;
+  var g=glowC.getContext('2d'), rg=g.createRadialGradient(32,32,0,32,32,32);
+  rg.addColorStop(0,'rgba(220,255,255,0.9)'); rg.addColorStop(0.3,'rgba(46,232,255,0.5)'); rg.addColorStop(1,'rgba(46,232,255,0)');
+  g.fillStyle=rg; g.fillRect(0,0,64,64);
+}
+buildGlowC();
 
 function updateCamera(dt){
   var smp=sampleAt(car.s);
@@ -1306,20 +1315,20 @@ function drawCar(isGhost){
       var lc=camP(lp.x,lp.y,lp.z);
       if(lc.z>NEAR){
         var sx=cam.cx+lc.x*cam.focal/lc.z, sy2=cam.cy-lc.y*cam.focal/lc.z;
-        var sz=clamp(22*cam.focal/lc.z,3,76)*sizing;
+        var sz=clamp(22*cam.focal/lc.z,3,58)*sizing;
         ctx.globalAlpha=brake?0.95:0.55; ctx.drawImage(glow,sx-sz/2,sy2-sz/2,sz,sz); ctx.globalAlpha=1;
       }
     }
     /* 부스트 화염 */
     if(car.boost>0){
       for(i=-1;i<=1;i+=2){
-        var fx2=px+(i*0.9)*cy+(-4.6)*sy+(Math.random()-0.5)*0.35;
-        var fz2=pz-(i*0.9)*sy+(-4.6)*cy;
+        var fx2=px+(i*0.9)*cy+(-5.6)*sy+(Math.random()-0.5)*0.35;
+        var fz2=pz-(i*0.9)*sy+(-5.6)*cy;
         var fc=camP(fx2,py+0.6,fz2);
         if(fc.z>NEAR){
           var fsx=cam.cx+fc.x*cam.focal/fc.z, fsy=cam.cy-fc.y*cam.focal/fc.z;
-          var fsz=clamp(64*cam.focal/fc.z,10,168);
-          ctx.globalAlpha=0.72; ctx.drawImage(glow,fsx-fsz/2,fsy-fsz/2,fsz,fsz); ctx.globalAlpha=1;
+          var fsz=clamp(56*cam.focal/fc.z,9,96);
+          ctx.globalAlpha=0.85; ctx.drawImage(glowC||glow,fsx-fsz/2,fsy-fsz/2,fsz,fsz); ctx.globalAlpha=1;
         }
       }
     }
