@@ -130,6 +130,8 @@
     if (timer) { clearTimeout(timer); timer = null; }
     if (host) { host.remove(); host = null; root = null; }
     var cb = current && current.onClose; current = null; if (cb) { try { cb(); } catch (e) { } }
+    /* 설치 권유용 알림: 같은 페이지와, 이 창이 iframe 안이면 부모(메인 페이지)에 알린다 */
+    try { window.dispatchEvent(new Event("arcade-rank-closed")); if (window.parent && window.parent !== window) window.parent.postMessage({ arcade: "rank-closed" }, "*"); } catch (e) { }
   }
   function mount() {
     if (host) { host.remove(); host = null; }

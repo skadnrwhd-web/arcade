@@ -916,7 +916,7 @@ cgLoad(); iconTips();
   window.addEventListener("beforeinstallprompt",function(e){ e.preventDefault(); dp=e; row.hidden=false; });
   window.addEventListener("appinstalled",function(){ row.hidden=true; track('pwa_installed'); });
   btn.addEventListener("click",function(){ track('pwa_install_click',{platform:dp?'android':'ios'});
-    if(dp){ dp.prompt(); dp.userChoice.then(function(){ dp=null; row.hidden=true; }); } else hint.hidden=!hint.hidden; }); })();
+    if(dp){ dp.prompt(); dp.userChoice.then(function(){ dp=null; row.hidden=true; }); } else if(window.ArcadeInstall) ArcadeInstall.guide('hero'); else hint.hidden=!hint.hidden; }); })();
 /* 오늘 방문자 수: 하루에 한 번만 센다(브라우저가 오늘 왔는지 기억). 이름·IP는 저장하지 않는다 */
 var visN=null;
 function visLabel(){ var v=document.getElementById("vis"),t=document.getElementById("visT"); if(!v||visN===null) return;
@@ -932,5 +932,6 @@ else if(location.hash.indexOf("#cgame-")===0){ var cgWant=location.hash.replace(
 })();
 </script>
 <script src="rank.js"></script>
+<script src="install.js"></script>
 </body>
 </html>
