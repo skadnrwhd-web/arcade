@@ -284,6 +284,28 @@ footer a:hover{color:#fff}
 .rv.in-view{opacity:1; transform:none}
 @media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto} .rv{opacity:1; transform:none; transition:none} .btn,.game,.cardb{transition:none} .numb.bad{animation:none} }
 @media (max-width:600px){ .sec{padding:64px 0} .hero{padding:120px 0 64px} }
+
+/* ⚔️ 친구 점수 도전장 안내 띠 (화면 맨 위, 닫기 가능) */
+#chalBar{position:fixed; left:0; right:0; top:0; z-index:2147480000; display:none; align-items:center; gap:9px; padding:calc(env(safe-area-inset-top) + 9px) 10px 9px 14px;
+  background:linear-gradient(100deg,#3b1030,#211038 55%,#10132a); border-bottom:1px solid var(--pink); box-shadow:0 12px 32px rgba(0,0,0,.55); color:#fff; font-size:13.5px; font-weight:800; line-height:1.35}
+#chalBar.on{display:flex}
+#chalBar.win{background:linear-gradient(100deg,#0e3a24,#123423 55%,#10132a); border-bottom-color:var(--lime)}
+#chalBar.lose{border-bottom-color:var(--muted)}
+#chalBar .cb-ic{font-size:17px; flex:none; line-height:1}
+#chalBar .cb-t{flex:1; min-width:0; overflow-wrap:anywhere}
+#chalBar .cb-t b{color:var(--yellow)}
+#chalBar.win .cb-t b{color:var(--lime)}
+#chalBar button{font:inherit; font-weight:800; font-size:12.5px; color:#fff; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.32); border-radius:999px; padding:6px 11px; white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent}
+#chalBar button.cb-act{background:linear-gradient(135deg,var(--pink),var(--violet)); border-color:transparent}
+#chalBar button.cb-x{background:none; border:0; font-size:16px; padding:2px 4px; opacity:.75}
+body.challenge-on #player{padding-top:calc(env(safe-area-inset-top) + 58px)}
+body.challenge-on #modal{padding-top:calc(env(safe-area-inset-top) + 58px)}
+@media (max-width:700px){ body.challenge-on #player .frame{height:calc(100svh - 108px)} }
+#chalToast{position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom) + 22px); transform:translateX(-50%); z-index:2147480001; max-width:90vw; display:none; background:#15182e; border:1px solid var(--cyan); border-radius:14px; padding:11px 16px; font-size:13.5px; font-weight:800; color:#fff; box-shadow:0 16px 40px rgba(0,0,0,.55)}
+#chalToast.on{display:block}
+#pChal,#mChal{background:rgba(255,255,255,.07); border:1px solid var(--line); color:var(--ink)}
+#pChal:hover,#mChal:hover{border-color:var(--pink)}
+@media (max-width:700px){ #pChal .ct, #mChal .ct{display:none} }
 </style>
 <script>
 /* 방문 통계(GA4): 이름 없는 무작위 번호만 쓰고, 광고용 추적은 끕니다. 내 PC(localhost)에서는 보내지 않습니다. */
@@ -529,7 +551,7 @@ footer a:hover{color:#fff}
   <div class="panel wide">
     <div class="panel-top">
       <h3 id="pTitle"></h3>
-      <div class="p-actions"><button class="btn sm" id="pRep" type="button" hidden title="신고"><span aria-hidden="true">🚩</span><span class="rt" id="pRepT"> 신고</span></button><button class="btn sm cbtn" id="pCmt" type="button"><span id="pCmtT" data-i="c_down">▼ 댓글</span></button><button class="btn kakao sm" id="pShare" type="button" data-share></button><a class="btn line sm" id="pNew" target="_blank" rel="noopener"><span data-i="p_new">새 창에서 열기</span> ↗</a><button class="x" id="pClose" type="button"><span aria-hidden="true">✕</span><span class="x-t" data-i="p_exit">나가기</span></button></div>
+      <div class="p-actions"><button class="btn sm" id="pRep" type="button" hidden title="신고"><span aria-hidden="true">🚩</span><span class="rt" id="pRepT"> 신고</span></button><button class="btn sm" id="pChal" type="button" hidden title="도전장 보내기"><span aria-hidden="true">⚔️</span><span class="ct" data-i="p_chal">도전장</span></button><button class="btn sm cbtn" id="pCmt" type="button"><span id="pCmtT" data-i="c_down">▼ 댓글</span></button><button class="btn kakao sm" id="pShare" type="button" data-share></button><a class="btn line sm" id="pNew" target="_blank" rel="noopener"><span data-i="p_new">새 창에서 열기</span> ↗</a><button class="x" id="pClose" type="button"><span aria-hidden="true">✕</span><span class="x-t" data-i="p_exit">나가기</span></button></div>
     </div>
     <div class="frame" id="pFrame"></div>
     <h4 class="c-title" data-i="c_title">댓글</h4>
@@ -540,7 +562,7 @@ footer a:hover{color:#fff}
 
 <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
   <div class="panel">
-    <div class="panel-top"><h3 id="mTitle"></h3><button class="x" id="mClose" type="button" aria-label="Close">✕</button></div>
+    <div class="panel-top"><h3 id="mTitle"></h3><div class="p-actions"><button class="btn sm" id="mChal" type="button" hidden title="도전장 보내기"><span aria-hidden="true">⚔️</span><span class="ct" data-i="p_chal">도전장</span></button><button class="x" id="mClose" type="button" aria-label="Close">✕</button></div></div>
     <div class="hud"><div><small id="hudL1"></small><strong id="hudV1">0</strong></div><div><small id="hudL2"></small><strong id="hudV2">-</strong></div></div>
     <div class="arena" id="arena"></div>
     <p class="help" id="mHelp"></p>
@@ -550,7 +572,8 @@ footer a:hover{color:#fff}
 <script>
 (function(){
 "use strict";
-var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",inst:"📲 Add to Home Screen",inst_h:"Tap the Share button (⬆) at the bottom, then choose “Add to Home Screen”.",p_exit:"Exit",s4_p:"Reviews, bug reports, games you would like to see: leave anything here. Comments left on each game are collected here too.",c_hint:"No login needed. Pick any nickname and write. Posts are public and cannot be edited, so do not write personal details such as your name or contact info.",c_title:"Comments",p_new:"Open in new tab",n1:"Mini-games",n2:"Games",n3:"How it's made",
+var chalScores={},chalState=null,chalBar=null,chalToastEl=null,pChal=document.getElementById("pChal"),mChal=document.getElementById("mChal");
+var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",inst:"📲 Add to Home Screen",inst_h:"Tap the Share button (⬆) at the bottom, then choose “Add to Home Screen”.",p_exit:"Exit",s4_p:"Reviews, bug reports, games you would like to see: leave anything here. Comments left on each game are collected here too.",c_hint:"No login needed. Pick any nickname and write. Posts are public and cannot be edited, so do not write personal details such as your name or contact info.",c_title:"Comments",p_new:"Open in new tab",p_chal:"Challenge",n1:"Mini-games",n2:"Games",n3:"How it's made",
  h_eb:"No install · Free · No ads",h1a:"Open it,",h1b:"play right away",
  h_p:"Browser games built by a non-developer together with AI. Phone or PC, just open the link.",
  c1:"Play now",c2:"Go to the board",p1:"games",p2:"Works on phone and PC",p3:"Board with no login",
@@ -681,6 +704,7 @@ GAMES.order=function(){
 
 function openGame(id,from){ if(!GAMES[id]) return; closeGame(true); opener=from||null; current=GAMES[id](); current.id=id; window.__game=current;
   arena.textContent=""; mTitle.textContent=current.title(); hudL1.textContent=current.l1(); hudL2.textContent=T("최고 기록","Best"); hudV1.textContent="0"; hudV2.textContent=fmt(id,best(id)); mHelp.textContent=current.help();
+  if(mChal){ mChal.hidden=false; mChal._slug=id; mChal._name=current.title(); mChal._score=(chalScores[id]==null?null:chalScores[id]); }
   modal.classList.add("open"); document.body.style.overflow="hidden"; current.start(); }
 function closeGame(silent){ if(current){ current.stop(); current=null; } arena.textContent=""; modal.classList.remove("open"); document.body.style.overflow=""; if(!silent&&opener) opener.focus(); }
 var gb=document.querySelectorAll("[data-game]"); for(i=0;i<gb.length;i++) gb[i].addEventListener("click",function(){ openGame(this.getAttribute("data-game"),this); });
@@ -793,7 +817,7 @@ function openPlayer(a){ var cg=a.getAttribute("data-cg"),slug=cg?cg.replace(/^cg
     var go=el("a","btn play",T("↗ 새 창에서 열기","↗ Open in a new tab")); go.href=url; go.target="_blank"; go.rel="noopener noreferrer"; go.addEventListener("click",function(){ track('cg_open_newtab',{game_id:slug,reason:'noframe'}); });
     box.appendChild(go); if(/iPhone|iPad|iPod/i.test(navigator.userAgent)) box.appendChild(el("p","cg-nf-h",T("새 창에서 아래쪽이 잘리면, 아래 버튼 줄의 나침반(🧭) 모양을 눌러 사파리로 열어 보세요.","If the bottom is cut off in the new tab, tap the compass (🧭) in the bottom bar to open it in Safari."))); pFrame.appendChild(box); track('cg_noframe_show',{game_id:slug});
   } else {
-  f=document.createElement("iframe"); f.src=url; f.title=name; f.setAttribute("allow","fullscreen; gamepad; accelerometer; gyroscope; autoplay"); f.setAttribute("allowfullscreen","");
+  f=document.createElement("iframe"); f.src=url; f.title=name; f.setAttribute("allow","fullscreen; gamepad; accelerometer; gyroscope; autoplay; web-share; clipboard-write"); f.setAttribute("allowfullscreen","");
   if(cg){ f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads allow-orientation-lock allow-presentation"); f.setAttribute("referrerpolicy","no-referrer"); }
   pFrame.appendChild(f); }
   pRep.hidden=!cg; pRepId=cg?slug:""; pRepT.textContent=T(" 신고"," Report");
@@ -811,7 +835,8 @@ function openPlayer(a){ var cg=a.getAttribute("data-cg"),slug=cg?cg.replace(/^cg
       fx.addEventListener("click",function(e){ e.preventDefault(); e.stopPropagation(); dismiss(); }); fb.appendChild(fx);
       setTimeout(dismiss,8000); },2500); }
   mountThread(pThread,cg||("game: "+slug)); player.querySelector(".panel").scrollTop=0; player.classList.add("open"); document.body.style.overflow="hidden"; document.getElementById("pClose").focus();
-  try{ history.replaceState(null,"",shareHash); }catch(e){} }
+  if(pChal){ pChal.hidden=!!cg; pChal._slug=cg?"":slug; pChal._name=name; pChal._score=(chalScores[slug]==null?null:chalScores[slug]); }
+  try{ history.replaceState(null,"",location.pathname+(location.search||"")+shareHash); }catch(e){} }
 function closePlayer(){ if(!player.classList.contains("open")) return; pFrame.textContent=""; pThread.textContent=""; player.classList.remove("open"); document.body.style.overflow="";
   try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){} if(pOpener) pOpener.focus(); }
 function iconTips(){ var g=document.querySelectorAll(".grid.five .game,#cgList .game"); for(var q=0;q<g.length;q++){ var p=g[q].querySelector("p"),h=g[q].querySelector("h3"); if(p&&h) g[q].title=h.textContent+" - "+p.textContent; } }
@@ -1001,6 +1026,78 @@ function visLabel(){ var v=document.getElementById("vis"),t=document.getElementB
 setLang(store("arc-lang")||((navigator.language||"en").toLowerCase().indexOf("ko")===0?"ko":"en"));
 if(location.hash.indexOf("#game-")===0){ var want=document.querySelector('[data-play="'+location.hash.slice(6).replace(/[^A-Za-z0-9_-]/g,"")+'"]'); if(want) openPlayer(want); }
 else if(location.hash.indexOf("#cgame-")===0){ var cgWant=location.hash.replace(/^#cgame-/,"").replace(/[^0-9A-Za-z_-]/g,""); if(cgWant){ var cgEl=document.querySelector('[data-cg="cgame:'+cgWant+'"]'); if(cgEl) openPlayer(cgEl); else cgPending=cgWant; } }
+
+/* ===== ⚔️ 친구 점수 도전장 =====
+   도전장 주소: ?challenge=게임ID&score=점수&by=닉네임
+   · 이 주소로 들어오면 그 게임을 바로 열고, 화면 맨 위에 목표 띠를 띄운다. (띠는 닫을 수 있다)
+   · 게임이 끝나 목표를 넘기면 띠가 '도전 성공'으로 바뀌고 반격 도전장을 보낼 수 있다.
+   · 게임 화면(iframe) 안의 rank.js 와는 postMessage 로 목표·점수를 주고받는다. */
+var CH_SITE="https://skadnrwhd-web.github.io/arcade/";
+function chalSlug(s){ return String(s==null?"":s).replace(/[^A-Za-z0-9_-]/g,"").slice(0,60); }
+function chalBy(s){ return String(s==null?"":s).replace(/[\u0000-\u001f\u007f<>]/g,"").trim().slice(0,20); }
+function chalNum(v){ if(v==null||v==="") return null; var n=Number(v); return (isFinite(n)&&Math.abs(n)<=1e12)?Math.round(n):null; }
+function chalCard(slug){ return document.querySelector('[data-play="'+slug+'"]')||document.querySelector('[data-game="'+slug+'"]'); }
+function chalGName(slug){ var c=chalCard(slug),h=c&&c.querySelector("h3"); return (h?h.textContent:(slug||"")).trim(); }
+function chalScore(slug,v){ if(v==null) return ""; try{ if(window.ArcadeChallenge&&window.ArcadeChallenge.scoreText) return window.ArcadeChallenge.scoreText(slug,v); }catch(e){} return Number(v).toLocaleString(lang==="en"?"en":"ko-KR")+T("점"," pts"); }
+function chalURL(slug,score,by){ var u=CH_SITE+"?challenge="+encodeURIComponent(slug); if(score!=null) u+="&score="+encodeURIComponent(score); if(by) u+="&by="+encodeURIComponent(by); return u; }
+function chalMyName(){ return (store("arc-nick")||"").slice(0,20); }
+function chalLine(slug,score,by){ var nm=chalGName(slug); if(score==null) return T(nm+"에서 나를 이겨 보세요!","Beat my score in "+nm+"!");
+  var st=chalScore(slug,score); return T(nm+" "+st+" 깰 수 있나요?","Can you beat "+st+" in "+nm+"?"); }
+function chalText(slug,score,by){ var who=by||T("도전자","a challenger");
+  return "⚔️ [UJ ARCADE] "+who+T("님의 도전장!","'s challenge!")+"\n"+chalLine(slug,score,by); }
+function chalToast(msg){ if(!chalToastEl){ chalToastEl=document.createElement("div"); chalToastEl.id="chalToast"; document.body.appendChild(chalToastEl); }
+  chalToastEl.textContent=msg; chalToastEl.classList.add("on"); clearTimeout(chalToast._t); chalToast._t=setTimeout(function(){ chalToastEl.classList.remove("on"); },3000); }
+function chalCopy(text,url,btn){ function done(){ chalToast(T("도전장 링크가 복사되었습니다!","Challenge link copied!")); if(btn){ var o=btn.textContent; btn.textContent="✓ "+T("복사됨","Copied"); setTimeout(function(){ btn.textContent=o; },1600); } }
+  function ask(){ window.prompt(T("이 링크를 복사하세요","Copy this link"),url); }
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text+"\n"+url).then(done,ask); else ask(); }
+function chalShare(slug,score,by,name,btn){ var url=chalURL(slug,score,by),text=chalText(slug,score,by),who=by||T("도전자","Challenger");
+  try{ track('challenge_send',{game_id:slug,has_score:score==null?0:1}); }catch(e){}
+  function simple(){ if(navigator.share){ navigator.share({title:"⚔️ "+who+T("님의 도전장","'s challenge"),text:text,url:url}).catch(function(){}); return; } chalCopy(text,url,btn); }
+  if(!KAKAO_JS_KEY||isInApp||typeof navigator.share==="function") return simple();
+  withKakao(function(ok){ if(!ok) return simple();
+    try{ window.Kakao.Share.sendDefault({objectType:"feed",content:{title:"⚔️ "+who+T("님의 도전장","'s challenge"),description:chalLine(slug,score,by),imageUrl:"https://skadnrwhd-web.github.io/arcade/og.png",imageWidth:1200,imageHeight:630,link:{webUrl:url,mobileWebUrl:url}},buttons:[{title:T("지금 도전하기","Accept the challenge"),link:{webUrl:url,mobileWebUrl:url}}]}); }catch(e){ simple(); } }); }
+function chalHide(){ if(chalBar) chalBar.className=""; document.body.classList.remove("challenge-on"); }
+function chalBanner(kind,data){ var c=chalState; if(!c) return;
+  if(!chalBar){ chalBar=document.createElement("div"); chalBar.id="chalBar"; chalBar.setAttribute("role","status"); chalBar.setAttribute("aria-live","polite"); document.body.appendChild(chalBar); }
+  var b=chalBar,who=c.by||T("도전자","a challenger");
+  b.textContent=""; b.className="on"+(kind==="win"?" win":(kind==="lose"?" lose":""));
+  var ic=document.createElement("span"); ic.className="cb-ic"; ic.textContent=kind==="win"?"🎉":(kind==="tie"?"🤝":(kind==="lose"?"😖":"⚔️")); b.appendChild(ic);
+  var t=document.createElement("span"); t.className="cb-t";
+  if(kind==="win"){ var w=document.createElement("b"); w.textContent=who+T("님의 기록을 깼습니다!","'s record beaten!"); t.appendChild(document.createTextNode(T("도전 성공! ","Challenge cleared! "))); t.appendChild(w); }
+  else if(kind==="tie"){ t.textContent=T(who+"님과 동점이에요 · 목표 "+chalScore(c.slug,c.score),"Tied with "+who+" · target "+chalScore(c.slug,c.score)); }
+  else if(kind==="lose"){ t.textContent=T("아쉽게 "+who+"님 기록에 못 미쳤어요","Just short of "+who+"'s record"); if(c.score!=null) t.appendChild(document.createTextNode(" · "+T("목표 ","target ")+chalScore(c.slug,c.score))); }
+  else { var w2=document.createElement("b"); w2.textContent=who+T("님의 도전장","'s challenge"); t.appendChild(w2);
+    if(c.score!=null) t.appendChild(document.createTextNode(" · "+T("목표: ","target: ")+chalScore(c.slug,c.score)+T(" 깨기!"," to beat!")));
+    else t.appendChild(document.createTextNode(" · "+T(chalGName(c.slug)+"에서 이겨 보세요!","Beat it in "+chalGName(c.slug)+"!"))); }
+  b.appendChild(t);
+  if(kind==="win"){ var sb=document.createElement("button"); sb.type="button"; sb.className="cb-act"; sb.textContent=T("⚔️ 반격 도전장","⚔️ Fight back");
+    var sc=(data&&data.score!=null)?data.score:chalScores[c.slug];
+    sb.addEventListener("click",function(){ chalShare(c.slug,(sc==null?null:sc),chalMyName(),chalGName(c.slug),sb); }); b.appendChild(sb); }
+  var x=document.createElement("button"); x.type="button"; x.className="cb-x"; x.setAttribute("aria-label",T("도전장 닫기","Close the challenge banner")); x.textContent="✕";
+  x.addEventListener("click",chalHide); b.appendChild(x);
+  document.body.classList.add("challenge-on"); }
+function chalResult(d){ if(!chalState) return; var r=Number(d&&d.result); if(r!==1&&r!==0&&r!==-1) return;
+  if(d.score!=null) chalScores[chalSlug(d.slug)]=d.score;
+  if(r===1){ chalBanner("win",d); try{ track('challenge_win',{game_id:chalSlug(d.slug)}); }catch(e){} }
+  else if(chalBar&&/(^| )on( |$)/.test(chalBar.className)) chalBanner(r===0?"tie":"lose",d); }
+window.addEventListener("message",function(e){ var d=e&&e.data; if(!d||typeof d!=="object") return;
+  if(d.arcade==="challenge-hello"){ if(!chalState) return; try{ if(e.source) e.source.postMessage({arcade:"challenge",slug:chalState.slug,score:chalState.score,by:chalState.by},"*"); }catch(err){} return; }
+  if(d.arcade==="score"){ var s=chalSlug(d.slug); if(s&&d.score!=null){ chalScores[s]=d.score; if(pChal&&!pChal.hidden&&pChal._slug===s) pChal._score=d.score; if(mChal&&!mChal.hidden&&mChal._slug===s) mChal._score=d.score; } return; }
+  if(d.arcade==="challenge-result"){ chalResult(d); return; } });
+window.addEventListener("arcade-challenge-result",function(e){ chalResult(e.detail||{}); });
+function chalBtnGo(){ if(!this._slug) return; chalShare(this._slug,this._score==null?null:this._score,chalMyName(),this._name||chalGName(this._slug),this); }
+if(pChal) pChal.addEventListener("click",chalBtnGo);
+if(mChal) mChal.addEventListener("click",chalBtnGo);
+function chalSend(delay){ setTimeout(function(){ if(!chalState) return; var f=document.querySelector("#pFrame iframe"); if(!f||!f.contentWindow) return;
+  try{ f.contentWindow.postMessage({arcade:"challenge",slug:chalState.slug,score:chalState.score,by:chalState.by},"*"); }catch(e){} },delay||0); }
+function chalInit(){ var q; try{ q=new URLSearchParams(location.search); }catch(e){ return; }
+  var slug=chalSlug(q.get("challenge")); if(!slug) return;
+  chalState={slug:slug,score:chalNum(q.get("score")),by:chalBy(q.get("by"))}; window.__arcadeChallenge=chalState;
+  try{ track('challenge_open',{game_id:slug,has_score:chalState.score==null?0:1}); }catch(e){}
+  var card=chalCard(slug); chalBanner("chal"); if(!card) return;
+  if(card.hasAttribute("data-play")){ openPlayer(card); chalSend(0); chalSend(500); chalSend(1600); }
+  else openGame(slug,card); }
+setTimeout(chalInit,0);
 })();
 </script>
 <script src="rank.js"></script>

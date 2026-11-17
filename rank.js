@@ -123,7 +123,11 @@
     "li{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;background:#0f1122;border:1px solid #272b4a;border-radius:12px;padding:9px 12px;font-size:15px}" +
     "li.me{border-color:#37e0ff;background:rgba(55,224,255,.1)}li .n{color:#aab0d0;font-weight:900;text-align:center}li .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}li .sc{font-weight:900;color:#f3f4ff}" +
     ".st{margin:0 0 12px;padding:14px;border:1px dashed #272b4a;border-radius:12px;color:#aab0d0;font-size:14px;text-align:center}.note{margin:0 0 12px;color:#7078a0;font-size:12px;line-height:1.5}" +
-    ".row{display:flex;gap:8px;justify-content:flex-end}";
+    ".row{display:flex;gap:8px;justify-content:flex-end}" +
+    ".chal{background:linear-gradient(135deg,rgba(255,77,141,.16),rgba(143,107,255,.14));border:1px solid #ff4d8d;border-radius:14px;padding:11px 13px;margin:0 0 12px}" +
+    ".chal-h{font-size:14.5px;font-weight:900;color:#ffd23f}.chal-t{font-size:13px;color:#aab0d0;margin-top:2px}" +
+    ".chal-r{font-size:14px;font-weight:900;margin-top:7px;color:#ff9ec0}.chal-r.win{color:#7dff9b}.chal-r.tie{color:#ffd23f}" +
+    ".chal button{margin-top:10px;width:100%}";
 
   var host = null, root = null, timer = null, current = null;
   function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
@@ -156,6 +160,29 @@
     var valid = score != null && inBounds(cfg, score); if (valid) myKey = keyOf(cfg, score);
     card.appendChild(el("h2", null, "🏆 " + tx(cfg.title) + " " + T("rank")));
 
+    /* ⚔️ 도전장: 이 게임에 걸린 목표가 있으면 결과를 창 위쪽에 먼저 보여 준다 */
+    var c = chalFor(id), res = valid ? compare(id, score) : null, chalBtn = null;
+    function chName() { return (c && c.by) || T("도전자", "a challenger"); }
+    function mkChalBtn(label, cls) {
+      var b = el("button", cls || null, label); b.type = "button";
+      b.addEventListener("click", function () { shareChallenge(id, score, myName || store("arc-nick") || "", b); });
+      return b;
+    }
+    if (c) {
+      var cbox = el("div", "chal");
+      cbox.appendChild(el("div", "chal-h", "⚔️ " + chName() + T("님의 도전장", "'s challenge")));
+      if (c.score != null) cbox.appendChild(el("div", "chal-t", T("목표: ", "Target: ") + scoreText(id, c.score) + T(" 깨기!", " to beat!")));
+      else cbox.appendChild(el("div", "chal-t", T("이 게임에서 나를 이겨 보세요!", "Try to beat me in this game!")));
+      if (valid && res != null) {
+        if (res === 1) cbox.appendChild(el("div", "chal-r win", "🎉 " + T("도전 성공! " + chName() + "님의 기록을 깼습니다!", "Challenge cleared! You beat " + chName() + "'s record!")));
+        else if (res === 0) cbox.appendChild(el("div", "chal-r tie", "🤝 " + T("목표와 동점이에요. 한 판만 더!", "You tied the target. One more round!")));
+        else cbox.appendChild(el("div", "chal-r", "😖 " + T("아쉽게 못 넘었어요 · 내 기록 " + scoreText(id, score), "Just short · your record " + scoreText(id, score))));
+      }
+      chalBtn = mkChalBtn(res === 1 ? "⚔️ " + T("반격 도전장 보내기", "Send a counter-challenge") : "⚔️ " + T("도전장 보내기", "Send a challenge"));
+      cbox.appendChild(chalBtn);
+      card.appendChild(cbox);
+    }
+
     var mine = null, rankB = null;
     if (valid) {
       mine = el("div", "mine"); var l = el("div"); l.appendChild(el("small", null, T("mine") + tx(cfg.label))); l.appendChild(el("b", null, fmt(cfg, score)));
@@ -163,7 +190,9 @@
       mine.appendChild(l); mine.appendChild(r); card.appendChild(mine);
     }
     var formBox = el("div"), msg = el("p", "msg"), listBox = el("div"), note = el("p", "note", T("note")), row = el("div", "row");
-    var closeBtn = el("button", "line", T("close")); closeBtn.type = "button"; closeBtn.addEventListener("click", close); row.appendChild(closeBtn);
+    var closeBtn = el("button", "line", T("close")); closeBtn.type = "button"; closeBtn.addEventListener("click", close);
+    if (valid && !c) row.appendChild(mkChalBtn("⚔️ " + T("도전장 보내기", "Send a challenge"), "line"));
+    row.appendChild(closeBtn);
     card.appendChild(formBox); card.appendChild(msg); card.appendChild(listBox); card.appendChild(note); card.appendChild(row);
 
     function setMsg(t, ok) { msg.textContent = t || ""; msg.className = "msg" + (ok ? " ok" : ""); }
@@ -221,7 +250,101 @@
       });
     }
     load();
+    if (valid) chalPost({ arcade: "score", slug: rid(id), score: score });   /* 부모(아케이드 메인)가 '도전장 보내기'에 쓸 점수 */
+    if (c && valid) announceResult(id, score, c);
   }
+
+  /* ---------- ⚔️ 친구 점수 도전장 ----------
+   * 도전장 링크: https://skadnrwhd-web.github.io/arcade/?challenge=게임ID&score=점수&by=닉네임
+   * 게임 창(iframe) 안에서는 부모(아케이드 메인)가 postMessage 로 목표를 알려 주고,
+   * 게임이 끝나 목표를 넘겼는지는 여기서 판정해 부모와 이 창 양쪽에 알린다. */
+  var SITE = "https://skadnrwhd-web.github.io/arcade/";
+  var ALIAS = { "water-ring-game": "water-ring", "-wobble-tower": "wobble-tower" };   /* 카드 주소와 랭킹 ID가 다른 게임 */
+  var chal = null, toastT = 0;
+  function rid(id) { id = String(id == null ? "" : id); return GAMES[id] ? id : (ALIAS[id] || id); }
+  function cfgFor(id) { return GAMES[rid(id)] || null; }
+  function cleanText(s, n) { return String(s == null ? "" : s).replace(/[\u0000-\u001f\u007f<>]/g, "").trim().slice(0, n || 20); }
+  function chalSlug(s) { return String(s == null ? "" : s).replace(/[^A-Za-z0-9_-]/g, "").slice(0, 60); }
+  function scoreText(id, v) { var c = cfgFor(id); return c ? fmt(c, v) : Number(v).toLocaleString() + T("점", " pts"); }
+  function setChallenge(o) {
+    if (!o) { chal = null; return null; }
+    var sc = (o.score == null || o.score === "") ? null : Number(o.score);
+    if (sc != null && (!isFinite(sc) || Math.abs(sc) > 1e12)) sc = null;
+    chal = { slug: chalSlug(o.slug), score: sc == null ? null : Math.round(sc), by: cleanText(o.by, 20) };
+    return chal;
+  }
+  function chalFor(id) {
+    if (!chal) { var g = window.__arcadeChallenge; if (g && typeof g === "object" && g.slug) setChallenge(g); }
+    if (!chal) return null;
+    if (!chal.slug) return chal;
+    return rid(chal.slug) === rid(id) ? chal : null;
+  }
+  function compare(id, score) {      /* 1 = 도전 성공, 0 = 동점, -1 = 못 넘김, null = 비교할 수 없음 */
+    var c = chalFor(id); if (!c || c.score == null || score == null || !isFinite(score)) return null;
+    var cfg = cfgFor(id), low = !!(cfg && cfg.better === "low");
+    if (score === c.score) return 0;
+    return (low ? score < c.score : score > c.score) ? 1 : -1;
+  }
+  function chalLink(slug, score, by) {
+    var u = SITE + "?challenge=" + encodeURIComponent(chalSlug(slug));
+    if (score != null && score !== "") u += "&score=" + encodeURIComponent(score);
+    if (by) u += "&by=" + encodeURIComponent(by);
+    return u;
+  }
+  function gameNameOf(id) { var c = cfgFor(id); return c ? tx(c.title) : String(id || ""); }
+  function chalLine(id, score, by) {      /* 카톡에 붙여넣을 한 줄 */
+    var nm = gameNameOf(id), cfg = cfgFor(id);
+    if (score == null) return T(nm + "에서 나를 이겨 보세요!", "Beat my score in " + nm + "!");
+    var st = scoreText(id, score);
+    if (cfg && cfg.better === "low") return T(nm + " " + st + "보다 빠르게 깰 수 있나요?", "Can you clear " + nm + " faster than " + st + "?");
+    return T(nm + " " + st + " 깰 수 있나요?", "Can you beat " + st + " in " + nm + "?");
+  }
+  function chalText(id, score, by) {
+    var who = by || T("도전자", "a challenger");
+    return "⚔️ [UJ ARCADE] " + who + T("님의 도전장!", "'s challenge!") + "\n" + chalLine(id, score, by);
+  }
+  function toast(msg) {
+    var h = document.getElementById("arcade-toast-host");
+    if (!h) { h = document.createElement("div"); h.id = "arcade-toast-host"; h.style.cssText = "position:fixed;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 20px);z-index:2147483600;display:flex;justify-content:center;pointer-events:none"; document.body.appendChild(h); }
+    h.textContent = "";
+    var b = document.createElement("div"); b.textContent = msg;
+    b.style.cssText = "background:#15182e;border:1px solid #37e0ff;color:#f3f4ff;border-radius:14px;padding:11px 16px;font:800 13.5px/1.45 system-ui,-apple-system,'Segoe UI','Malgun Gothic',sans-serif;box-shadow:0 16px 40px rgba(0,0,0,.55);max-width:88vw";
+    h.appendChild(b); clearTimeout(toastT); toastT = setTimeout(function () { if (h && h.parentNode) h.remove(); }, 2600);
+  }
+  function shareChallenge(id, score, by, btn) {
+    var url = chalLink(id, score, by), text = chalText(id, score, by);
+    var title = "⚔️ " + (by || T("도전자", "Challenger")) + T("님의 도전장", "'s challenge");
+    if (window.track) { try { window.track("challenge_send", { game_id: rid(id), has_score: score == null ? 0 : 1 }); } catch (e) { } }
+    function copied() {
+      toast(T("도전장 링크가 복사되었습니다!", "Challenge link copied!"));
+      if (btn) { var o = btn.textContent; btn.textContent = "✓ " + T("복사됨", "Copied"); setTimeout(function () { btn.textContent = o; }, 1600); }
+    }
+    function fallback() {
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text + "\n" + url).then(copied, function () { window.prompt(T("이 링크를 복사하세요", "Copy this link"), url); });
+      else window.prompt(T("이 링크를 복사하세요", "Copy this link"), url);
+    }
+    if (typeof navigator.share === "function") {
+      try { navigator.share({ title: title, text: text, url: url }).then(null, function (e) { if (!e || e.name !== "AbortError") fallback(); }); return; } catch (e) { }
+    }
+    fallback();
+  }
+  function chalPost(o) { try { if (window.parent && window.parent !== window) window.parent.postMessage(o, "*"); } catch (e) { } }
+  function announceResult(id, score, d) {
+    var p = { arcade: "challenge-result", slug: rid(id), by: d.by, target: d.score, score: score, result: compare(id, score), me: store("arc-nick") || "" };
+    if (p.result == null) return;
+    try { window.dispatchEvent(new CustomEvent("arcade-challenge-result", { detail: p })); } catch (e) { }
+    chalPost(p);
+  }
+  /* 부모(아케이드 메인)가 보내는 도전장 목표를 받는다 */
+  window.addEventListener("message", function (e) {
+    var d = e && e.data; if (!d || typeof d !== "object" || d.arcade !== "challenge") return;
+    setChallenge({ slug: d.slug, score: d.score, by: d.by });
+  });
+  try {   /* 게임 파일을 도전장 주소로 직접 연 경우 */
+    var uq = new URLSearchParams(location.search);
+    if (uq.get("challenge")) setChallenge({ slug: uq.get("challenge"), score: uq.get("score"), by: uq.get("by") });
+  } catch (e) { }
+  chalPost({ arcade: "challenge-hello" });
 
   /* 공개 함수 */
   function show(o) {
@@ -241,4 +364,8 @@
     if (window.track) { try { window.track("rank_view", { game_id: o.id, after_game: 0 }); } catch (e) { } }
   }
   window.ArcadeRank = { show: show, open: open, close: close, games: GAMES, _keyOf: keyOf, _metricOf: metricOf };
+  window.ArcadeChallenge = {
+    link: chalLink, text: chalText, line: chalLine, scoreText: scoreText, share: shareChallenge,
+    set: setChallenge, get: function () { return chal; }, compare: compare
+  };
 })();
