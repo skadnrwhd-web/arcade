@@ -222,7 +222,7 @@
     L.playTop = L.hud + 10;
     L.playBottom = H - L.padH - 6;
     L.playH = Math.max(180, L.playBottom - L.playTop);
-    L.charY = Math.round(L.playTop + L.playH * 0.62);
+    L.charY = Math.round(L.playTop + L.playH * 0.76);
     L.stepH = Math.max(72, Math.min(128, L.playH * 0.225));
     L.colW = Math.round(Math.min(W * 0.168, 74));
     L.rungW = Math.round(Math.min(W * 0.3, 124));
@@ -247,19 +247,19 @@
     /* 1) 네온 지하철역 */
     (function () {
       var t = newTile(th), g = t.g;
-      g.fillStyle = vgrad(g, '#0a1024', '#131c3c'); g.fillRect(0, 0, W, th);
+      g.fillStyle = vgrad(g, '#0c1530', '#17244c'); g.fillRect(0, 0, W, th);
       var r = rnd(11), y, x;
-      g.strokeStyle = 'rgba(120,170,255,.10)'; g.lineWidth = 1;
+      g.strokeStyle = 'rgba(120,175,255,.14)'; g.lineWidth = 1;
       for (y = 0; y < th; y += 46) {
         g.beginPath(); g.moveTo(0, y + .5); g.lineTo(W, y + .5); g.stroke();
         for (x = (y / 46) % 2 ? 0 : 28; x < W; x += 56) { g.beginPath(); g.moveTo(x + .5, y); g.lineTo(x + .5, y + 46); g.stroke(); }
       }
-      for (var i = 0; i < 7; i++) {   /* 네온 형광등 */
+      for (var i = 0; i < 9; i++) {   /* 네온 형광등 */
         var yy = r() * th, ww = W * (0.3 + r() * 0.45), xx = W * r() * 0.5;
-        g.fillStyle = i % 3 === 0 ? 'rgba(255,91,214,.16)' : 'rgba(61,220,255,.15)';
+        g.fillStyle = i % 3 === 0 ? 'rgba(255,91,214,.22)' : 'rgba(61,220,255,.20)';
         g.fillRect(xx, yy, ww, 3);
-        g.fillStyle = i % 3 === 0 ? 'rgba(255,91,214,.07)' : 'rgba(61,220,255,.06)';
-        g.fillRect(xx - 6, yy - 7, ww + 12, 17);
+        g.fillStyle = i % 3 === 0 ? 'rgba(255,91,214,.09)' : 'rgba(61,220,255,.08)';
+        g.fillRect(xx - 6, yy - 8, ww + 12, 19);
       }
       for (var j = 0; j < 4; j++) {   /* 역 표지판 */
         var sy = th * (0.12 + j * 0.24), sw = 96, sx = W * 0.5 - sw / 2;
@@ -357,7 +357,7 @@
   }
 
   /* 스프라이트(글로우)와 정적 그라디언트: 프레임마다 만들지 않는다 */
-  var glowSpr = {}, vignette = null;
+  var glowSpr = {}, vignette = null, topScrim = null;
   function makeGlow(color) {
     var s = 64, c = document.createElement('canvas'); c.width = s; c.height = s;
     var g = c.getContext('2d');
@@ -377,9 +377,17 @@
     var v = document.createElement('canvas'); v.width = Math.round(W / 2); v.height = Math.round(H / 2);
     var vg2 = v.getContext('2d');
     var gr = vg2.createRadialGradient(v.width / 2, v.height / 2, Math.min(W, H) * 0.22, v.width / 2, v.height / 2, Math.max(W, H) * 0.62);
-    gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.55)');
+    gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,0.42)');
     vg2.fillStyle = gr; vg2.fillRect(0, 0, v.width, v.height);
     vignette = v;
+
+    /* 상단 흐림막: 위쪽 계단이 HUD 글자와 겹쳐도 읽히게 */
+    var s = document.createElement('canvas'); s.width = Math.round(W); s.height = 132;
+    var sg = s.getContext('2d');
+    var sgr = sg.createLinearGradient(0, 0, 0, 132);
+    sgr.addColorStop(0, 'rgba(5,7,18,0.94)'); sgr.addColorStop(.55, 'rgba(5,7,18,0.58)'); sgr.addColorStop(1, 'rgba(5,7,18,0)');
+    sg.fillStyle = sgr; sg.fillRect(0, 0, W, 132);
+    topScrim = s;
   }
   var zoneGlowCache = {};
   function zoneGlow(i) {
@@ -435,8 +443,8 @@
     /* 몸통 */
     g.fillStyle = sk.c1;
     rr(g, -9, -29, 18, 18, 7); g.fill();
-    g.globalAlpha = .55; g.fillStyle = '#0a1226';
-    rr(g, -4.5, -24, 9, 9, 4); g.fill(); g.globalAlpha = 1;
+    g.globalAlpha = .3; g.fillStyle = '#0a1226';
+    rr(g, -3.5, -23.5, 7, 7, 3.5); g.fill(); g.globalAlpha = 1;
     /* 머리 */
     g.fillStyle = sk.c1;
     g.beginPath(); g.arc(0, -35, 8.4, 0, 6.2832); g.fill();
@@ -877,6 +885,7 @@
 
     /* 비네트 */
     if (vignette) { ctx.globalAlpha = 1; ctx.drawImage(vignette, 0, 0, W, H); }
+    if (topScrim) { ctx.globalAlpha = 1; ctx.drawImage(topScrim, 0, 0, W, 132); }
 
     /* 추락 시 붉은 경고 */
     if (state === 'fall' && fall) {
