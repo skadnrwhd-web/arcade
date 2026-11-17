@@ -1040,21 +1040,26 @@
   }
 
   /* ══════════ 입력 ══════════ */
+  var lastTapAt = 0;
   function tap() {
     if (panelOpen) return;
     if (state === 'title') { startRun(); return; }
     if (state === 'over') { return; }
     if (state === 'play') throwKnife();
   }
-  window.addEventListener('pointerdown', function (e) {
+  function handleInput(e) {
     var t = e.target;
-    if (t && t.closest && t.closest('button')) return;
-    if (t && (t.id === 'over' || t.id === 'skins')) return;
-    if (t && t.id === 'arcade-rank-host') return;
+    if (t && t.closest && t.closest('button, a, input, #over, #skins, #arcade-rank-host')) return;
+    var now = performance.now ? performance.now() : Date.now();
+    if (now - lastTapAt < 50) return;
+    lastTapAt = now;
     if (e.cancelable) { try { e.preventDefault(); } catch (x) { } }
     initAudio(); resumeAudio();
     tap();
-  }, { passive: false });
+  }
+  document.addEventListener('touchstart', handleInput, { passive: false });
+  document.addEventListener('pointerdown', handleInput, { passive: false });
+  document.addEventListener('mousedown', handleInput, false);
   window.addEventListener('keydown', function (e) {
     if (e.key === ' ' || e.key === 'Enter') {
       if (panelOpen) return;
