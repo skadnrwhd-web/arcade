@@ -81,9 +81,10 @@
   .card h2{font-size:21px;margin:0 0 4px;letter-spacing:-.02em}
   .card .sub{font-size:12.5px;line-height:1.6;color:#98a5c9;margin:0 0 14px}
   .rules{list-style:none;margin:0 0 16px;padding:0;text-align:left;display:grid;gap:9px}
-  .rules li{position:relative;padding-left:28px;font-size:12.5px;line-height:1.5;color:#b9c4e0}
-  .rules li b{position:absolute;left:0;top:0;width:19px;height:19px;border-radius:50%;background:#16233f;
+  .rules li{position:relative;padding-left:28px;font-size:12.5px;line-height:1.55;color:#b9c4e0}
+  .rules li .n{position:absolute;left:0;top:1px;width:19px;height:19px;border-radius:50%;background:#16233f;
     border:1px solid rgba(120,200,255,.42);color:#9fe6ff;font-size:11px;display:flex;align-items:center;justify-content:center}
+  .rules li em{font-style:normal;font-weight:800;color:#9fe6ff}
   .cta{display:block;width:100%;margin:0 0 8px;height:50px;border:0;border-radius:15px;cursor:pointer;
     font-family:inherit;font-size:16px;font-weight:900;color:#05121a;letter-spacing:.01em;
     background:linear-gradient(135deg,#8dffd0,#4fd8ff 55%,#9fe6ff);
@@ -142,9 +143,9 @@
     <h1>네온 물약 정리</h1>
     <p class="sub">시험관 속 형광 물약을 같은 색끼리<br>한 병에 모아 봉인하는 퍼즐</p>
     <ul class="rules">
-      <li><b>1</b>병을 탭해 들고, 같은 색 병이나 빈 병을 탭하면 부어요</li>
-      <li><b>2</b>한 병에 한 가지 색, 4칸을 가득 채우면 봉인!</li>
-      <li><b>3</b>막히면 <b>무르기</b>·<b>병 추가</b>. 모든 판은 반드시 풀려요</li>
+      <li><span class="n">1</span>병을 탭해 들고, 같은 색 병이나 빈 병을 탭하면 부어요</li>
+      <li><span class="n">2</span>한 병에 한 가지 색, 4칸을 가득 채우면 봉인!</li>
+      <li><span class="n">3</span>막히면 <em>무르기</em>·<em>병 추가</em>. 모든 판은 반드시 풀려요</li>
     </ul>
     <button id="btnStart" class="cta" type="button">시작하기</button>
     <button id="btnTitleRank" class="ghost" type="button">🏆 랭킹 보기</button>
