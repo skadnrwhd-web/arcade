@@ -5,7 +5,17 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#070a16">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>네온 블록 블라스트</title>
+<title>네온 블록 블라스트 - 무료 블록 퍼즐 | UJ ARCADE</title>
+<meta name="description" content="8×8 판에 블록 조각을 끌어다 놓고 줄을 채워 터뜨리는 무료 블록 퍼즐. 설치 없이 바로 플레이.">
+<link rel="canonical" href="https://skadnrwhd-web.github.io/arcade/games/block-blast.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="UJ ARCADE">
+<meta property="og:title" content="네온 블록 블라스트 - 무료 블록 퍼즐 | UJ ARCADE">
+<meta property="og:description" content="8×8 판에 블록 조각을 끌어다 놓고 줄을 채워 터뜨리는 무료 블록 퍼즐. 설치 없이 바로 플레이.">
+<meta property="og:url" content="https://skadnrwhd-web.github.io/arcade/games/block-blast.html">
+<meta property="og:image" content="https://skadnrwhd-web.github.io/arcade/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#070a16;
@@ -502,6 +512,7 @@
     if (ovNew) ovNew.style.display = (G.score >= G.best && G.score > 0) ? '' : 'none';
     if (ovLines) ovLines.textContent = String(G.lines);
     if (overEl) overEl.hidden = false;
+    if (window.ArcadeRank) ArcadeRank.show({ id: 'block-blast', score: G.score, cancelIf: function () { return !G.over; } });
   }
 
   /* ================= 파티클 / 텍스트 ================= */
@@ -1020,5 +1031,6 @@
   window.__BB = API;
 })();
 </script>
+<script src="../rank.js"></script>
 </body>
 </html>

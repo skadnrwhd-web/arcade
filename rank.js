@@ -24,6 +24,7 @@
     "dodge":         { title: ["네온 닷지", "Neon Dodge"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 100000] },
     "pairs":         { title: ["짝 맞추기", "Pair Match"], better: "low", unit: ["번", " moves"], label: ["횟수", "Moves"], bounds: [8, 300] },
     "order":         { title: ["순서 터치", "Tap in Order"], better: "low", fmt: "tenths", unit: ["초", "s"], label: ["시간", "Time"], bounds: [30, 6000] },
+    "block-blast":  { title: ["네온 블록 블라스트", "Neon Block Blast"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 500000] },
     "wobble-tower":  { title: ["워블 타워", "Wobble Tower"], better: "high", unit: ["개", " blocks"], label: ["쌓은 블록", "Blocks"], bounds: [1, 150] },
     "water-ring":    { title: ["물 고리 걸기", "Water Ring Toss"], better: "low", fmt: "tenths", unit: ["초", "s"], label: ["시간", "Time"], bounds: [20, 6000] }
   };
