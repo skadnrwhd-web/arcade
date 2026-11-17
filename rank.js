@@ -27,6 +27,7 @@
     "block-blast":  { title: ["네온 블록 블라스트", "Neon Block Blast"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 500000] },
     "wobble-tower":  { title: ["워블 타워", "Wobble Tower"], better: "high", unit: ["개", " blocks"], label: ["쌓은 블록", "Blocks"], bounds: [1, 150] },
     "infinite-stairs": { title: ["네온 무한의 계단", "Neon Infinite Stairs"], better: "high", unit: ["층", "F"], label: ["층수", "Floor"], bounds: [1, 100000] },
+    "poly-track":    { title: ["네온 폴리트랙", "Neon PolyTrack"], better: "low", fmt: "centis", unit: ["초", "s"], label: ["완주 시간", "Time"], bounds: [1500, 600000] },
     "water-ring":    { title: ["물 고리 걸기", "Water Ring Toss"], better: "low", fmt: "tenths", unit: ["초", "s"], label: ["시간", "Time"], bounds: [20, 6000] }
   };
   /* 하노이탑: 클래식 모드만. 점수 = 이동 횟수*10000 + 걸린 초(최대 9999). 횟수가 적을수록, 같으면 빨리 푼 사람이 위 */
@@ -66,6 +67,7 @@
     if (cfg.fmt === "level") return (lang() ? "Level " : "레벨 ") + Math.floor(m / 100000) + " · " + (m % 100000).toLocaleString() + (lang() ? " pts" : "점");
     if (cfg.fmt === "movesec") return Math.floor(m / 10000) + (lang() ? " moves · " : "번 · ") + (m % 10000) + (lang() ? "s" : "초");
     if (cfg.fmt === "tenths") return (m / 10).toFixed(1) + tx(cfg.unit);
+    if (cfg.fmt === "centis") return (m / 100).toFixed(2) + tx(cfg.unit);
     return m.toLocaleString() + tx(cfg.unit);
   }
 
