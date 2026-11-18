@@ -403,7 +403,7 @@ function physMicro(B,dt,kt,ks,rec){
     if(sp>0.05){
       ns=sp-(DECEL+DRAG2*sp*sp)*dt;
       if(ns<=STOPV){ ns=0; b.vx=0; b.vy=0; }
-      else { k=ns/sp; b.vx*=k; b.vy*=k; b.x+=b.vx*dt; b.y+=b.vy*dt; b.rot+=ns*dt/(R*1.7); }
+      else { k=ns/sp; b.vx*=k; b.vy*=k; b.x+=b.vx*dt; b.y+=b.vy*dt; b.rot+=ns*dt/(R*1.7); if(rec&&rec.dist!=null) rec.dist+=ns*dt; }
       b.top*=kt; b.side*=ks;
     } else { b.vx=0; b.vy=0; }
     if(b.x<R){ b.x=R; cushHit(b,1,0,rec); }
@@ -947,7 +947,7 @@ var MODES={
   pvp: { name:'2인 대전', innings:5, ai:0 }
 };
 try{ S.best=parseInt(localStorage.getItem('fb-best')||'0',10)||0; }catch(e){}
-var REC={pairs:[],cush:0,onSnd:null};
+var REC={pairs:[],cush:0,dist:0,onSnd:null};
 
 function isHumanTurn(){
   if(S.mode==='pvp') return true;
@@ -1171,7 +1171,7 @@ function fireShot(){
   cb.vy=Math.sin(S.aimAngle)*sp;
   cb.top=clamp(S.spinTop,-1,1);
   cb.side=clamp(S.spinSide,-1,1)*0.46*sp;
-  REC.pairs.length=0; REC.cush=0; REC.onSnd=function(kind,v){ if(S.soundN<5){ S.soundN++; sfx(kind,v); } };
+  REC.pairs.length=0; REC.cush=0; REC.dist=0; REC.onSnd=function(kind,v){ if(S.soundN<5){ S.soundN++; sfx(kind,v); } };
   S.phase='roll'; S.rollT=0;
   sfx('cue',140+power*300);
   setPowerUI(0); S.pull=0;
@@ -1418,7 +1418,7 @@ function evalCandidate(shooter,c){
   var b=sim[shooter];
   b.vx=Math.cos(c.ang)*sp; b.vy=Math.sin(c.ang)*sp;
   b.top=clamp(c.top,-1,1); b.side=clamp(c.side,-1,1)*0.46*sp;
-  var rec={pairs:[],cush:0,onSnd:null};
+  var rec={pairs:[],cush:0,dist:0,onSnd:null};
   var steps=0, maxS=Math.round(5.6/DT);
   while(steps<maxS){
     physStep(sim,DT,rec); steps++;
@@ -1701,6 +1701,7 @@ function onResize(){
       return { phase:S.phase, mode:S.mode, turn:S.turn, step:S.step, power:+S.pull.toFixed(3),
         aim:+(S.aimAngle*180/Math.PI).toFixed(1), innings:S.innings.slice(), score:S.score.slice(),
         combo:S.combo.slice(), hits:S.hits.slice(), fouls:S.fouls.slice(), aiThinking:S.aiThinking,
+        cush:REC.cush, dist:+REC.dist.toFixed(1), pairs:REC.pairs.length/3, rollT:+S.rollT.toFixed(2),
         dpr:LAY.dpr, s:LAY.s, table:{ox:LAY.ox,oy:LAY.oy,ow:LAY.ow,oh:LAY.oh},
         canvas:{w:cv.width,h:cv.height,cw:LAY.cw,ch:LAY.ch},
         balls:balls.map(function(b){ return {k:b.k,x:+b.x.toFixed(2),y:+b.y.toFixed(2),v:+Math.sqrt(b.vx*b.vx+b.vy*b.vy).toFixed(1)}; }) };
