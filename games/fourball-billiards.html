@@ -897,6 +897,9 @@ function drawCue(){
   var ang=S.aimAngle;
   var L=cueCan.w/LAY.dpr, T=cueCan.thick/LAY.dpr;
   ctx.save();
+  ctx.beginPath();
+  ctx.rect(LAY.ox,LAY.oy,LAY.ow,LAY.oh);   /* 큐대가 상단 UI나 아래 패널로 나가지 않게 */
+  ctx.clip();
   ctx.translate(cx,cy);
   ctx.rotate(ang);
   ctx.drawImage(cueCan.can,-gap-L,-T/2,L,T);
@@ -962,7 +965,7 @@ function spinLabel(){
   var t=S.spinTop, s=S.spinSide;
   var v=[],ns='';
   if(t>0.22) v.push('밀어치기'); else if(t<-0.22) v.push('끌어치기');
-  if(s>0.22) v.push('우 히네리'); else if(s<-0.22) v.push('좌 히네리');
+  if(s>0.22) v.push('우히네리'); else if(s<-0.22) v.push('좌히네리');
   if(!v.length) ns='중앙';
   else ns=v.join(' · ');
   if(Math.abs(t)<0.12&&Math.abs(s)<0.12) ns='중앙';
