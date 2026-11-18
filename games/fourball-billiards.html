@@ -320,12 +320,18 @@ var TW=142, TH=284;          /* 당구대 플레이 면 (가로 × 세로) */
 var R=3.075;                 /* 공 반지름 */
 var RAIL=8.4;                /* 레일 폭 */
 var DECEL=118;               /* 천 마찰 감속도 */
+var DRAG2=0.00016;           /* 속도 제곱 항: 강타일수록 빠르게 잦아드는 저항 */
 var REST_BALL=0.955;         /* 공-공 반발 */
 var REST_CUSH=0.875;         /* 쿠션 반발 */
 var SPIN_CUSH_K=0.42;        /* 쿠션에서 회전이 옆으로 미는 정도 */
-var MAXSPEED=436, MINSPEED=62;
+var CUSH_TAN=0.92;           /* 쿠션 접선 속도 유지율(강타가 여러 쿠션을 도는 힘) */
+var MAXSPEED=1000, MINSPEED=62;   /* 풀파워(100) = 10 m/s 강타 */
+var POW_EXP=1.8;             /* 파워 커브: 약한 샷은 섬세하게, 강타는 폭발적으로 */
 var DT=1/200;                /* 고정 물리 스텝 */
-var K_TOP=Math.exp(-DT*1.0), K_SIDE=Math.exp(-DT*0.62);
+var SUBD=R*0.45;             /* 서브스텝 최대 이동거리(cm) - 터널링 방지 */
+var SUBMAX=8;
+var K_TOP_N=[0], K_SIDE_N=[0];
+(function(){ for(var n=1;n<=SUBMAX;n++){ var h=DT/n; K_TOP_N[n]=Math.exp(-h*1.0); K_SIDE_N[n]=Math.exp(-h*0.62); } })();
 var STOPV=0.9;
 var BALLD=R*2;
 
@@ -363,8 +369,8 @@ function cushHit(b,nx,ny,rec){
   var nvn=-vn*REST_CUSH;
   /* 회전(사이드)이 바닥 접점에서 옆으로 미는 힘 */
   var sx=b.side*ny, sy=-b.side*nx;
-  tvx=tvx*(1-SPIN_CUSH_K)-SPIN_CUSH_K*sx;
-  tvy=tvy*(1-SPIN_CUSH_K)-SPIN_CUSH_K*sy;
+  tvx=tvx*CUSH_TAN-SPIN_CUSH_K*sx;
+  tvy=tvy*CUSH_TAN-SPIN_CUSH_K*sy;
   b.vx=nvn*nx+tvx; b.vy=nvn*ny+tvy;
   b.side*=0.52; b.top*=0.86;
   if(rec){
@@ -373,17 +379,32 @@ function cushHit(b,nx,ny,rec){
   }
 }
 
-/* 한 스텝: 등속 구간 + 쿠션 + 공-공 */
+/* 파워(0~1) → 초속(cm/s). 플레이어·AI 시뮬레이션이 같은 식을 쓴다 */
+function shotSpeed(power){
+  return MINSPEED+(MAXSPEED-MINSPEED)*Math.pow(clamp(power,0.05,1),POW_EXP);
+}
+
+/* 한 스텝: 속도가 빠르면 잘게 쪼개(서브스텝) 공끼리·쿠션을 뚫지 않게 한다 */
 function physStep(B,dt,rec){
+  var i,v2=0,vm;
+  for(i=0;i<B.length;i++){ var s2=B[i].vx*B[i].vx+B[i].vy*B[i].vy; if(s2>v2) v2=s2; }
+  vm=Math.sqrt(v2);
+  var n=Math.ceil(vm*dt/SUBD);
+  if(n<1) n=1; else if(n>SUBMAX) n=SUBMAX;
+  var h=dt/n, kt=K_TOP_N[n], ks=K_SIDE_N[n];
+  for(var s=0;s<n;s++) physMicro(B,h,kt,ks,rec);
+}
+
+function physMicro(B,dt,kt,ks,rec){
   var i,j,b,sp,ns,k;
   for(i=0;i<B.length;i++){
     b=B[i];
     sp=Math.sqrt(b.vx*b.vx+b.vy*b.vy);
     if(sp>0.05){
-      ns=sp-DECEL*dt;
+      ns=sp-(DECEL+DRAG2*sp*sp)*dt;
       if(ns<=STOPV){ ns=0; b.vx=0; b.vy=0; }
       else { k=ns/sp; b.vx*=k; b.vy*=k; b.x+=b.vx*dt; b.y+=b.vy*dt; b.rot+=ns*dt/(R*1.7); }
-      b.top*=K_TOP; b.side*=K_SIDE;
+      b.top*=kt; b.side*=ks;
     } else { b.vx=0; b.vy=0; }
     if(b.x<R){ b.x=R; cushHit(b,1,0,rec); }
     else if(b.x>TW-R){ b.x=TW-R; cushHit(b,-1,0,rec); }
@@ -820,8 +841,8 @@ function predictShot(cbx,cby,ang,speed,top,side,skip){
   var vn=dx*wnx+dy*wny;
   var tvx=dx-vn*wnx, tvy=dy-vn*wny;
   var sx=side*wny, sy=-side*wnx;
-  tvx=tvx*(1-SPIN_CUSH_K)-SPIN_CUSH_K*sx;
-  tvy=tvy*(1-SPIN_CUSH_K)-SPIN_CUSH_K*sy;
+  tvx=tvx*CUSH_TAN-SPIN_CUSH_K*sx;
+  tvy=tvy*CUSH_TAN-SPIN_CUSH_K*sy;
   var nvn=-vn*REST_CUSH;
   var rdx=nvn*wnx+tvx, rdy=nvn*wny+tvy;
   return {type:'wall', t:tw, gx:wx, gy:wy, rdx:rdx, rdy:rdy, wnx:wnx, wny:wny};
@@ -1134,7 +1155,7 @@ function gameOver(){
 function beginStroke(angle,power,top,side){
   S.aimAngle=angle; S.pull=power;
   S.spinTop=top; S.spinSide=side;
-  S.strokeFrom=((0.95*R+1.1+power*16)*LAY.s+3);
+  S.strokeFrom=((0.95*R+1.1+power*20)*LAY.s+3);
   S.strokeT=0; S.strokeGap=S.strokeFrom;
   S.phase='stroke';
   setPowerUI(power);
@@ -1145,7 +1166,7 @@ function beginStroke(angle,power,top,side){
 function fireShot(){
   var cb=balls[S.turn];
   var power=clamp(S.pull,0.05,1);
-  var sp=MINSPEED+(MAXSPEED-MINSPEED)*Math.pow(power,0.85);
+  var sp=shotSpeed(power);
   cb.vx=Math.cos(S.aimAngle)*sp;
   cb.vy=Math.sin(S.aimAngle)*sp;
   cb.top=clamp(S.spinTop,-1,1);
@@ -1393,12 +1414,12 @@ function genCandidates(level,shooter){
 function evalCandidate(shooter,c){
   var i, sim=[];
   for(i=0;i<4;i++) sim.push({k:balls[i].k,x:balls[i].x,y:balls[i].y,vx:0,vy:0,top:0,side:0,rot:0});
-  var sp=MINSPEED+(MAXSPEED-MINSPEED)*Math.pow(clamp(c.power,0.05,1),0.85);
+  var sp=shotSpeed(c.power);
   var b=sim[shooter];
   b.vx=Math.cos(c.ang)*sp; b.vy=Math.sin(c.ang)*sp;
   b.top=clamp(c.top,-1,1); b.side=clamp(c.side,-1,1)*0.46*sp;
   var rec={pairs:[],cush:0,onSnd:null};
-  var steps=0, maxS=Math.round(4.6/DT);
+  var steps=0, maxS=Math.round(5.6/DT);
   while(steps<maxS){
     physStep(sim,DT,rec); steps++;
     if(allStopped(sim)) break;
