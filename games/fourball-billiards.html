@@ -1082,6 +1082,7 @@ function afterTurn(cont){
     }
   }
   S.phase='aim'; S.pull=0; setPowerUI(0);
+  EL.hint.innerHTML=(S.mode==='pvp')?((S.turn===0?'1P 흰 공':'2P 노란 공')+' · 뒤로 당겼다 놓으면 샷!'):'공을 <b>뒤로 당겼다</b> 놓으면 샷!';
   updateHUD();
   if(isAIMode() && S.turn===1) aiTurn();
 }
@@ -1394,7 +1395,7 @@ var pausedFrom=null;
 function openMenu(){
   if(S.phase==='roll'||S.phase==='stroke'||S.phase==='settle'||S.phase==='ai'){ toast('공이 멈춘 뒤에 메뉴를 열 수 있어요'); return; }
   if(S.phase==='menu'||S.phase==='over') return;
-  pausedFrom=S.phase; S.phase='paused';
+  pausedFrom=S.phase; S.phase='paused'; S.pull=0; S.dragId=null; setPowerUI(0);
   EL.menuScr.hidden=false;
   sfx('tap',50);
 }
@@ -1436,7 +1437,8 @@ function bindUI(){
 }
 
 function toStartScreen(){
-  S.phase='menu'; S.pull=0; S.aiThinking=false;
+  S.phase='menu'; S.pull=0; S.dragId=null; S.aiThinking=false;
+  EL.hint.innerHTML='공을 <b>뒤로 당겼다</b> 놓으면 샷!';
   EL.aiNote.classList.remove('on');
   EL.overScr.hidden=true; EL.menuScr.hidden=true; EL.startScr.hidden=false;
   setupBalls(); setPowerUI(0); updateHUD();
