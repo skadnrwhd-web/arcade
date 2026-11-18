@@ -77,6 +77,20 @@ h1,h2,h3{margin:0; line-height:1.15; letter-spacing:-.025em; text-wrap:balance}
 .pills b{color:var(--lime)}
 
 .sec{padding:84px 0}
+.dash{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:760px){ .dash{grid-template-columns:1fr} }
+.dash-card{background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:18px 18px 14px; min-width:0}
+.dash-card h3{margin:0; font-size:17px}
+.dash-top{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:10px}
+.dash-sel{max-width:100%; background:var(--bg2); color:var(--ink); border:1px solid var(--line); border-radius:12px; padding:9px 12px; font-size:14px}
+.dash ol{list-style:none; margin:12px 0 0; padding:0}
+.dash li{display:flex; align-items:center; gap:10px; padding:9px 8px; border-top:1px solid var(--line); font-size:14.5px; --w:0%; background:linear-gradient(90deg,rgba(143,107,255,.22) var(--w),transparent var(--w))}
+.dash li.pop{cursor:pointer}
+.dash .dn{width:26px; flex:none; text-align:center; font-weight:900; color:var(--yellow)}
+.dash .dt{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.dash .dv{margin-left:auto; flex:none; font-weight:800; color:var(--cyan)}
+.dash-note,.dash-msg{margin:10px 0 0; color:var(--muted); font-size:13px}
+.dash-card .btn{margin-top:12px}
 .sec.alt{background:var(--bg2)}
 .sec-head{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:12px 24px; margin-bottom:34px}
 .sec-head h2{font-size:clamp(28px,4vw,42px); margin-top:10px}
@@ -453,6 +467,18 @@ body.challenge-on #modal{padding-top:calc(env(safe-area-inset-top) + 58px)}
   </div>
 </section>
 
+<section class="sec alt" id="dash">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <div><span class="eyebrow" data-i="d_eb">Leaderboard</span><h2 data-i="d_h">🏆 랭킹 대시보드</h2></div>
+      <p data-i="d_p">내 게임 전체의 기록을 한눈에. 가장 많이 도전한 게임과, 게임별 TOP 10을 볼 수 있어요.</p>
+    </div>
+    <div class="dash rv">
+      <div class="dash-card"><h3 data-i="d_pop">가장 많이 도전한 게임 TOP 10</h3><ol id="dashPop"></ol><p class="dash-note" data-i="d_popn">등록된 기록 수 기준 · 항목을 누르면 그 게임의 순위가 열려요</p></div>
+      <div class="dash-card"><div class="dash-top"><h3 data-i="d_each">게임별 TOP 10</h3><select class="dash-sel" id="dashSel" aria-label="game"></select></div><ol id="dashRows"></ol><button class="btn line sm" id="dashPlay" type="button" hidden></button></div>
+    </div>
+  </div>
+</section>
 <section class="sec" id="community" style="border-top:1px solid var(--line)">
   <div class="wrap">
     <div class="sec-head rv">
@@ -599,7 +625,7 @@ var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",inst:"📲 Add to Home Screen"
  f2_p:"The nostalgic handheld game: push water with a button to land rings on pegs.",
  f3_p:"A 3D balance game: pull blocks out slowly and stack them on top without toppling the tower.",
  f4_p:"A wood-textured 3D Tower of Hanoi. Move the discs across three pegs.",
- f5_p:"Tower of Hanoi with four pegs, including the optimal solution and auto-solve.", ft2:"We use Google Analytics for visit statistics. No names or contact details are collected, and ad tracking is turned off.", c_down:"▼ Comments", f7_p:"Swap neighbors to match 3 or more gems. Make rockets, bombs and rainbow gems to hit each level's goal.", f8_p:"Dodge by dragging and blast incoming enemies with auto-fire in this neon flight shooter.", f9_p:"Eat glowing orbs, grow longer, and cut off the AI worms in this neon slither battle.", f10_p:"Rush-hour subway! Tap left and right to dodge trains and grab coffee for a boost.", f11_p:"Merge matching fruits into bigger ones. The goal: a giant watermelon.", f12_p:"Play Gomoku against the AI or a friend. First to line up five wins.", f16_p:"Drag block pieces onto an 8×8 board and clear full lines. Easy one-handed puzzle.",f17_p:"Climb endlessly with just two buttons. Tap the side where the next stair appears.", f18_p:"A low-poly time-attack racer. Shave off hundredths of a second and race your ghost car.",vis:"visitors",t_numwar:"Number War",t_dragon:"Neon Dragon Flight",t_worm:"Neon Worm",t_subway:"Subway Rush",t_suika:"Suika Game",t_blast:"Neon Block Blast",t_stairs:"Neon Infinite Stairs",t_track:"Neon PolyTrack",t_gomoku:"Neon Gomoku", b_sht:"Shooter", b_run:"Runner", b_brd:"Board", b_mat:"Match-3", f6_p:"Beat the monsters by solving math problems before they reach you. Elementary grades 1-6.", b_edu:"Math",
+ f5_p:"Tower of Hanoi with four pegs, including the optimal solution and auto-solve.", ft2:"We use Google Analytics for visit statistics. No names or contact details are collected, and ad tracking is turned off.", c_down:"▼ Comments", f7_p:"Swap neighbors to match 3 or more gems. Make rockets, bombs and rainbow gems to hit each level's goal.", f8_p:"Dodge by dragging and blast incoming enemies with auto-fire in this neon flight shooter.", f9_p:"Eat glowing orbs, grow longer, and cut off the AI worms in this neon slither battle.", f10_p:"Rush-hour subway! Tap left and right to dodge trains and grab coffee for a boost.", f11_p:"Merge matching fruits into bigger ones. The goal: a giant watermelon.", f12_p:"Play Gomoku against the AI or a friend. First to line up five wins.", f16_p:"Drag block pieces onto an 8×8 board and clear full lines. Easy one-handed puzzle.",f17_p:"Climb endlessly with just two buttons. Tap the side where the next stair appears.", f18_p:"A low-poly time-attack racer. Shave off hundredths of a second and race your ghost car.",vis:"visitors",d_eb:"Leaderboard",d_h:"🏆 Leaderboard",d_p:"Records from all my games at a glance: the most-played games and the TOP 10 of each game.",d_pop:"Most challenged games TOP 10",d_popn:"By number of submitted records · tap an entry to see its ranking",d_each:"TOP 10 by game",t_numwar:"Number War",t_dragon:"Neon Dragon Flight",t_worm:"Neon Worm",t_subway:"Subway Rush",t_suika:"Suika Game",t_blast:"Neon Block Blast",t_stairs:"Neon Infinite Stairs",t_track:"Neon PolyTrack",t_gomoku:"Neon Gomoku", b_sht:"Shooter", b_run:"Runner", b_brd:"Board", b_mat:"Match-3", f6_p:"Beat the monsters by solving math problems before they reach you. Elementary grades 1-6.", b_edu:"Math",
  s5_eb:"Community Arcade",s5_h:"Everyone's games",s5_p:"Post the link to a web game you made with AI and it shows up here right away. No approval, no login.",
  s5_note:"Please post only games you made. A post cannot be edited or deleted.",s5_add:"+ Post my game",
  s5_fh:"Post my game",s5_fp:"A name and a link are all you need. It appears in the list below as soon as you post.",
@@ -625,7 +651,7 @@ function setLang(l){ lang=l; var d=l==="en"?EN:KO;
   for(var j=0;j<nodes.length;j++){var key=nodes[j].getAttribute("data-i"); if(d[key]!=null) nodes[j].textContent=d[key];}
   document.documentElement.lang=l; document.title=l==="en"?"UJ ARCADE | Games made with AI":"UJ ARCADE | AI로 만든 게임";
   var b=document.querySelectorAll("[data-lang]"); for(j=0;j<b.length;j++) b[j].setAttribute("aria-pressed",String(b[j].getAttribute("data-lang")===l));
-  store("arc-lang",l); showBests(); if(typeof boardMounted!=="undefined"&&boardMounted) mountBoard(); if(typeof shareLabels==="function") shareLabels(); if(typeof cgLabels==="function") cgLabels(); if(typeof visLabel==="function") visLabel(); if(typeof cgRender==="function"&&cgData) cgRender(); }
+  store("arc-lang",l); showBests(); if(typeof boardMounted!=="undefined"&&boardMounted) mountBoard(); if(typeof shareLabels==="function") shareLabels(); if(typeof cgLabels==="function") cgLabels(); if(typeof visLabel==="function") visLabel(); if(typeof dashLang==="function") dashLang(); if(typeof cgRender==="function"&&cgData) cgRender(); }
 var lb=document.querySelectorAll("[data-lang]"); for(i=0;i<lb.length;i++) lb[i].addEventListener("click",function(){ setLang(this.getAttribute("data-lang")); });
 
 /* 최고 기록 */
@@ -1118,6 +1144,34 @@ function chalInit(){ var q; try{ q=new URLSearchParams(location.search); }catch(
   if(card.hasAttribute("data-play")){ openPlayer(card); chalSend(0); chalSend(500); chalSend(1600); }
   else openGame(slug,card); }
 setTimeout(chalInit,0);
+/* 랭킹 대시보드: 화면에 보일 때 한 번 불러온다. 기록 수 = 게임별 등록된 기록 개수 */
+var dashSt={loaded:false,counts:null,sel:null,ids:[]};
+function dashSlug(id){ if(/^hanoi3d-/.test(id)) return "tower-of-hanoi-3d"; if(/^hanoi4-/.test(id)) return "tower-of-hanoi-3d-2"; return {"water-ring":"water-ring-game","wobble-tower":"-wobble-tower"}[id]||id; }
+function dashCard(id){ var sl=dashSlug(id); return document.querySelector('[data-play="'+sl+'"]')||document.querySelector('[data-game="'+id+'"]'); }
+function dashTitle(id){ return window.ArcadeRank?ArcadeRank.title(id):id; }
+function dashRowEl(rank,name,val,w){ var li=el("li",w!=null?"pop":null); if(w!=null) li.style.setProperty("--w",w+"%");
+  li.appendChild(el("span","dn",rank<=3?["🥇","🥈","🥉"][rank-1]:String(rank))); li.appendChild(el("span","dt",name)); li.appendChild(el("span","dv",val)); return li; }
+function dashPaintPop(){ var ol=document.getElementById("dashPop"); if(!ol) return; ol.textContent=""; var c=dashSt.counts||{};
+  var arr=dashSt.ids.filter(function(id){ return (c[id]||0)>0; }).sort(function(a,b){ return c[b]-c[a]; }).slice(0,10);
+  if(!arr.length){ ol.appendChild(el("p","dash-msg",T("아직 등록된 기록이 없어요. 한 판 하고 첫 기록을 남겨 보세요!","No records yet. Play a round and be the first!"))); return; }
+  arr.forEach(function(id,i){ var li=dashRowEl(i+1,dashTitle(id),c[id].toLocaleString(lang==="en"?"en":"ko-KR")+T("건"," rec"),Math.round(c[id]/c[arr[0]]*100)); li.addEventListener("click",function(){ dashPick(id); document.getElementById("dashSel").scrollIntoView({block:"center",behavior:"smooth"}); }); ol.appendChild(li); }); }
+function dashFillSel(){ var sel=document.getElementById("dashSel"); if(!sel) return; var c=dashSt.counts||{},cur=dashSt.sel; sel.textContent="";
+  dashSt.ids.slice().sort(function(a,b){ return (c[b]||0)-(c[a]||0); }).forEach(function(id){ var o=document.createElement("option"); o.value=id; o.textContent=dashTitle(id)+((c[id]||0)?" ("+c[id]+")":""); sel.appendChild(o); });
+  if(cur) sel.value=cur; }
+function dashPick(id){ dashSt.sel=id; var sel=document.getElementById("dashSel"); if(sel) sel.value=id; dashLoadBoard(id); }
+function dashLoadBoard(id){ var ol=document.getElementById("dashRows"),pb=document.getElementById("dashPlay"); if(!ol) return; ol.textContent=""; ol.appendChild(el("p","dash-msg",T("불러오는 중…","Loading…")));
+  var card=dashCard(id); pb.hidden=!card; pb.textContent=T("▶ 이 게임 하기","▶ Play this game"); pb.onclick=function(){ if(!card) return; if(card.hasAttribute("data-play")) openPlayer(card); else card.click(); };
+  ArcadeRank.board(id,function(r){ if(dashSt.sel!==id) return; ol.textContent="";
+    if(r.error){ var m=el("p","dash-msg",T("순위를 불러오지 못했어요. ","Could not load the ranking. ")); var b=el("button","btn line sm",T("다시 시도","Retry")); b.type="button"; b.addEventListener("click",function(){ dashLoadBoard(id); }); ol.appendChild(m); ol.appendChild(b); return; }
+    if(!r.rows.length){ ol.appendChild(el("p","dash-msg",T("아직 기록이 없어요. 첫 번째 주인공이 되어 보세요!","No records yet. Be the first!"))); return; }
+    r.rows.forEach(function(x,i){ ol.appendChild(dashRowEl(i+1,x.name,x.text,null)); }); }); }
+function dashLang(){ if(!dashSt||!dashSt.loaded) return; dashPaintPop(); dashFillSel(); if(dashSt.sel) dashLoadBoard(dashSt.sel); }
+function dashInit(){ if(dashSt.loaded) return; if(!window.ArcadeRank){ setTimeout(dashInit,400); return; } dashSt.loaded=true;
+  dashSt.ids=Object.keys(ArcadeRank.games).filter(function(id){ return !!dashCard(id); });
+  document.getElementById("dashSel").addEventListener("change",function(){ dashPick(this.value); });
+  ArcadeRank.counts(function(c){ dashSt.counts=c||{}; var best=dashSt.ids.slice().sort(function(a,b){ return (dashSt.counts[b]||0)-(dashSt.counts[a]||0); })[0]; dashSt.sel=best||dashSt.ids[0]; dashPaintPop(); dashFillSel(); if(dashSt.sel) dashPick(dashSt.sel); }); }
+(function(){ var d=document.getElementById("dash"); if(!d) return;
+  if("IntersectionObserver" in window){ var io=new IntersectionObserver(function(es){ if(es[0].isIntersecting){ io.disconnect(); dashInit(); } },{rootMargin:"300px"}); io.observe(d); } else dashInit(); })();
 /* 누적 방문(기기 수): 이 기기에서 처음이면 한 번만 기록하고, 전체 기록 수를 센다. 이름·연락처는 저장하지 않는다.
    숫자가 작을 때(VIS_MIN 미만)는 숨기고, 주소 끝에 ?stats 를 붙이면 항상 보인다 */
 (function(){ var VIS_MIN=100, T_VIS="visit";
@@ -1126,9 +1180,9 @@ setTimeout(chalInit,0);
     b.textContent=n.toLocaleString(lang==="en"?"en":"ko-KR"); pill.hidden=false; }
   function count(){ sb.from("comments").select("id",{count:"exact",head:true}).eq("thread",T_VIS).then(function(r){ if(r&&!r.error&&typeof r.count==="number") show(r.count); }); }
   function run(){ if(navigator.webdriver) return; withSb(function(ok){ if(!ok) return;
-    var seen=false,mine=/(^|\.)skadnrwhd-web\.github\.io$/.test(location.hostname); try{ seen=!!localStorage.getItem("arc-visit"); }catch(e){}
+    var seen=false,mine=/(^|\.)skadnrwhd-web\.github\.io$/.test(location.hostname); try{ seen=!!localStorage.getItem("arc-vtotal"); }catch(e){}
     if(seen||!mine) return count();     /* 이미 센 기기이거나 내 사이트가 아닌 곳(테스트)에서는 기록하지 않고 숫자만 본다 */
-    sb.from("comments").insert({thread:T_VIS,nickname:"방문",body:"1"}).then(function(r){ if(r&&!r.error){ try{ localStorage.setItem("arc-visit","1"); }catch(e){} } count(); }); }); }
+    sb.from("comments").insert({thread:T_VIS,nickname:"방문",body:"1"}).then(function(r){ if(r&&!r.error){ try{ localStorage.setItem("arc-vtotal","1"); }catch(e){} } count(); }); }); }
   setTimeout(run,2500); })();
 })();
 </script>

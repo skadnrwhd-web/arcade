@@ -370,7 +370,27 @@
     current = o; render({ id: o.id, onClose: o.onClose });
     if (window.track) { try { window.track("rank_view", { game_id: o.id, after_game: 0 }); } catch (e) { } }
   }
-  window.ArcadeRank = { show: show, open: open, close: close, games: GAMES, _keyOf: keyOf, _metricOf: metricOf };
+  /* 메인 페이지 랭킹 대시보드용: 한 게임의 TOP 10, 게임별 기록 수 */
+  function boardPublic(id, cb) {
+    id = rid(id); var cfg = GAMES[id]; if (!cfg) return cb({ error: true });
+    fetchBoard(id, cfg, function (b) {
+      if (b.error) return cb({ error: true });
+      cb({ id: id, title: tx(cfg.title), rows: b.rows.slice(0, TOP).map(function (r) { return { name: r.name, text: fmt(cfg, r.m) }; }) });
+    });
+  }
+  function countsPublic(cb) {
+    var ids = Object.keys(GAMES), out = {}, left = ids.length;
+    withSb(function (c) {
+      if (!c) return cb(null);
+      ids.forEach(function (id) {
+        c.from("comments").select("id", { count: "exact", head: true }).eq("thread", thread(id)).then(function (r) {
+          out[id] = (r && !r.error && typeof r.count === "number") ? r.count : 0; if (--left === 0) cb(out);
+        });
+      });
+    });
+  }
+  function titleOf(id) { var c = GAMES[rid(id)]; return c ? tx(c.title) : String(id); }
+  window.ArcadeRank = { show: show, open: open, close: close, games: GAMES, board: boardPublic, counts: countsPublic, title: titleOf, _keyOf: keyOf, _metricOf: metricOf };
   window.ArcadeChallenge = {
     link: chalLink, text: chalText, line: chalLine, scoreText: scoreText, share: shareChallenge,
     set: setChallenge, get: function () { return chal; }, compare: compare
