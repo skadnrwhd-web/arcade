@@ -362,6 +362,7 @@ body.challenge-on #modal{padding-top:calc(env(safe-area-inset-top) + 58px)}
       <span><b>18</b> <span data-i="p1">개 게임</span></span>
       <span data-i="p2">휴대폰·PC 모두 지원</span>
       <span data-i="p3">로그인 없는 게시판</span>
+      <span id="visitPill" hidden>👥 <b id="visitN"></b> <span data-i="vis">명 방문</span></span>
     </div>
   </div></div>
 </section>
@@ -598,7 +599,7 @@ var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",inst:"📲 Add to Home Screen"
  f2_p:"The nostalgic handheld game: push water with a button to land rings on pegs.",
  f3_p:"A 3D balance game: pull blocks out slowly and stack them on top without toppling the tower.",
  f4_p:"A wood-textured 3D Tower of Hanoi. Move the discs across three pegs.",
- f5_p:"Tower of Hanoi with four pegs, including the optimal solution and auto-solve.", ft2:"We use Google Analytics for visit statistics. No names or contact details are collected, and ad tracking is turned off.", c_down:"▼ Comments", f7_p:"Swap neighbors to match 3 or more gems. Make rockets, bombs and rainbow gems to hit each level's goal.", f8_p:"Dodge by dragging and blast incoming enemies with auto-fire in this neon flight shooter.", f9_p:"Eat glowing orbs, grow longer, and cut off the AI worms in this neon slither battle.", f10_p:"Rush-hour subway! Tap left and right to dodge trains and grab coffee for a boost.", f11_p:"Merge matching fruits into bigger ones. The goal: a giant watermelon.", f12_p:"Play Gomoku against the AI or a friend. First to line up five wins.", f16_p:"Drag block pieces onto an 8×8 board and clear full lines. Easy one-handed puzzle.",f17_p:"Climb endlessly with just two buttons. Tap the side where the next stair appears.", f18_p:"A low-poly time-attack racer. Shave off hundredths of a second and race your ghost car.", b_sht:"Shooter", b_run:"Runner", b_brd:"Board", b_mat:"Match-3", f6_p:"Beat the monsters by solving math problems before they reach you. Elementary grades 1-6.", b_edu:"Math",
+ f5_p:"Tower of Hanoi with four pegs, including the optimal solution and auto-solve.", ft2:"We use Google Analytics for visit statistics. No names or contact details are collected, and ad tracking is turned off.", c_down:"▼ Comments", f7_p:"Swap neighbors to match 3 or more gems. Make rockets, bombs and rainbow gems to hit each level's goal.", f8_p:"Dodge by dragging and blast incoming enemies with auto-fire in this neon flight shooter.", f9_p:"Eat glowing orbs, grow longer, and cut off the AI worms in this neon slither battle.", f10_p:"Rush-hour subway! Tap left and right to dodge trains and grab coffee for a boost.", f11_p:"Merge matching fruits into bigger ones. The goal: a giant watermelon.", f12_p:"Play Gomoku against the AI or a friend. First to line up five wins.", f16_p:"Drag block pieces onto an 8×8 board and clear full lines. Easy one-handed puzzle.",f17_p:"Climb endlessly with just two buttons. Tap the side where the next stair appears.", f18_p:"A low-poly time-attack racer. Shave off hundredths of a second and race your ghost car.",vis:"visitors", b_sht:"Shooter", b_run:"Runner", b_brd:"Board", b_mat:"Match-3", f6_p:"Beat the monsters by solving math problems before they reach you. Elementary grades 1-6.", b_edu:"Math",
  s5_eb:"Community Arcade",s5_h:"Everyone's games",s5_p:"Post the link to a web game you made with AI and it shows up here right away. No approval, no login.",
  s5_note:"Please post only games you made. A post cannot be edited or deleted.",s5_add:"+ Post my game",
  s5_fh:"Post my game",s5_fp:"A name and a link are all you need. It appears in the list below as soon as you post.",
@@ -1117,6 +1118,18 @@ function chalInit(){ var q; try{ q=new URLSearchParams(location.search); }catch(
   if(card.hasAttribute("data-play")){ openPlayer(card); chalSend(0); chalSend(500); chalSend(1600); }
   else openGame(slug,card); }
 setTimeout(chalInit,0);
+/* 누적 방문(기기 수): 이 기기에서 처음이면 한 번만 기록하고, 전체 기록 수를 센다. 이름·연락처는 저장하지 않는다.
+   숫자가 작을 때(VIS_MIN 미만)는 숨기고, 주소 끝에 ?stats 를 붙이면 항상 보인다 */
+(function(){ var VIS_MIN=100, T_VIS="visit";
+  function show(n){ var pill=document.getElementById("visitPill"),b=document.getElementById("visitN"); if(!pill||!b||typeof n!=="number") return;
+    if(n<VIS_MIN && !/[?&]stats\b/.test(location.search)) return;
+    b.textContent=n.toLocaleString(lang==="en"?"en":"ko-KR"); pill.hidden=false; }
+  function count(){ sb.from("comments").select("id",{count:"exact",head:true}).eq("thread",T_VIS).then(function(r){ if(r&&!r.error&&typeof r.count==="number") show(r.count); }); }
+  function run(){ if(navigator.webdriver) return; withSb(function(ok){ if(!ok) return;
+    var seen=false,mine=/(^|\.)skadnrwhd-web\.github\.io$/.test(location.hostname); try{ seen=!!localStorage.getItem("arc-visit"); }catch(e){}
+    if(seen||!mine) return count();     /* 이미 센 기기이거나 내 사이트가 아닌 곳(테스트)에서는 기록하지 않고 숫자만 본다 */
+    sb.from("comments").insert({thread:T_VIS,nickname:"방문",body:"1"}).then(function(r){ if(r&&!r.error){ try{ localStorage.setItem("arc-visit","1"); }catch(e){} } count(); }); }); }
+  setTimeout(run,2500); })();
 })();
 </script>
 <script src="rank.js"></script>
