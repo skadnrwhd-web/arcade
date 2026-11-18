@@ -55,13 +55,13 @@ button{font-family:inherit;color:inherit;border:0;background:none;padding:0;curs
   color:#ffe27a;opacity:0;transform:translateY(6px) scale(.9);transition:opacity .15s,transform .15s;
   text-shadow:0 0 14px rgba(255,190,60,.8),0 2px 6px #000}
 .comboTag.on{opacity:1;transform:translateY(0) scale(1)}
-.banner{position:absolute;left:0;right:0;top:38%;text-align:center;font-size:27px;font-weight:900;letter-spacing:-1px;
+.banner{position:absolute;left:0;right:0;top:14%;text-align:center;font-size:23px;font-weight:900;letter-spacing:-1px;
   opacity:0;transform:scale(.7);transition:opacity .16s,transform .16s;pointer-events:none;
   text-shadow:0 4px 20px rgba(0,0,0,.9);padding:0 16px;line-height:1.05}
 .banner.on{opacity:1;transform:scale(1)}
 .banner small{display:block;font-size:12px;font-weight:800;letter-spacing:2px;color:#c9d8ea;margin-top:6px;text-shadow:0 2px 8px #000}
 .banner.gold{color:#ffd766}
-.banner.huge{font-size:46px;letter-spacing:-2px;top:34%}
+.banner.huge{font-size:42px;letter-spacing:-2px;top:19%}
 .banner.huge small{font-size:13px;letter-spacing:3px}
 .banner.red{color:#ff6a5e}
 .banner.blue{color:#7fd0ff}
@@ -1079,14 +1079,14 @@ function drawBoxer(c, foe, o, t) {
     var pulse = 0.35 + 0.35 * Math.abs(Math.sin(o.t * 15));
     var a3 = armPath(tellSide);
     c.save();
-    c.globalAlpha = pulse * 0.55;
-    ell(c, a3.shX * 1.04, a3.shY - 0.01, 0.100, 0.105, 'rgba(255,58,48,.6)');
+    c.globalAlpha = pulse * 0.45;
+    ell(c, a3.shX * 1.03, a3.shY + 0.01, 0.072, 0.080, 'rgba(255,58,48,.6)');
     c.restore();
     c.save();
     c.globalAlpha = pulse * 0.85;
     ell(c, a3.glX, a3.glY, 0.062, 0.058, '#ff4b3a');
-    c.globalAlpha = pulse * 0.55;
-    ell(c, a3.glX, a3.glY, 0.085, 0.080, 'rgba(255,80,60,.6)');
+    c.globalAlpha = pulse * 0.40;
+    ell(c, a3.glX, a3.glY, 0.072, 0.068, 'rgba(255,80,60,.55)');
     c.restore();
     c.save();
     c.globalAlpha = 0.5 + 0.5 * Math.abs(Math.sin(o.t * 15));
@@ -1117,9 +1117,11 @@ function drawBoxer(c, foe, o, t) {
   }
   if (o.flash > 0) {
     c.save();
-    c.globalAlpha = clamp(o.flash / 0.18, 0, 1) * 0.5;
-    ell(c, 0, -0.90, 0.105, 0.098, '#fff');
-    ell(c, 0, -0.72, 0.17, 0.09, '#fff');
+    var fa2 = clamp(o.flash / 0.18, 0, 1);
+    c.globalAlpha = fa2 * 0.20;
+    ell(c, 0, -0.905, 0.095, 0.090, '#fff');
+    c.globalAlpha = fa2 * 0.10;
+    ell(c, 0, -0.73, 0.14, 0.07, '#fff');
     c.restore();
   }
   c.restore();
@@ -1158,7 +1160,7 @@ function drawGloves(c, t) {
   var P = F.p;
   var r = CW * 0.128;
   var yBase = CH * 0.725;
-  var lx = CW * 0.135, rx = CW * 0.865;
+  var lx = CW * 0.155, rx = CW * 0.845;
   var lrot = 0.20, rrot = -0.20;
 
   if (P.sway) {
@@ -1253,7 +1255,7 @@ function drawFX(c) {
     if (f.k === 'hit' || f.k === 'counter') {
       var big = f.k === 'counter';
       var small = f.small ? 0.55 : 1;
-      var s = (big ? 1.25 : 0.9) * small * (0.55 + easeOut(p) * 1.0);
+      var s = (big ? 0.95 : 0.75) * small * (0.55 + easeOut(p) * 1.0);
       var a = (1 - p) * (big ? 1 : 0.85);
       /* 방사형 만화 스피드라인 */
       c.save();
@@ -1264,7 +1266,7 @@ function drawFX(c) {
       for (var k = 0; k < n; k++) {
         var ang = (k / n) * 6.2832 + f.seed;
         var r0 = (big ? 46 : 30) * s;
-        var r1 = r0 + (big ? 92 : 62) * (0.6 + (k % 3) * 0.2) * (0.4 + easeOut(p));
+        var r1 = r0 + (big ? 74 : 50) * (0.6 + (k % 3) * 0.2) * (0.4 + easeOut(p));
         c.lineWidth = (big ? 5 : 3) * (1 - p * 0.6);
         c.beginPath();
         c.moveTo(f.x + Math.cos(ang) * r0, f.y + Math.sin(ang) * r0);
@@ -1273,7 +1275,7 @@ function drawFX(c) {
       }
       c.restore();
       /* 별 폭발 */
-      starGlow(f.x, f.y, (big ? 62 : 46) * small * (0.6 + easeOut(p) * 0.8), a * (big ? 0.55 : 0.5));
+      starGlow(f.x, f.y, (big ? 30 : 24) * small * (0.6 + easeOut(p) * 0.8), a * (big ? 0.22 : 0.20));
       c.save();
       c.globalAlpha = a;
       c.fillStyle = big ? '#fff3c4' : '#ffffff';
@@ -1553,7 +1555,7 @@ function startFight(mode, idx) {
 
   F = {
     mode: mode, ci: idx, foe: foe, st: st,
-    ohp: foe.hp, omax: foe.hp, hpTrail: foe.hp,
+    ohp: foe.hp, omax: foe.hp, hpTrail: 1,
     php: pmax, pmax: pmax,
     psta: pmaxsta, pmaxsta: pmaxsta,
     spirit: 0,
@@ -1644,7 +1646,7 @@ function resolvePlayerHit(p) {
     if (Math.random() < slipChance) slip = true;
   }
   var hx = CW * 0.5 + (p.hand < 0 ? -CW * 0.055 : CW * 0.055);
-  var hy = CH * 0.325;
+  var hy = CH * 0.355;
 
   if (slip) {
     addFX({ k: 'whiff', x: CW * 0.5, y: CH * 0.46, dir: p.hand, dur: 0.3 });
