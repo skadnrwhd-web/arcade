@@ -758,7 +758,8 @@ function predictShot(cbx,cby,ang,speed,top,side,skip){
     nx/=nl; ny/=nl;
     var dot=dx*nx+dy*ny; if(dot<0) dot=0;
     var amp=top*(0.28+0.72*dot)*0.62;
-    var cdx=dx-dot*nx+dx*amp, cdy=dy-dot*ny+dy*amp;
+    var K=(1+REST_BALL)*0.5;              /* 실제 물리와 같은 반발 계수 */
+    var cdx=dx-K*dot*nx+dx*amp, cdy=dy-K*dot*ny+dy*amp;
     return {type:'ball', t:bestT, gi:bi, gx:gx, gy:gy, nx:nx, ny:ny,
             ox:best.x, oy:best.y, cdx:cdx, cdy:cdy};
   }
