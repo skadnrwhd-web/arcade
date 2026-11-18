@@ -858,7 +858,7 @@ var S={
   innings:[1,1], score:[0,0], combo:[0,0], bestCombo:[0,0], hits:[0,0], fouls:[0,0],
   maxInnings:10, aiLevel:0, aiThinking:false,
   pull:0, aimAngle:-Math.PI/2, spinTop:0, spinSide:0,
-  dragId:null, dragDist:0,
+  dragId:null, dragDist:0, dragStart:null, dragMoved:false,
   strokeT:0, strokeGap:0, strokeFrom:0,
   settleT:0, rollT:0,
   chal:0, chalHit:false, best:0, soundN:0
@@ -1099,23 +1099,31 @@ function onDown(e){
   if(S.phase!=='aim' || !isHumanTurn()) return;
   if(S.dragId!==null) return;
   S.dragId=e.pointerId;
+  var p=evPt(e);
+  S.dragStart={x:p.x,y:p.y}; S.dragMoved=false;
   try{ cv.setPointerCapture(e.pointerId); }catch(err){}
-  applyPull(evPt(e));
+  applyPull(p);
   e.preventDefault();
 }
 function onMove(e){
   if(S.dragId===null || e.pointerId!==S.dragId) return;
-  applyPull(evPt(e));
+  var p=evPt(e);
+  if(!S.dragMoved){
+    var dx=p.x-S.dragStart.x, dy=p.y-S.dragStart.y;
+    if(dx*dx+dy*dy>25) S.dragMoved=true;      /* 살짝 튕긴 탭으로는 샷이 나가지 않게 */
+  }
+  if(S.dragMoved) applyPull(p);
 }
 function onUp(e){
   if(S.dragId===null || (e.pointerId!==S.dragId && e.type!=='pointercancel')) return;
   try{ cv.releasePointerCapture(S.dragId); }catch(err){}
   S.dragId=null;
-  if(S.pull>0.055 && S.phase==='aim'){
+  if(S.dragMoved && S.pull>0.055 && S.phase==='aim'){
     beginStroke(S.aimAngle,S.pull,S.spinTop,S.spinSide);
   } else {
     S.pull=0; setPowerUI(0);
   }
+  S.dragMoved=false;
 }
 function applyPull(p){
   var cb=balls[S.turn];
