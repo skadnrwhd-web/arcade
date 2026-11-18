@@ -62,29 +62,63 @@ html,body{margin:0;height:100%;overflow:hidden;background:#04070a;color:#e9f1ec;
 #banner.bad{color:#ff8b7a}
 #banner.small{font-size:19px}
 
-/* ── 하단 컨트롤 ── */
-#bottom{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;align-items:flex-end;justify-content:space-between;
-  gap:8px;padding:4px 12px calc(9px + env(safe-area-inset-bottom));pointer-events:none}
-#spinWrap{display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:auto}
+/* ── 하단 컨트롤 (① 각도 → ② 당점 → ③ 파워) ── */
+#bottom{position:absolute;left:0;right:0;bottom:0;z-index:6;display:flex;flex-direction:column;gap:6px;
+  padding:2px 12px calc(9px + env(safe-area-inset-bottom));pointer-events:none}
+#ctlMid{display:flex;align-items:flex-end;gap:10px;min-height:84px}
+#spinWrap{display:flex;flex-direction:column;align-items:center;gap:3px;flex:0 0 auto;
+  pointer-events:auto;transition:opacity .18s}
+#spinWrap.off{opacity:.32;pointer-events:none}
+#spinWrap.on{animation:spinBob 1.6s ease-in-out infinite}
+@keyframes spinBob{0%,100%{transform:scale(1)}50%{transform:scale(1.055)}}
 .cap{font-size:9.5px;letter-spacing:1.2px;color:#8fa89a;font-weight:800}
+#spinWrap.on .cap{color:#ffdc8a}
 #spinPad{position:relative;width:78px;height:78px;border-radius:50%;touch-action:none;
   background:radial-gradient(circle at 34% 28%,#ffffff 0%,#eef2f0 38%,#c3cdc9 72%,#8d9a96 100%);
   box-shadow:0 0 0 1px rgba(0,0,0,.45),0 6px 16px rgba(0,0,0,.5),inset 0 -6px 12px rgba(0,0,0,.18)}
+#spinWrap.on #spinPad{box-shadow:0 0 0 2px rgba(255,220,138,.92),0 0 0 7px rgba(255,205,90,.16),0 6px 16px rgba(0,0,0,.5),inset 0 -6px 12px rgba(0,0,0,.18)}
 #spinPad .cross{position:absolute;background:rgba(20,60,45,.22);border-radius:2px}
 #spinPad .cross.h{left:7%;right:7%;top:50%;height:1px}
 #spinPad .cross.v{top:7%;bottom:7%;left:50%;width:1px}
 #spinDot{position:absolute;left:50%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;
   background:radial-gradient(circle at 34% 30%,#ff8f7a,#d92f13 62%,#8c1706);box-shadow:0 1px 4px rgba(0,0,0,.5)}
+#spinWrap.on #spinDot{width:15px;height:15px;margin:-7.5px 0 0 -7.5px}
 #spinName{font-size:10px;color:#a9c3b5;font-weight:700;white-space:nowrap}
-#hintBox{flex:1;text-align:center;padding-bottom:14px;min-width:0}
-#hint{font-size:11.5px;line-height:1.35;color:#9fb7aa;margin:0}
+#spinWrap.on #spinName{color:#ffe6a6}
+#midCol{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;
+  padding-bottom:5px;pointer-events:auto}
+#steps{display:flex;gap:5px;justify-content:center}
+.stp{font-size:10.5px;font-weight:800;letter-spacing:.15px;padding:3px 8px;border-radius:999px;white-space:nowrap;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);color:#7c9488;transition:color .15s,background .15s}
+.stp i{font-style:normal;margin-right:2px;opacity:.9}
+.stp.on{background:linear-gradient(180deg,#2f7d59,#1d5040);border-color:#46a878;color:#eafff2}
+.stp.done{background:rgba(62,150,110,.15);border-color:rgba(90,200,140,.28);color:#a9d8bd}
+#bottom.busy #steps{opacity:.4}
+#bottom.busy #spinWrap{opacity:.28}
+#hint{font-size:11.5px;line-height:1.35;color:#9fb7aa;margin:0;text-align:center;width:100%}
 #hint b{color:#e8c87a}
-#powerWrap{display:flex;flex-direction:column;align-items:center;gap:3px;pointer-events:none;width:44px}
-#powerBar{position:relative;width:15px;height:78px;border-radius:8px;background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.14);overflow:hidden}
-#powerFill{position:absolute;left:0;right:0;bottom:0;height:0%;border-radius:7px;
-  background:linear-gradient(180deg,#ff6a3d 0%,#ffc93c 42%,#59e08a 100%)}
-#powerTxt{font-size:10px;font-weight:800;color:#cfe0d6;font-variant-numeric:tabular-nums}
+#ctxt{position:relative;height:36px;display:flex;align-items:center}
+#pRow{position:absolute;left:0;right:0;bottom:3px;height:28px;display:flex;align-items:center;gap:7px}
+#pRow[hidden]{display:none}
+#pBar{position:relative;flex:1;height:28px;border-radius:9px;overflow:hidden;touch-action:none;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14)}
+#pBar::before{content:"";position:absolute;left:0;right:0;top:0;bottom:0;opacity:.95;
+  background:linear-gradient(90deg,#3fbe82 0%,#a8c93c 46%,#ffbe3c 74%,#ff5f3a 100%);
+  clip-path:inset(0 calc(100% - var(--p,0%)) 0 0)}
+#pKnob{position:absolute;top:-2px;bottom:-2px;left:0;width:3px;border-radius:2px;background:#fff;
+  box-shadow:0 0 6px rgba(255,255,255,.75);transform:translateX(-1.5px)}
+#pVal{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10.5px;font-weight:800;
+  color:#f2fbf5;text-shadow:0 1px 2px rgba(0,0,0,.85);font-variant-numeric:tabular-nums}
+#ctlNav{display:flex;gap:7px;pointer-events:auto}
+.navBtn{flex:1;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.16);
+  background:rgba(255,255,255,.08);color:#e9f1ec;font-family:inherit;font-size:13px;font-weight:800;
+  transition:transform .1s;-webkit-appearance:none}
+.navBtn:active{transform:scale(.97)}
+.navBtn.tiny2{flex:0 0 54px;font-size:15px}
+.navBtn.go{background:linear-gradient(180deg,#3fbe82,#218a5b);border-color:rgba(120,240,180,.5);color:#04160d}
+.navBtn.shot{flex:1.5;background:linear-gradient(180deg,#f4d493,#d8a94f);border-color:#f3d9a5;color:#221503;font-size:15px}
+.navBtn[hidden]{display:none}
+#bottom.busy #ctlNav{opacity:.45;pointer-events:none}
 
 /* ── 오버레이 ── */
 .overlay{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
@@ -128,7 +162,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#04070a;color:#e9f1ec;
 .statRow b{display:block;font-size:14px;color:#e9f1ec;margin-top:2px;font-variant-numeric:tabular-nums}
 #overTitle{font-size:18px;font-weight:900;margin:0;color:#e9f1ec}
 
-#toast{position:absolute;left:50%;bottom:calc(112px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(8px);
+#toast{position:absolute;left:50%;bottom:calc(152px + env(safe-area-inset-bottom));transform:translateX(-50%) translateY(8px);
   z-index:8;padding:7px 13px;border-radius:999px;background:rgba(10,20,16,.9);border:1px solid rgba(255,255,255,.16);
   font-size:11.5px;font-weight:700;color:#d9ece1;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
@@ -162,20 +196,36 @@ html,body{margin:0;height:100%;overflow:hidden;background:#04070a;color:#e9f1ec;
   <div id="aiNote">AI가 샷을 계산하고 있어요<i id="aiNoteSub">후보 샷 시뮬레이션</i></div>
 
   <footer id="bottom">
-    <div id="spinWrap">
-      <span class="cap">당점</span>
-      <div id="spinPad" role="slider" tabindex="0" aria-label="당점 조절" aria-valuetext="중앙">
-        <i class="cross h"></i><i class="cross v"></i><b id="spinDot"></b>
+    <div id="ctlMid">
+      <div id="spinWrap">
+        <span class="cap">당점</span>
+        <div id="spinPad" role="slider" tabindex="0" aria-label="당점 조절" aria-valuetext="중앙">
+          <i class="cross h"></i><i class="cross v"></i><b id="spinDot"></b>
+        </div>
+        <span id="spinName">중앙</span>
       </div>
-      <span id="spinName">중앙</span>
+      <div id="midCol">
+        <div id="steps">
+          <span class="stp"><i>①</i>각도</span>
+          <span class="stp"><i>②</i>당점</span>
+          <span class="stp"><i>③</i>파워</span>
+        </div>
+        <div id="ctxt">
+          <p id="hint">당구대를 끌어 <b>각도</b>를 맞추세요</p>
+          <div id="pRow" hidden>
+            <div id="pBar" role="slider" tabindex="0" aria-label="파워 조절" aria-valuemin="0" aria-valuemax="100" aria-valuetext="0">
+              <i id="pKnob"></i><span id="pVal">0</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div id="hintBox">
-      <p id="hint">공을 <b>뒤로 당겼다</b> 놓으면 샷!</p>
-    </div>
-    <div id="powerWrap">
-      <span class="cap">파워</span>
-      <div id="powerBar"><i id="powerFill"></i></div>
-      <span id="powerTxt">0</span>
+    <div id="ctlNav">
+      <button class="navBtn tiny2" id="angL" type="button" aria-label="각도 미세 조정 왼쪽">◀</button>
+      <button class="navBtn tiny2" id="angR" type="button" aria-label="각도 미세 조정 오른쪽">▶</button>
+      <button class="navBtn" id="btnBack" type="button">← 각도</button>
+      <button class="navBtn go" id="btnNext" type="button">다음: 당점 →</button>
+      <button class="navBtn shot" id="btnShot" type="button">🎱 샷!</button>
     </div>
   </footer>
 
@@ -185,6 +235,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#04070a;color:#e9f1ec;
       <h1>실사판 <em>4구</em> 당구</h1>
       <p class="sub">REAL 4-BALL CAROM</p>
       <ul class="rules">
+        <li><b>① 각도</b> → <b>② 당점</b> → <b>③ 파워</b> 순서로 조작해요 · 버튼으로 앞 단계로 돌아갈 수 있어요</li>
         <li><b>흰 공</b>으로 <b>빨간 공 2개</b>를 모두 맞히면 <em>+10</em> · 연속 성공 보너스 · 계속 칩니다</li>
         <li><b>노란 공</b>을 먼저 맞히면 <em class="bad">-10</em> 파울, 턴이 넘어가요</li>
         <li>당점(상·하·좌·우)으로 밀어치기·끌어치기·히네리를 걸 수 있어요</li>
@@ -200,7 +251,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#04070a;color:#e9f1ec;
         <button class="btn line" id="btnRankStart" type="button">🏆 랭킹</button>
         <button class="btn line" id="btnSoundStart" type="button">🔊 소리 켜짐</button>
       </div>
-      <p class="tiny">당구대를 공 반대쪽으로 끌어 <b>당겨 놓으면</b> 큐대가 앞으로 찔러 칩니다 · 실제 당구대 규격(2:1) 비율</p>
+      <p class="tiny">1단계에서 당구대를 눌러 조준 → 2단계에서 당점 → 3단계에서 파워를 정하고 <b>🎱 샷!</b> · 실제 당구대 규격(2:1) 비율</p>
     </div>
   </div>
 
@@ -454,7 +505,8 @@ function Y(y){ return LAY.py+y*LAY.s; }
 
 function layout(){
   var cw=app.clientWidth||390, ch=app.clientHeight||844;
-  var topH=54, botH=Math.max(96,Math.min(124,ch*0.135));
+  var topH=54, botH=(EL&&EL.bottom&&EL.bottom.offsetHeight)||152;
+  if(botH<80) botH=152;
   var availW=cw-14, availH=ch-topH-botH-10;
   var s=Math.min(availW/(TW+2*RAIL), availH/(TH+2*RAIL));
   var ow=(TW+2*RAIL)*s, oh=(TH+2*RAIL)*s;
@@ -777,7 +829,6 @@ function predictShot(cbx,cby,ang,speed,top,side,skip){
 
 function drawGuide(){
   if(S.phase!=='aim' || !isHumanTurn()) return;
-  if(S.pull<=0.02) return;
   var cb=balls[S.turn];
   var ang=S.aimAngle;
   var p=predictShot(cb.x,cb.y,ang,1,S.spinTop,S.spinSide);
@@ -858,6 +909,7 @@ var S={
   innings:[1,1], score:[0,0], combo:[0,0], bestCombo:[0,0], hits:[0,0], fouls:[0,0],
   maxInnings:10, aiLevel:0, aiThinking:false,
   pull:0, aimAngle:-Math.PI/2, spinTop:0, spinSide:0,
+  step:1,
   dragId:null, dragDist:0, dragStart:null, dragMoved:false,
   strokeT:0, strokeGap:0, strokeFrom:0,
   settleT:0, rollT:0,
@@ -886,8 +938,9 @@ var EL={
   modePill:$('modePill'), inningPill:$('inningPill'), turnPill:$('turnPill'),
   scoreVal:$('scoreVal'), oppBar:$('oppBar'), oppName:$('oppName'), oppScore:$('oppScore'),
   comboBadge:$('comboBadge'), comboVal:$('comboVal'), banner:$('banner'), aiNote:$('aiNote'), aiNoteSub:$('aiNoteSub'),
-  powerFill:$('powerFill'), powerTxt:$('powerTxt'), hint:$('hint'),
-  spinPad:$('spinPad'), spinDot:$('spinDot'), spinName:$('spinName'),
+  hint:$('hint'), spinWrap:$('spinWrap'), spinPad:$('spinPad'), spinDot:$('spinDot'), spinName:$('spinName'),
+  bottom:$('bottom'), steps:$('steps'), pRow:$('pRow'), pBar:$('pBar'), pKnob:$('pKnob'), pVal:$('pVal'),
+  angL:$('angL'), angR:$('angR'), btnBack:$('btnBack'), btnNext:$('btnNext'), btnShot:$('btnShot'),
   startScr:$('startScr'), menuScr:$('menuScr'), overScr:$('overScr'), toast:$('toast')
 };
 
@@ -938,11 +991,82 @@ function updateHUD(){
   EL.spinName.textContent=spinLabel();
   EL.spinDot.style.transform='translate('+(S.spinSide*27)+'px,'+(-S.spinTop*27)+'px)';
   EL.spinPad.setAttribute('aria-valuetext',spinLabel());
+  syncCtl();
 }
 
 function setPowerUI(p){
-  EL.powerFill.style.height=Math.round(p*100)+'%';
-  EL.powerTxt.textContent=Math.round(p*100);
+  p=clamp(p,0,1);
+  if(EL.pBar) EL.pBar.style.setProperty('--p',Math.round(p*100)+'%');
+  if(EL.pKnob) EL.pKnob.style.left=Math.round(p*100)+'%';
+  if(EL.pVal) EL.pVal.textContent=Math.round(p*100);
+  if(EL.pBar) EL.pBar.setAttribute('aria-valuetext',Math.round(p*100));
+}
+
+/* ══════════ 3단계 순서 조작 ══════════ */
+function ctlActive(){ return S.phase==='aim' && isHumanTurn(); }
+
+function refreshHint(){
+  if(!EL.hint) return;
+  if(!ctlActive()){
+    var m;
+    if(S.phase==='ai') m='AI가 샷을 계산하고 있어요…';
+    else if(S.phase==='roll'||S.phase==='settle'||S.phase==='stroke') m='공이 구르는 중…';
+    else if(S.phase==='wait') m='공이 멈췄어요';
+    else if(S.phase==='over') m='게임이 끝났어요';
+    else if(S.phase==='aim') m='2P 노란 공 차례';
+    else m='잠시 기다려 주세요';
+    EL.hint.innerHTML=m;
+    return;
+  }
+  if(S.step===1) EL.hint.innerHTML='당구대를 끌어 <b>각도</b>를 맞추세요 · <b>'+(S.aimAngle*180/Math.PI).toFixed(1)+'°</b>';
+  else if(S.step===2) EL.hint.innerHTML='공을 눌러 <b>당점</b>을 찍으세요 · <b>'+spinLabel()+'</b>';
+  else EL.hint.innerHTML='끌어다 놓거나 <b>🎱 샷!</b> · 파워 <b>'+Math.round(S.pull*100)+'</b>';
+}
+
+function syncCtl(){
+  var bot=EL.bottom; if(!bot) return;
+  var act=ctlActive(), st=S.step||1, i, n;
+  bot.className='st'+st+(act?'':' busy');
+  var chips=EL.steps?EL.steps.children:[];
+  for(i=0;i<chips.length;i++){
+    n=i+1;
+    chips[i].className='stp'+(act&&n===st?' on':(act&&n<st?' done':''));
+  }
+  if(EL.spinWrap) EL.spinWrap.className=(act&&st===2)?'on':'off';
+  if(EL.angL) EL.angL.hidden=!(act&&st===1);
+  if(EL.angR) EL.angR.hidden=!(act&&st===1);
+  if(EL.btnBack) EL.btnBack.hidden=!(act&&st>1);
+  if(EL.btnNext) EL.btnNext.hidden=!(act&&st<3);
+  if(EL.btnShot) EL.btnShot.hidden=!(act&&st===3);
+  if(EL.pRow) EL.pRow.hidden=!(act&&st===3);
+  if(EL.hint) EL.hint.style.visibility=(act&&st===3)?'hidden':'';
+  if(EL.btnNext) EL.btnNext.textContent=(st===1?'다음: 당점 →':'다음: 파워 →');
+  if(EL.btnBack) EL.btnBack.textContent=(st===2?'← 각도':'← 당점');
+  refreshHint();
+}
+
+function enterStep(n){
+  if(!ctlActive()) return;
+  n=clamp(n,1,3);
+  if(n===S.step) return;
+  S.step=n; S.dragId=null; S.dragMoved=false;
+  if(n===1){ S.pull=0; setPowerUI(0); }
+  else if(n===3 && S.pull<0.06){ S.pull=0.45; setPowerUI(S.pull); }
+  sfx('tap',50);
+  updateHUD();
+}
+
+function fireShotFromUI(){
+  if(!ctlActive() || S.step!==3) return;
+  if(S.pull<0.06){ S.pull=0.45; setPowerUI(S.pull); }
+  beginStroke(S.aimAngle,S.pull,S.spinTop,S.spinSide);
+}
+
+function nudgeAngle(deg){
+  if(!ctlActive() || S.step!==1) return;
+  S.aimAngle+=deg*Math.PI/180;
+  sfx('tap',40);
+  refreshHint();
 }
 
 /* ══════════ 게임 시작 / 종료 ══════════ */
@@ -958,13 +1082,12 @@ function startGame(mode){
   S.mode=mode; S.aiLevel=M.ai; S.maxInnings=M.innings;
   S.turn=0; S.innings=[1,1]; S.score=[0,0]; S.combo=[0,0]; S.bestCombo=[0,0];
   S.hits=[0,0]; S.fouls=[0,0];
-  S.phase='aim'; S.pull=0; S.dragId=null; S.aimAngle=-Math.PI/2;
+  S.phase='aim'; S.pull=0; S.dragId=null; S.aimAngle=-Math.PI/2; S.step=1; S.dragMoved=false;
   S.spinTop=0; S.spinSide=0; S.aiThinking=false; S.chalHit=false;
   setupBalls();
   EL.startScr.hidden=true; EL.menuScr.hidden=true; EL.overScr.hidden=true;
   EL.aiNote.classList.remove('on');
   setPowerUI(0); updateHUD();
-  EL.hint.innerHTML='공을 <b>뒤로 당겼다</b> 놓으면 샷!';
   try{ audioInitOnce(); }catch(e){}
 }
 
@@ -1012,6 +1135,7 @@ function beginStroke(angle,power,top,side){
   S.strokeT=0; S.strokeGap=S.strokeFrom;
   S.phase='stroke';
   setPowerUI(power);
+  updateHUD();
   try{ aCtx(); }catch(e){}
 }
 
@@ -1082,27 +1206,45 @@ function afterTurn(cont){
       S.turn=1-S.turn;
     }
   }
-  S.phase='aim'; S.pull=0; setPowerUI(0);
-  EL.hint.innerHTML=(S.mode==='pvp')?((S.turn===0?'1P 흰 공':'2P 노란 공')+' · 뒤로 당겼다 놓으면 샷!'):'공을 <b>뒤로 당겼다</b> 놓으면 샷!';
+  S.phase='aim'; S.pull=0; S.step=1; S.dragId=null; S.dragMoved=false; setPowerUI(0);
   updateHUD();
   if(isAIMode() && S.turn===1) aiTurn();
 }
 
-/* ══════════ 입력: 조준 · 당기기 ══════════ */
+/* ══════════ 입력: ① 각도 · ② 당점 · ③ 파워 ══════════ */
 function evPt(e){
   var r=cv.getBoundingClientRect();
   return { x:(e.clientX-r.left), y:(e.clientY-r.top) };
 }
 function pullMax(){ return Math.max(120,Math.min(LAY.cw*0.42,LAY.ch*0.30)); }
 
+/* ① 각도: 손가락이 가리키는 쪽으로 조준선이 따라온다 (파워는 건드리지 않음) */
+function aimTo(p){
+  var cb=balls[S.turn]; if(!cb) return;
+  var cx=X(cb.x), cy=Y(cb.y);
+  var dx=p.x-cx, dy=p.y-cy;
+  if(dx*dx+dy*dy<256) return;         /* 공 위 16px 이내는 무시 */
+  S.aimAngle=Math.atan2(dy,dx);
+  refreshHint();
+}
+/* ③ 파워: 조준선 뒤로 당긴 거리만큼 (각도는 고정) */
+function powerAt(p){
+  var cb=balls[S.turn]; if(!cb) return;
+  var cx=X(cb.x), cy=Y(cb.y);
+  var ax=Math.cos(S.aimAngle), ay=Math.sin(S.aimAngle);
+  var back=-((p.x-cx)*ax+(p.y-cy)*ay);
+  S.pull=clamp((back-16)/pullMax(),0,1);
+  setPowerUI(S.pull); refreshHint();
+}
+
 function onDown(e){
-  if(S.phase!=='aim' || !isHumanTurn()) return;
-  if(S.dragId!==null) return;
+  if(!ctlActive() || S.dragId!==null) return;
   S.dragId=e.pointerId;
   var p=evPt(e);
   S.dragStart={x:p.x,y:p.y}; S.dragMoved=false;
   try{ cv.setPointerCapture(e.pointerId); }catch(err){}
-  applyPull(p);
+  if(S.step===1) aimTo(p);
+  else if(S.step===3) powerAt(p);
   e.preventDefault();
 }
 function onMove(e){
@@ -1112,30 +1254,18 @@ function onMove(e){
     var dx=p.x-S.dragStart.x, dy=p.y-S.dragStart.y;
     if(dx*dx+dy*dy>25) S.dragMoved=true;      /* 살짝 튕긴 탭으로는 샷이 나가지 않게 */
   }
-  if(S.dragMoved) applyPull(p);
+  if(!S.dragMoved) return;
+  if(S.step===1) aimTo(p);
+  else if(S.step===3) powerAt(p);
 }
 function onUp(e){
   if(S.dragId===null || (e.pointerId!==S.dragId && e.type!=='pointercancel')) return;
   try{ cv.releasePointerCapture(S.dragId); }catch(err){}
   S.dragId=null;
-  if(S.dragMoved && S.pull>0.055 && S.phase==='aim'){
-    beginStroke(S.aimAngle,S.pull,S.spinTop,S.spinSide);
-  } else {
-    S.pull=0; setPowerUI(0);
+  if(S.step===3 && S.dragMoved && S.pull>0.055 && ctlActive()){
+    beginStroke(S.aimAngle,S.pull,S.spinTop,S.spinSide);   /* 당겼다 놓으면 발사 */
   }
   S.dragMoved=false;
-}
-function applyPull(p){
-  var cb=balls[S.turn];
-  var cx=X(cb.x), cy=Y(cb.y);
-  var dx=cx-p.x, dy=cy-p.y;         /* 손가락 반대쪽으로 공이 날아간다 */
-  var d=Math.sqrt(dx*dx+dy*dy);
-  S.dragDist=d;
-  if(d<9){ S.pull=0; setPowerUI(0); return; }
-  S.aimAngle=Math.atan2(dy,dx);
-  S.pull=clamp((d-9)/pullMax(),0,1);
-  setPowerUI(S.pull);
-  EL.hint.innerHTML=S.pull>0.85?'💥 풀파워!':(S.pull>0.45?'힘 조절 중…':'살살…');
 }
 
 /* 당점 위젯 */
@@ -1154,12 +1284,30 @@ function spinApply(e){
   updateHUD();
 }
 function spinDown(e){
+  if(!ctlActive() || S.step!==2) return;
   spinDrag=e.pointerId;
   try{ EL.spinPad.setPointerCapture(e.pointerId); }catch(err){}
   spinApply(e); sfx('tap',60); e.preventDefault();
 }
 function spinMove(e){ if(spinDrag===null||e.pointerId!==spinDrag) return; spinApply(e); }
 function spinUp(e){ if(spinDrag===null) return; spinDrag=null; try{ EL.spinPad.releasePointerCapture(e.pointerId); }catch(err){} }
+
+/* 파워 게이지 드래그 */
+var pDrag=null;
+function pBarSet(e){
+  var r=EL.pBar.getBoundingClientRect();
+  if(!r.width) return;
+  S.pull=clamp((e.clientX-r.left)/r.width,0.05,1);
+  setPowerUI(S.pull); refreshHint();
+}
+function pDown(e){
+  if(!ctlActive() || S.step!==3) return;
+  pDrag=e.pointerId;
+  try{ EL.pBar.setPointerCapture(e.pointerId); }catch(err){}
+  pBarSet(e); sfx('tap',40); e.preventDefault();
+}
+function pMove(e){ if(pDrag===null||e.pointerId!==pDrag) return; pBarSet(e); }
+function pUp(e){ if(pDrag===null) return; pDrag=null; try{ EL.pBar.releasePointerCapture(e.pointerId); }catch(err){} }
 
 function bindInput(){
   cv.addEventListener('pointerdown',onDown,{passive:false});
@@ -1171,6 +1319,11 @@ function bindInput(){
   EL.spinPad.addEventListener('pointerup',spinUp);
   EL.spinPad.addEventListener('pointercancel',spinUp);
   EL.spinPad.addEventListener('dblclick',function(){ S.spinTop=0; S.spinSide=0; updateHUD(); });
+  /* 파워 게이지 (3단계) */
+  EL.pBar.addEventListener('pointerdown',pDown,{passive:false});
+  EL.pBar.addEventListener('pointermove',pMove,{passive:false});
+  EL.pBar.addEventListener('pointerup',pUp);
+  EL.pBar.addEventListener('pointercancel',pUp);
 }
 
 /* ══════════ AI: 후보 샷 시뮬레이션 ══════════ */
@@ -1407,11 +1560,13 @@ function openMenu(){
   pausedFrom=S.phase; S.phase='paused'; S.pull=0; S.dragId=null; setPowerUI(0);
   EL.menuScr.hidden=false;
   sfx('tap',50);
+  updateHUD();
 }
 function closeMenu(){
   EL.menuScr.hidden=true;
   if(pausedFrom){ S.phase=pausedFrom; pausedFrom=null; }
   else if(S.phase==='paused') S.phase='aim';
+  updateHUD();
 }
 function openRank(){
   if(window.ArcadeRank){ try{ ArcadeRank.open({ id:'fourball-billiards' }); }catch(e){ toast('랭킹을 열 수 없어요'); } }
@@ -1427,6 +1582,12 @@ function bindUI(){
       startGame(m);
     });
   }
+  /* 단계 이동 · 각도 미세 조정 */
+  bindHold(EL.angL,function(){ nudgeAngle(-0.25); });
+  bindHold(EL.angR,function(){ nudgeAngle(0.25); });
+  EL.btnNext.addEventListener('click',function(){ enterStep(S.step+1); });
+  EL.btnBack.addEventListener('click',function(){ enterStep(S.step-1); });
+  EL.btnShot.addEventListener('click',fireShotFromUI);
   $('btnRankStart').addEventListener('click',function(){ sfx('tap',40); openRank(); });
   $('btnSoundStart').addEventListener('click',function(){ setMute(!AU.muted); audioInitOnce(); });
   $('btnSound').addEventListener('click',function(){ setMute(!AU.muted); audioInitOnce(); });
@@ -1434,7 +1595,7 @@ function bindUI(){
   $('mResume').addEventListener('click',function(){ sfx('tap',40); closeMenu(); });
   $('mReset').addEventListener('click',function(){
     if(S.phase==='roll'){ toast('공이 멈춘 뒤에 다시 세팅할 수 있어요'); return; }
-    setupBalls(); S.pull=0; setPowerUI(0); S.phase='aim'; closeMenu(); toast('공을 다시 세팅했어요');
+    setupBalls(); S.pull=0; S.step=1; setPowerUI(0); S.phase='aim'; closeMenu(); toast('공을 다시 세팅했어요');
   });
   $('mRestart').addEventListener('click',function(){ sfx('tap',40); var m=S.mode; EL.menuScr.hidden=true; pausedFrom=null; startGame(m); });
   $('mMode').addEventListener('click',function(){ EL.menuScr.hidden=true; pausedFrom=null; toStartScreen(); });
@@ -1443,6 +1604,22 @@ function bindUI(){
   $('overAgain').addEventListener('click',function(){ sfx('tap',40); startGame(S.mode); });
   $('overMode').addEventListener('click',toStartScreen);
   $('overRank').addEventListener('click',openRank);
+}
+
+/* 버튼을 누르고 있으면 계속 반복 */
+function bindHold(el,fn){
+  if(!el) return;
+  var t=null, iv=null;
+  function stop(){ if(t){ clearTimeout(t); t=null; } if(iv){ clearInterval(iv); iv=null; } }
+  el.addEventListener('pointerdown',function(e){
+    e.preventDefault(); fn();
+    stop();
+    t=setTimeout(function(){ iv=setInterval(fn,70); },380);
+  });
+  el.addEventListener('pointerup',stop);
+  el.addEventListener('pointerleave',stop);
+  el.addEventListener('pointercancel',stop);
+  el.addEventListener('click',function(e){ e.preventDefault(); });
 }
 
 function toStartScreen(){
@@ -1497,12 +1674,24 @@ function onResize(){
   window.__fb={
     errors:ERRORS,
     state:function(){
-      return { phase:S.phase, mode:S.mode, turn:S.turn, innings:S.innings.slice(), score:S.score.slice(),
+      return { phase:S.phase, mode:S.mode, turn:S.turn, step:S.step, power:+S.pull.toFixed(3),
+        aim:+(S.aimAngle*180/Math.PI).toFixed(1), innings:S.innings.slice(), score:S.score.slice(),
         combo:S.combo.slice(), hits:S.hits.slice(), fouls:S.fouls.slice(), aiThinking:S.aiThinking,
         dpr:LAY.dpr, s:LAY.s, table:{ox:LAY.ox,oy:LAY.oy,ow:LAY.ow,oh:LAY.oh},
         canvas:{w:cv.width,h:cv.height,cw:LAY.cw,ch:LAY.ch},
         balls:balls.map(function(b){ return {k:b.k,x:+b.x.toFixed(2),y:+b.y.toFixed(2),v:+Math.sqrt(b.vx*b.vx+b.vy*b.vy).toFixed(1)}; }) };
     },
+    step:function(n){ enterStep(n); return S.step; },
+    ctl:function(){
+      return { step:S.step, active:ctlActive(), spin:EL.spinWrap.className,
+        angBtns:(!EL.angL.hidden), back:EL.btnBack.hidden?'':EL.btnBack.textContent,
+        next:EL.btnNext.hidden?'':EL.btnNext.textContent, shot:(!EL.btnShot.hidden),
+        slider:(!EL.pRow.hidden), hint:EL.hint.textContent, chips:EL.bottom.className };
+    },
+    aimAt:function(px,py){ aimTo({x:px,y:py}); return +(S.aimAngle*180/Math.PI).toFixed(2); },
+    aimDeg:function(deg){ S.aimAngle=deg*Math.PI/180; refreshHint(); return S.aimAngle*180/Math.PI; },
+    power:function(p){ S.pull=clamp(p,0,1); setPowerUI(S.pull); refreshHint(); return S.pull; },
+    fire:function(){ fireShotFromUI(); return S.phase; },
     place:function(list){
       for(var i=0;i<4;i++){ if(list[i]){ balls[i].x=list[i][0]; balls[i].y=list[i][1];
         balls[i].vx=0; balls[i].vy=0; balls[i].top=0; balls[i].side=0; } }
@@ -1520,7 +1709,7 @@ function onResize(){
       S.phase='aim'; fireShot(); return true;
     },
     ai:function(){ aiTurn(); },
-    aim:function(x,y){ applyPull({x:x,y:y}); return {angle:S.aimAngle*180/Math.PI, pull:S.pull}; },
+    aim:function(x,y){ aimTo({x:x,y:y}); return {angle:S.aimAngle*180/Math.PI, pull:S.pull}; },
     release:function(){ if(S.pull>0.055){ beginStroke(S.aimAngle,S.pull,S.spinTop,S.spinSide); return true; } S.pull=0; return false; },
     spin:function(t,s){ S.spinTop=clamp(t,-1,1); S.spinSide=clamp(s,-1,1); updateHUD(); return spinLabel(); },
     predict:function(deg,top,side){
