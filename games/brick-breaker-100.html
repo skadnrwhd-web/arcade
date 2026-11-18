@@ -894,7 +894,7 @@
 
   function paintHud() {
     $('score').textContent = score.toLocaleString();
-    $('best').textContent = best.toLocaleString();
+    $('best').textContent = Math.max(best, score).toLocaleString();
     $('level').textContent = level;
     $('left').textContent = bricksLeft;
     $('alive').textContent = state === 'fire' ? (fireQ + balls.length) : BALLS_PER_VOLLEY;
