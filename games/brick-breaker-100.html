@@ -204,6 +204,7 @@
     H = Math.max(470, window.innerHeight || 844);
     DPR = Math.min(window.devicePixelRatio || 1, 2);
     cv.style.width = W + 'px'; cv.style.height = H + 'px';
+    cv.style.left = Math.max(0, Math.round((window.innerWidth - W) / 2)) + 'px';
     cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
 
     originX = 10; gapX = 4;
@@ -222,6 +223,8 @@
       for (r = 0; r < MAXROWS; r++) ng.push(grid[r] || newRow());
       grid = ng;
     }
+    var ban = $('banner');
+    if (ban) ban.style.top = Math.round(gridTop + (dangerY - gridTop) * 0.45) + 'px';
 
     SPR.br = {};                 /* 스프라이트 캐시는 크기가 바뀌면 다시 */
     buildBg();
@@ -475,6 +478,7 @@
     bricksLeft = 0;
 
     var rows = Math.min(8, 5 + Math.floor((level - 1) / 2));
+    rows = Math.max(2, Math.min(rows, MAXROWS - 3));
     var baseHp = Math.min(4, 1 + Math.floor((level - 1) / 3));
 
     for (r = 0; r < rows; r++) {
@@ -693,7 +697,7 @@
     var px = originX + c * (bw + gapX) + bw / 2;
     var py = gridTop + r * rowH + descend.off + bh / 2;
     burst(px, py, br.col, 14);
-    if (rings.length < 12) rings.push({ x: px, y: py, t: 0, life: 0.3, r: 3, mr: 24, c: '150,220,255' });
+    if (rings.length < 10) rings.push({ x: px, y: py, t: 0, life: 0.24, r: 3, mr: 20, c: '150,220,255' });
     addShake(2.2);
     sfxBreak(combo);
 
@@ -995,8 +999,8 @@
       rg = rings[i];
       p = rg.t / rg.life;
       rr = rg.r + (rg.mr - rg.r) * p;
-      ctx.strokeStyle = 'rgba(' + rg.c + ',' + (0.8 * (1 - p)).toFixed(3) + ')';
-      ctx.lineWidth = 2;
+      ctx.strokeStyle = 'rgba(' + rg.c + ',' + (0.5 * (1 - p)).toFixed(3) + ')';
+      ctx.lineWidth = 1.8;
       ctx.beginPath(); ctx.arc(rg.x, rg.y, rr, 0, TAU); ctx.stroke();
     }
   }
