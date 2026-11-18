@@ -1518,7 +1518,14 @@ function onResize(){
       var cb=balls[S.turn];
       return predictShot(cb.x,cb.y,deg*Math.PI/180,1,top||0,side||0);
     },
-    endOf:function(){ return S.phase==='over'; }
+    endOf:function(){ return S.phase==='over'; },
+    bench:function(n){
+      n=Math.max(1,n||60);
+      var t0=(window.performance&&performance.now)?performance.now():Date.now();
+      for(var i=0;i<n;i++) draw();
+      var t1=(window.performance&&performance.now)?performance.now():Date.now();
+      return (t1-t0)/n;
+    }
   };
 })();
 
