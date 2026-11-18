@@ -83,7 +83,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#04070a;color:#e9f1ec;
 #spinDot{position:absolute;left:50%;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border-radius:50%;
   background:radial-gradient(circle at 34% 30%,#ff8f7a,#d92f13 62%,#8c1706);box-shadow:0 1px 4px rgba(0,0,0,.5)}
 #spinWrap.on #spinDot{width:15px;height:15px;margin:-7.5px 0 0 -7.5px}
-#spinName{font-size:10px;color:#a9c3b5;font-weight:700;white-space:nowrap}
+#spinName{font-size:9px;color:#a9c3b5;font-weight:700;white-space:nowrap;max-width:84px;overflow:hidden}
 #spinWrap.on #spinName{color:#ffe6a6}
 #midCol{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;gap:5px;
   padding-bottom:5px;pointer-events:auto}
@@ -967,7 +967,7 @@ function spinLabel(){
   if(t>0.22) v.push('밀어치기'); else if(t<-0.22) v.push('끌어치기');
   if(s>0.22) v.push('우히네리'); else if(s<-0.22) v.push('좌히네리');
   if(!v.length) ns='중앙';
-  else ns=v.join(' · ');
+  else ns=v.join('·');
   if(Math.abs(t)<0.12&&Math.abs(s)<0.12) ns='중앙';
   return ns;
 }
