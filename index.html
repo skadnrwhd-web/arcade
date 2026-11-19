@@ -895,7 +895,7 @@ sb2.addEventListener("click",function(){ shareTo(document.getElementById("pTitle
    0회는 '0회' 대신 '첫 플레이어를 기다리는 중'으로 보여 신작이 초라해 보이지 않게 한다.
    세는 일은 Supabase 함수 record_play가 하고(game_plays 표), 커뮤니티 게임의 첫 플레이·10·50·100·500·1000회만 디스코드로 알린다. */
 var playCounts=null, pPlayEl=document.getElementById("pPlay");
-function playLabel(n){ if(n==null) return ""; var v=Number(n)||0; return v>0?T(v.toLocaleString(lang==="en"?"en-US":"ko-KR")+"회 플레이",v.toLocaleString()+" plays"):T("첫 플레이어를 기다리는 중","Waiting for the first player"); }
+function playLabel(n){ if(n==null) return ""; var v=Number(n)||0; if(v<1) return T("첫 플레이어를 기다리는 중","Waiting for the first player"); return T(v.toLocaleString("ko-KR")+"회 플레이",v.toLocaleString("en-US")+(v===1?" play":" plays")); }
 function paintPlays(){ if(!playCounts) return; var ns=document.querySelectorAll("[data-pc]");
   for(var j=0;j<ns.length;j++){ var k=ns[j].getAttribute("data-pc"),n=playCounts[k]; ns[j].textContent=playLabel(n==null?0:n); } }
 function loadPlays(){ withSb(function(ok){ if(!ok) return;
