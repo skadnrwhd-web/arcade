@@ -135,6 +135,7 @@ h1,h2,h3{margin:0; line-height:1.15; letter-spacing:-.025em; text-wrap:balance}
 .p-play[hidden]{display:none}
 /* 플레이 수는 화면에 보이지 않게 한다(서버에는 계속 기록) */
 .cg-play,.p-play,#cgList .game p.cg-play{display:none !important}
+#pickGrid .cg-card .cg-ico{width:auto; height:78%; aspect-ratio:1}
 .pick{position:relative}
 .pick .b{padding-bottom:18px}
 .pick .pick-tag{position:absolute; top:12px; right:12px; z-index:2; background:var(--pink); color:#fff; font-size:11px; font-weight:900; letter-spacing:.04em; padding:5px 10px; border-radius:999px}
@@ -395,31 +396,9 @@ body.challenge-on #modal{padding-top:calc(env(safe-area-inset-top) + 58px)}
   <div class="wrap">
     <div class="sec-head rv">
       <div><span class="eyebrow" data-i="pk_eb">Today's picks</span><h2 data-i="pk_h">🎯 오늘의 픽</h2></div>
-      <p data-i="pk_p">고르는 데 쓰는 3초를 아껴 드립니다. 지금 가장 최근에 만든 셋, 한 판에 1~5분이면 끝납니다.</p>
+      <p data-i="pk_p">오늘의 추천 셋입니다(방문자가 올린 게임도 하나 들어갑니다). 매일 자동으로 바뀌어서, 올 때마다 다른 게임을 만날 수 있어요.</p>
     </div>
-    <div class="grid three">
-      <a class="game pick rv" href="games/fourball-billiards.html" data-cg="cgame:130" data-url="games/fourball-billiards.html" data-title="실사판 4구 당구" style="--hue:var(--lime); --c1:#0b2b22; --c2:#1fa37a">
-        <span class="pick-tag">HOT</span>
-        <div class="cover"><span class="badge" data-i="b_cls">클래식</span>
-          <svg viewBox="0 0 320 176" fill="none"><rect x="28" y="26" width="264" height="124" rx="16" fill="#0d5c46" stroke="#fff" stroke-width="2" opacity=".95"/><rect x="28" y="26" width="264" height="124" rx="16" stroke="rgba(255,255,255,.25)" stroke-width="2"/><circle cx="118" cy="88" r="20" fill="#fff"/><circle cx="176" cy="88" r="20" fill="#ffd23f"/><circle cx="226" cy="88" r="13" fill="#ff4d5e"/><path d="M40 146 L96 96" stroke="#e8c79b" stroke-width="7" stroke-linecap="round"/><path d="M96 96 L108 88" stroke="#f4f1e6" stroke-width="5" stroke-linecap="round"/></svg></div>
-        <div class="b"><h3>실사판 4구 당구</h3><p data-i="pk1_p">각도 → 당점 → 파워, 세 단계로 조준하는 4구 카롬. 밀어치기·끌어치기·히네리까지.</p>
-          <div class="meta"><span class="cg-play" data-pc="cgame-130"></span><span class="go">▶ <span data-i="open">플레이</span></span></div></div>
-      </a>
-      <a class="game pick rv" href="games/boxing-champion.html" data-cg="cgame:158" data-url="games/boxing-champion.html" data-title="더 파이팅 복싱" style="--hue:var(--pink); --c1:#3a0f22; --c2:#d13f6a">
-        <span class="pick-tag">NEW</span>
-        <div class="cover"><span class="badge" data-i="b_act">액션</span>
-          <svg viewBox="0 0 320 176" fill="none"><rect x="118" y="30" width="92" height="84" rx="30" fill="#ff4d6d" stroke="#fff" stroke-width="3"/><path d="M118 74c-20 0-27 24-9 33 10 5 19-3 19-11z" fill="#ff4d6d" stroke="#fff" stroke-width="3"/><rect x="130" y="112" width="68" height="26" rx="9" fill="#f6f6ff" stroke="#fff" stroke-width="3"/><path d="M56 56l20 10M70 40l14 14" stroke="#ffd23f" stroke-width="4" stroke-linecap="round"/><path d="M250 132l-16-10M258 116l-18-4" stroke="#37e0ff" stroke-width="4" stroke-linecap="round"/></svg></div>
-        <div class="b"><h3>더 파이팅 복싱</h3><p data-i="pk2_p">스웨이·가드·카운터로 맞받아치는 복싱. 체육관에서 키우고 바로 한 판.</p>
-          <div class="meta"><span class="cg-play" data-pc="cgame-158"></span><span class="go">▶ <span data-i="open">플레이</span></span></div></div>
-      </a>
-      <a class="game pick rv" href="games/potion-sort.html" data-cg="cgame:90" data-url="games/potion-sort.html" data-title="🧪 네온 물약 정리" style="--hue:var(--violet); --c1:#1a0f3d; --c2:#6d5cff">
-        <span class="pick-tag">3D</span>
-        <div class="cover"><span class="badge" data-i="b_puz">퍼즐</span>
-          <svg viewBox="0 0 320 176" fill="none"><path d="M146 30h28v26l30 54a26 26 0 0 1-23 38h-42a26 26 0 0 1-23-38l30-54z" fill="rgba(255,255,255,.14)" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path d="M130 108h60l11 20a20 20 0 0 1-18 22h-46a20 20 0 0 1-18-22z" fill="#7dffb0"/><circle cx="150" cy="130" r="5" fill="#fff"/><circle cx="172" cy="142" r="4" fill="#fff"/><rect x="138" y="22" width="44" height="10" rx="5" fill="#ffd23f"/><path d="M70 60l14 8M84 44l10 12" stroke="#37e0ff" stroke-width="4" stroke-linecap="round"/></svg></div>
-        <div class="b"><h3 data-i="t_potion">🧪 네온 물약 정리</h3><p data-i="pk3_p">같은 색 물약을 한 시험관에 모으는 3D 정리 퍼즐. 손끝으로 붓는다는 느낌.</p>
-          <div class="meta"><span class="cg-play" data-pc="cgame-90"></span><span class="go">▶ <span data-i="open">플레이</span></span></div></div>
-      </a>
-    </div>
+    <div class="grid three" id="pickGrid"></div>
   </div>
 </section>
 
@@ -701,7 +680,7 @@ var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",inst:"📲 Add to Home Screen"
  s5_nick:"Your nickname (up to 20 characters)",s5_title:"Game name (up to 40 characters)",s5_desc:"One-line description (up to 120 characters)",s5_url:"Game link",
  s5_send:"Post",s5_wait:"It goes live right away. You can post again in 15 seconds.",
  s5_mk_l:"Makers' note (optional, up to 40 characters)",s5_mk_h:"This line shows on your card. e.g. “Beats in 30 seconds”.",
- pk_eb:"Today's picks",pk_h:"🎯 Today's picks",pk_p:"Skip the choosing. Three of the newest, each 1-5 minutes.",
+ pk_eb:"Today's picks",pk_h:"🎯 Today's picks",pk_p:"Today's three picks. They change automatically every day, so there is always something new to try.",
  pk1_p:"Aim in three steps - angle, spin, power - for real 4-ball carom. Draw, follow and spin.",
  pk2_p:"Slip, guard and counter in a boxing career. Train at the gym, then fight.",
  t_potion:"🧪 Neon Potion Sort",
@@ -977,6 +956,22 @@ function openPlayer(a){ var cg=a.getAttribute("data-cg"),slug=cg?cg.replace(/^cg
 function closePlayer(){ if(!player.classList.contains("open")) return; pFrame.textContent=""; pThread.textContent=""; player.classList.remove("open"); document.body.style.overflow="";
   try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){} if(pOpener) pOpener.focus(); }
 function iconTips(){ var g=document.querySelectorAll(".grid.five .game,#cgList .game"); for(var q=0;q<g.length;q++){ var p=g[q].querySelector("p"),h=g[q].querySelector("h3"); if(p&&h) g[q].title=h.textContent+" - "+p.textContent; } }
+/* 오늘의 픽: 직접 만든 게임 중 3개를 하루에 한 번(한국 시간 자정) 자동으로 바꾼다. 서버 없이 날짜만으로 정하므로 누가 열어도 같은 3개가 나온다. */
+var PK={grid:null,third:false,day:0,add:null};
+(function(){ var grid=document.getElementById("pickGrid"); if(!grid) return; PK.grid=grid;
+  var src=document.querySelectorAll("#games .game[data-play]"),ids=[],byId={},i;
+  for(i=0;i<src.length;i++){ var id=src[i].getAttribute("data-play"); ids.push(id); byId[id]=src[i]; }
+  if(ids.length<3) return;
+  var seed=20261119; function rnd(){ seed=(seed*1664525+1013904223)>>>0; return seed/4294967296; }
+  var perm=ids.slice(); for(i=perm.length-1;i>0;i--){ var j=Math.floor(rnd()*(i+1)),t=perm[i]; perm[i]=perm[j]; perm[j]=t; }
+  var day=Math.floor((Date.now()+9*3600*1000)/86400000), n=perm.length, start=(day*3)%n;
+  PK.day=day;
+  function addPick(el){ el.classList.remove("rv"); el.classList.add("pick"); el.removeAttribute("title"); var tag=document.createElement("span"); tag.className="pick-tag"; tag.textContent="TODAY"; el.insertBefore(tag,el.firstChild); grid.appendChild(el); }
+  PK.add=addPick;
+  for(i=0;i<2;i++) addPick(byId[perm[(start+i)%n]].cloneNode(true));
+  PK.official=function(){ if(PK.third) return; PK.third=true; addPick(byId[perm[(start+2)%n]].cloneNode(true)); };
+  setTimeout(function(){ PK.official(); },5000);   /* 방문자 게임 목록이 안 오면 공식 게임으로 채운다 */
+})();
 var pl=document.querySelectorAll("[data-play]"); for(i=0;i<pl.length;i++) pl[i].addEventListener("click",function(e){ if(e.ctrlKey||e.metaKey||e.shiftKey) return; e.preventDefault(); openPlayer(this); });
 /* 오늘의 픽 카드: 커뮤니티 게임과 같은 방식으로 이 사이트 안에서 연다 */
 var pkEls=document.querySelectorAll("#picks [data-cg]"); for(i=0;i<pkEls.length;i++) pkEls[i].addEventListener("click",function(e){ if(e.ctrlKey||e.metaKey||e.shiftKey||e.button===1) return; e.preventDefault(); track('pick_click',{game_id:this.getAttribute("data-cg")}); openPlayer(this); });
@@ -1084,10 +1079,13 @@ function cgCard(g,idx){ var hs=cgHash(g.id+"|"+g.title),hu=hs%360;
   a.appendChild(cov); a.appendChild(b);
   a.addEventListener("click",function(e){ if(e.ctrlKey||e.metaKey||e.shiftKey||e.button===1||e.button===2) return; e.preventDefault(); openPlayer(a); });
   return a; }
+function pickCommunity(){ if(!PK.grid||PK.third||!cgData||!cgData.length){ if(PK.grid&&cgData&&!cgData.length&&PK.official) PK.official(); return; }
+  var best=null,bh=0; for(var q=0;q<cgData.length;q++){ var h=cgHash(cgData[q].id+"|"+PK.day); if(best===null||h<bh){ best=cgData[q]; bh=h; } }
+  PK.third=true; PK.add(cgCard(best,0)); }
 function cgNote(text){ var p=el("p","c-note",text); p.style.gridColumn="1/-1"; return p; }
 function cgRender(){ if(!cgList) return; cgList.textContent="";
-  if(!cgData||!cgData.length){ cgList.appendChild(cgNote(T("아직 올라온 게임이 없습니다. 첫 게임의 주인이 되어 보세요!","No community games yet. Yours could be the first!"))); return; }
-  for(var j=0;j<cgData.length;j++) cgList.appendChild(cgCard(cgData[j],j)); iconTips(); paintPlays();
+  if(!cgData||!cgData.length){ cgList.appendChild(cgNote(T("아직 올라온 게임이 없습니다. 첫 게임의 주인이 되어 보세요!","No community games yet. Yours could be the first!"))); pickCommunity(); return; }
+  for(var j=0;j<cgData.length;j++) cgList.appendChild(cgCard(cgData[j],j)); iconTips(); paintPlays(); pickCommunity();
   if(cgPending){ var q=document.querySelector('[data-cg="cgame:'+cgPending+'"]'); if(q){ cgPending=null; openPlayer(q); } } }
 function cgLoad(){ if(!cgList){ cgDone(); return; } cgReady=false; cgList.textContent=""; cgList.appendChild(cgNote(T("불러오는 중…","Loading…")));
   withSb(function(ok){ if(!ok){ cgList.textContent=""; cgList.appendChild(cgNote(T("게임 목록을 불러오지 못했습니다. 잠시 뒤 새로 고침해 주세요.","Could not load the game list. Please refresh in a moment."))); cgDone(); return; }
