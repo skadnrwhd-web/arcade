@@ -1057,7 +1057,7 @@ function cgCard(g,idx){ var hs=cgHash(g.id+"|"+g.title),hu=hs%360;
 function cgNote(text){ var p=el("p","c-note",text); p.style.gridColumn="1/-1"; return p; }
 function cgRender(){ if(!cgList) return; cgList.textContent="";
   if(!cgData||!cgData.length){ cgList.appendChild(cgNote(T("아직 올라온 게임이 없습니다. 첫 게임의 주인이 되어 보세요!","No community games yet. Yours could be the first!"))); return; }
-  for(var j=0;j<cgData.length;j++) cgList.appendChild(cgCard(cgData[j],j)); iconTips();
+  for(var j=0;j<cgData.length;j++) cgList.appendChild(cgCard(cgData[j],j)); iconTips(); paintPlays();
   if(cgPending){ var q=document.querySelector('[data-cg="cgame:'+cgPending+'"]'); if(q){ cgPending=null; openPlayer(q); } } }
 function cgLoad(){ if(!cgList){ cgDone(); return; } cgReady=false; cgList.textContent=""; cgList.appendChild(cgNote(T("불러오는 중…","Loading…")));
   withSb(function(ok){ if(!ok){ cgList.textContent=""; cgList.appendChild(cgNote(T("게임 목록을 불러오지 못했습니다. 잠시 뒤 새로 고침해 주세요.","Could not load the game list. Please refresh in a moment."))); cgDone(); return; }
