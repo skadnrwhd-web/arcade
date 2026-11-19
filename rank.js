@@ -132,7 +132,7 @@
     "li{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;background:#0f1122;border:1px solid #272b4a;border-radius:12px;padding:9px 12px;font-size:15px}" +
     "li.me{border-color:#37e0ff;background:rgba(55,224,255,.1)}li .n{color:#aab0d0;font-weight:900;text-align:center}li .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}li .sc{font-weight:900;color:#f3f4ff}" +
     ".st{margin:0 0 12px;padding:14px;border:1px dashed #272b4a;border-radius:12px;color:#aab0d0;font-size:14px;text-align:center}.note{margin:0 0 12px;color:#7078a0;font-size:12px;line-height:1.5}" +
-    ".row{display:flex;gap:8px;justify-content:flex-end}" +
+    ".row{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}.bragrow{display:flex;margin:0 0 8px}.bragrow button{flex:1}" +
     ".chal{background:linear-gradient(135deg,rgba(255,77,141,.16),rgba(143,107,255,.14));border:1px solid #ff4d8d;border-radius:14px;padding:11px 13px;margin:0 0 12px}" +
     ".chal-h{font-size:14.5px;font-weight:900;color:#ffd23f}.chal-t{font-size:13px;color:#aab0d0;margin-top:2px}" +
     ".chal-r{font-size:14px;font-weight:900;margin-top:7px;color:#ff9ec0}.chal-r.win{color:#7dff9b}.chal-r.tie{color:#ffd23f}" +
@@ -214,10 +214,10 @@
       function ask() { try { window.prompt(T("bragAsk"), txt); } catch (e) { } }
       if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, ask); else ask();
     }
-    var bragBtn = null;
-    if (valid) { bragBtn = el("button", "line", T("brag")); bragBtn.type = "button"; bragBtn.addEventListener("click", function () { copyBrag(bragBtn); }); row.appendChild(bragBtn); }
+    var bragBtn = null, bragRow = null;
+    if (valid) { bragBtn = el("button", "line", T("brag")); bragBtn.type = "button"; bragBtn.addEventListener("click", function () { copyBrag(bragBtn); }); bragRow = el("div", "bragrow"); bragRow.appendChild(bragBtn); }
     row.appendChild(closeBtn);
-    card.appendChild(formBox); card.appendChild(msg); card.appendChild(listBox); card.appendChild(note); card.appendChild(row);
+    card.appendChild(formBox); card.appendChild(msg); card.appendChild(listBox); card.appendChild(note); if (bragRow) card.appendChild(bragRow); card.appendChild(row);
 
     function setMsg(t, ok) { msg.textContent = t || ""; msg.className = "msg" + (ok ? " ok" : ""); }
     function paintList(board) {
