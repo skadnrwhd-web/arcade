@@ -56,7 +56,8 @@
     err: ["등록하지 못했어요. 잠시 뒤 다시 해 주세요.", "Could not submit. Please try again."],
     many: ["지금 글이 너무 많아요. 1분 뒤에 다시 해 주세요.", "Too many posts right now. Try again in a minute."],
     note: ["실명·연락처는 적지 마세요. 등록한 기록은 누구나 볼 수 있어요.", "Don't use your real name or contact info. Records are public."],
-    me: ["나", "You"], more: ["…", "…"]
+    me: ["나", "You"], more: ["…", "…"],
+    brag: ["📋 자랑 문구 복사", "📋 Copy brag text"], bragDone: ["✓ 복사했어요! 링크는 첫 댓글에", "✓ Copied! Link in the first comment"], bragAsk: ["이 문구를 복사하세요 (링크는 첫 댓글에)", "Copy this text (link in the first comment)"]
   };
   function lang() { try { return localStorage.getItem("arc-lang") === "en" ? 1 : 0; } catch (e) { return 0; } }
   function T(k) { var v = TXT[k]; return v ? v[lang()] : k; }
@@ -163,7 +164,7 @@
   }
 
   function render(o) {
-    var id = o.id, cfg = GAMES[id], card = mount(), submitted = false, myKey = null, myName = "", token = {};
+    var id = o.id, cfg = GAMES[id], card = mount(), submitted = false, myKey = null, myName = "", myRank = null, token = {};
     var score = (o.score == null) ? null : Math.round(Number(o.score));
     var valid = score != null && inBounds(cfg, score); if (valid) myKey = keyOf(cfg, score);
     card.appendChild(el("h2", null, "🏆 " + tx(cfg.title) + " " + T("rank")));
@@ -200,6 +201,21 @@
     var formBox = el("div"), msg = el("p", "msg"), listBox = el("div"), note = el("p", "note", T("note")), row = el("div", "row");
     var closeBtn = el("button", "line", T("close")); closeBtn.type = "button"; closeBtn.addEventListener("click", close);
     if (valid && !c) row.appendChild(mkChalBtn("⚔️ " + T("도전장 보내기", "Send a challenge"), "line"));
+    /* 링크 없는 자랑 문구(Wordle 방식): 쓰레드·카톡에서 링크 없이 점수만 자랑할 수 있게 클립보드로 복사한다 */
+    function bragText() {
+      var medal = myRank === 1 ? "🥇" : myRank === 2 ? "🥈" : myRank === 3 ? "🥉" : "🎯";
+      var line = medal + " " + fmt(cfg, score);
+      if (myRank != null) line += " · " + (lang() ? "#" + myRank : myRank + "위");
+      return "UJ ARCADE · " + tx(cfg.title) + "\n" + line + "\nujarcade";
+    }
+    function copyBrag(btn) {
+      var txt = bragText();
+      function done() { var o2 = btn.textContent; btn.textContent = T("bragDone"); setTimeout(function () { btn.textContent = o2; }, 1900); }
+      function ask() { try { window.prompt(T("bragAsk"), txt); } catch (e) { } }
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, ask); else ask();
+    }
+    var bragBtn = null;
+    if (valid) { bragBtn = el("button", "line", T("brag")); bragBtn.type = "button"; bragBtn.addEventListener("click", function () { copyBrag(bragBtn); }); row.appendChild(bragBtn); }
     row.appendChild(closeBtn);
     card.appendChild(formBox); card.appendChild(msg); card.appendChild(listBox); card.appendChild(note); card.appendChild(row);
 
@@ -222,7 +238,7 @@
     function paintForm(board) {
       formBox.textContent = "";
       if (!valid || submitted || board.error) return;
-      var rk = rankOf(board, myKey);
+      var rk = rankOf(board, myKey); myRank = rk;
       if (rankB) rankB.textContent = rk == null ? "100+" : rk + T("th");
       if (rk == null) { setMsg(T("out")); return; }
       var form = el("form"), inp = el("input"), btn = el("button", null, T("submit"));
@@ -256,7 +272,7 @@
       fetchBoard(id, cfg, function (board) {
         if (mytoken !== token || !host) return;
         paintList(board); paintForm(board);
-        if (submitted && rankB && !board.error) { var rk = rankOf(board, myKey); rankB.textContent = rk == null ? "100+" : rk + T("th"); }
+        if (submitted && rankB && !board.error) { var rk = rankOf(board, myKey); myRank = rk; rankB.textContent = rk == null ? "100+" : rk + T("th"); }
       });
     }
     load();
