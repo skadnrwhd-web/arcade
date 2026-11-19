@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>글자 6칸 - 한글 단어 맞추기</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#0b1020;color:#fff;font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none}
+#app{height:100svh;display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 8px max(8px,env(safe-area-inset-bottom));background:radial-gradient(circle at 50% 0,#1f2a5e 0,#0b1020 70%)}
+#top{width:100%;max-width:440px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+h1{margin:0;font-size:18px;letter-spacing:.02em}
+h1 small{display:block;font-size:11px;font-weight:600;opacity:.65}
+.btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:8px 14px;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+.btn.main{background:linear-gradient(135deg,#37e0ff,#6d5cff)}
+#board{flex:1;min-height:0;width:100%;max-width:440px;display:flex;flex-direction:column;justify-content:center;gap:6px}
+.row{display:grid;grid-template-columns:repeat(6,1fr) 52px;gap:6px;align-items:center}
+.t{aspect-ratio:1;max-height:min(58px,7.4svh);justify-self:stretch;border-radius:10px;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);display:grid;place-items:center;font-size:clamp(18px,5.4vw,26px);font-weight:800;transition:transform .15s}
+.t.f{border-color:rgba(255,255,255,.55);transform:scale(1.04)}
+.t.s2{background:#2f9e5b;border-color:#2f9e5b}.t.s1{background:#c9a227;border-color:#c9a227}.t.s0{background:#3a4160;border-color:#3a4160}
+.w{font-size:12px;opacity:.75;text-align:left;white-space:nowrap}
+#kb{width:100%;max-width:440px;display:flex;flex-direction:column;gap:6px}
+.kr{display:flex;gap:4px;justify-content:center}
+.k{flex:1 1 0;max-width:42px;height:46px;border:0;border-radius:9px;background:#2a3358;color:#fff;font:inherit;font-weight:800;font-size:17px;cursor:pointer;padding:0}
+.k.w2{max-width:64px;font-size:13px}
+.k:active{transform:scale(.94)}
+.k.s2{background:#2f9e5b}.k.s1{background:#c9a227}.k.s0{background:#161b30;color:#6c7494}
+.k.on{background:#6d5cff}
+#msg{position:fixed;left:50%;top:9%;transform:translateX(-50%);background:rgba(0,0,0,.75);border-radius:12px;padding:9px 16px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:6;max-width:90%;text-align:center}
+#msg.on{opacity:1}
+#ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(5,8,20,.75);z-index:5;padding:16px}
+#ov.on{display:flex}
+#box{background:#18214a;border:1px solid rgba(255,255,255,.2);border-radius:22px;padding:22px 24px;text-align:center;width:100%;max-width:340px}
+#box h2{margin:0 0 6px;font-size:24px}#box p{margin:0 0 12px;opacity:.85;line-height:1.5;font-size:14px}
+.stats{display:flex;justify-content:space-around;margin:10px 0 14px}.stats b{display:block;font-size:22px}.stats span{font-size:11px;opacity:.7}
+.acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+pre{margin:0 0 12px;font-family:inherit;font-size:15px;line-height:1.3}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="top"><h1>글자 6칸<small id="sub">오늘의 단어</small></h1><div><button class="btn" id="hb" type="button">도움말</button></div></div>
+  <div id="board"></div>
+  <div id="kb"></div>
+</div>
+<div id="msg"></div>
+<div id="ov"><div id="box"></div></div>
+<script>
+(function(){
+"use strict";
+/* ---------- 한글 낱자 쪼개기·합치기 ---------- */
+var L="ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ",V="ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ";
+var T=["","ㄱ","ㄲ","ㄳ","ㄴ","ㄵ","ㄶ","ㄷ","ㄹ","ㄺ","ㄻ","ㄼ","ㄽ","ㄾ","ㄿ","ㅀ","ㅁ","ㅂ","ㅄ","ㅅ","ㅆ","ㅇ","ㅈ","ㅊ","ㅋ","ㅌ","ㅍ","ㅎ"];
+var VS={"ㅘ":"ㅗㅏ","ㅙ":"ㅗㅐ","ㅚ":"ㅗㅣ","ㅝ":"ㅜㅓ","ㅞ":"ㅜㅔ","ㅟ":"ㅜㅣ","ㅢ":"ㅡㅣ"};
+var TS={"ㄳ":"ㄱㅅ","ㄵ":"ㄴㅈ","ㄶ":"ㄴㅎ","ㄺ":"ㄹㄱ","ㄻ":"ㄹㅁ","ㄼ":"ㄹㅂ","ㄽ":"ㄹㅅ","ㄾ":"ㄹㅌ","ㄿ":"ㄹㅍ","ㅀ":"ㄹㅎ","ㅄ":"ㅂㅅ"};
+function decomp(word){ var out=[],i; for(i=0;i<word.length;i++){ var c=word.charCodeAt(i)-0xAC00; if(c<0||c>11171) return null;
+  var l=Math.floor(c/588),v=Math.floor((c%588)/28),t=c%28; out.push(L[l]); var vv=V[v]; (VS[vv]||vv).split("").forEach(function(x){ out.push(x); });
+  if(t){ var tt=T[t]; (TS[tt]||tt).split("").forEach(function(x){ out.push(x); }); } } return out; }
+function parse(j,i){ if(i===j.length) return []; var l=L.indexOf(j[i]); if(l<0) return null; var vopts=[],k;
+  if(i+2<j.length){ var two=j[i+1]+j[i+2]; for(k in VS) if(VS[k]===two) vopts.push([k,2]); }
+  if(i+1<j.length&&V.indexOf(j[i+1])>=0) vopts.push([j[i+1],1]);
+  for(var q=0;q<vopts.length;q++){ var vi=V.indexOf(vopts[q][0]),p=i+1+vopts[q][1],tries=[[0,p]],r;
+    if(p<j.length&&T.indexOf(j[p])>0) tries.push([T.indexOf(j[p]),p+1]);
+    if(p+1<j.length){ var pr=j[p]+j[p+1]; for(k in TS) if(TS[k]===pr) tries.push([T.indexOf(k),p+2]); }
+    for(var z=0;z<tries.length;z++){ r=parse(j,tries[z][1]); if(r!==null) return [String.fromCharCode(0xAC00+l*588+vi*28+tries[z][0])].concat(r); } }
+  return null; }
+
+/* ---------- 정답 단어(낱자 6개짜리만 쓴다) ---------- */
+var WORDS_RAW="학생 선생 방학 운동 음식 인간 건강 생일 점심 연필 달력 책상 열쇠 한국 영화 과일 화장 방송 괴물 귀신 위험 과학 광고 인형 순간 문장 문학 신문 안경 감정 청춘 천국 민족 문명 성격 선택 인생 상상 단점 장점 약속 행복 은행 식당 용돈 방법 질문 정답 경험 경찰 감동 동물 식물 건물 선물 인물 음악 바나나 토마토 고구마 기러기 도라지 사다리 고사리 아버지 어머니 소나무 무지개 다리미 개구리 두루미 아가씨 카메라 라디오 피아노 아파트 아이스 주머니 도깨비 코끼리 메뚜기 아저씨 스피커 모니터 의논 의복 회전 성공 열정 희망 평화 정의 진실 공간 햇빛 달빛 별빛 천둥 폭풍 공책 순위 계획 결과 과정 강물 김밥 국밥 간장 냉면 낭독 문법 창문 운명 눈물 웃음 안녕 방향 중력 동생 친척 산책 캠핑 영웅 악당 전설 연습 훈련 합격 졸업 입학 과장 회식 출근 퇴근 단풍 낙엽 꽃잎 공룡 화분 책장 키보드 마우스 외국 한글 의심 의견";
+var WORDS=[],seen={};
+WORDS_RAW.split(" ").forEach(function(w){ var j=decomp(w); if(j&&j.length===6&&!seen[w]){ seen[w]=1; WORDS.push(w); } });
+var seed=20261119; function rnd(){ seed=(seed*1664525+1013904223)>>>0; return seed/4294967296; }
+for(var i0=WORDS.length-1;i0>0;i0--){ var j0=Math.floor(rnd()*(i0+1)),t0=WORDS[i0]; WORDS[i0]=WORDS[j0]; WORDS[j0]=t0; }
+var DAY=Math.floor((Date.now()+9*3600*1000)/86400000), NO=DAY-Math.floor(Date.UTC(2026,10,18)/86400000);
+function dailyWord(){ return WORDS[((DAY%WORDS.length)+WORDS.length)%WORDS.length]; }
+
+/* ---------- 저장 ---------- */
+function st(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } }
+function load(k,d){ try{ return JSON.parse(st(k))||d; }catch(e){ return d; } }
+var stats=load("h6-stats",{played:0,wins:0,streak:0,max:0,last:-1});
+
+/* ---------- 상태 ---------- */
+var answer, ansJ, guesses=[], cur=[], over=false, practice=false, shift=false, keyState={};
+function newGame(prac){
+  practice=!!prac; guesses=[]; cur=[]; over=false; keyState={};
+  if(practice){ var a=WORDS[Math.floor(Math.random()*WORDS.length)]; answer=a; $("sub").textContent="연습 판"; }
+  else { answer=dailyWord(); $("sub").textContent="오늘의 단어 #"+NO;
+    var s=load("h6-today",null); if(s&&s.day===DAY){ s.g.forEach(function(g){ guesses.push(g); }); over=!!s.done; } }
+  ansJ=decomp(answer);
+  guesses.forEach(function(g){ mark(g); });
+  draw();
+}
+function $(id){ return document.getElementById(id); }
+function score(g,a){ var r=[0,0,0,0,0,0],cnt={},i; for(i=0;i<6;i++){ if(g[i]===a[i]) r[i]=2; else cnt[a[i]]=(cnt[a[i]]||0)+1; }
+  for(i=0;i<6;i++){ if(r[i]!==2&&cnt[g[i]]>0){ r[i]=1; cnt[g[i]]--; } } return r; }
+function mark(g){ var r=score(g,ansJ); for(var i=0;i<6;i++){ if(r[i]>(keyState[g[i]]===undefined?-1:keyState[g[i]])) keyState[g[i]]=r[i]; } }
+
+/* ---------- 화면 ---------- */
+function draw(){
+  var b=$("board"),h="",r,i;
+  for(r=0;r<6;r++){ var g=guesses[r],isCur=(r===guesses.length&&!over),jam=g||(isCur?cur:[]),sc=g?score(g,ansJ):null,word="";
+    h+='<div class="row">';
+    for(i=0;i<6;i++) h+='<div class="t'+(sc?' s'+sc[i]:(jam[i]?' f':''))+'">'+(jam[i]||"")+'</div>';
+    if(g){ var p=parse(g,0); word=p?p.join(""):""; }
+    h+='<div class="w">'+word+'</div></div>'; }
+  b.innerHTML=h;
+  var rows=[["ㅂㅈㄷㄱㅅㅛㅕㅑㅐㅔ","ㅃㅉㄸㄲㅆㅛㅕㅑㅒㅖ"],["ㅁㄴㅇㄹㅎㅗㅓㅏㅣ","ㅁㄴㅇㄹㅎㅗㅓㅏㅣ"],["ㅋㅌㅊㅍㅠㅜㅡ","ㅋㅌㅊㅍㅠㅜㅡ"]],k="";
+  rows.forEach(function(rw,ri){ var s=rw[shift?1:0]; k+='<div class="kr">';
+    if(ri===2) k+='<button class="k w2'+(shift?' on':'')+'" data-a="shift" type="button">⇧</button>';
+    for(i=0;i<s.length;i++){ var ch=s[i],ks=keyState[ch]; k+='<button class="k'+(ks!==undefined?' s'+ks:'')+'" data-k="'+ch+'" type="button">'+ch+'</button>'; }
+    if(ri===2) k+='<button class="k w2" data-a="back" type="button">⌫</button>';
+    k+='</div>'; });
+  k+='<div class="kr"><button class="k w2" style="max-width:none;flex:3" data-a="enter" type="button">입력</button></div>';
+  $("kb").innerHTML=k;
+}
+function say(t){ var m=$("msg"); m.textContent=t; m.classList.add("on"); clearTimeout(say.t); say.t=setTimeout(function(){ m.classList.remove("on"); },1400); }
+
+/* ---------- 입력 ---------- */
+function typeJamo(c){ if(over||cur.length>=6) return; cur.push(c); if(shift){ shift=false; } draw(); }
+function back(){ if(over||!cur.length) return; cur.pop(); draw(); }
+function enter(){ if(over) return;
+  if(cur.length<6){ say("낱자 6개를 모두 넣어 주세요"); return; }
+  var p=parse(cur,0); if(!p){ say("글자로 읽을 수 없는 조합이에요"); return; }
+  var g=cur.slice(); guesses.push(g); cur=[]; mark(g);
+  var win=g.join("")===ansJ.join(""); over=win||guesses.length>=6;
+  if(!practice){ st("h6-today",JSON.stringify({day:DAY,g:guesses,done:over})); if(over) finish(win); }
+  draw();
+  if(practice&&over) setTimeout(function(){ result(win); },500);
+  else if(!practice&&over) setTimeout(function(){ result(win); },500); }
+function finish(win){ if(stats.last===DAY) return; stats.played++; if(win){ stats.wins++; stats.streak=(stats.last===DAY-1)?stats.streak+1:1; if(stats.streak>stats.max) stats.max=stats.streak; } else stats.streak=0; stats.last=DAY; st("h6-stats",JSON.stringify(stats)); }
+function shareText(){ var s=guesses.map(function(g){ return score(g,ansJ).map(function(x){ return ["⬛","🟨","🟩"][x]; }).join(""); }).join("\n");
+  var win=guesses.length&&guesses[guesses.length-1].join("")===ansJ.join("");
+  return "글자 6칸 #"+NO+" "+(win?guesses.length:"X")+"/6\n"+s+"\nhttps://skadnrwhd-web.github.io/arcade/"; }
+function result(win){
+  var h='<h2>'+(win?"맞혔어요!":"아쉬워요")+'</h2><p>정답은 <b>'+answer+'</b> 입니다.</p>';
+  if(!practice){ h+='<div class="stats"><div><b>'+stats.played+'</b><span>플레이</span></div><div><b>'+(stats.played?Math.round(stats.wins*100/stats.played):0)+'%</b><span>승률</span></div><div><b>'+stats.streak+'</b><span>연속</span></div><div><b>'+stats.max+'</b><span>최고 연속</span></div></div>'; }
+  h+='<pre>'+shareText().split("\n").slice(1,-1).join("\n")+'</pre><div class="acts">'+(practice?"":'<button class="btn main" id="sh" type="button">결과 공유</button>')+'<button class="btn" id="pr" type="button">연습 한 판</button><button class="btn" id="cl" type="button">닫기</button></div>';
+  $("box").innerHTML=h; $("ov").classList.add("on");
+  var sh=$("sh"); if(sh) sh.onclick=function(){ var t=shareText(); if(navigator.share){ navigator.share({text:t}).catch(function(){}); } else if(navigator.clipboard){ navigator.clipboard.writeText(t).then(function(){ say("복사했어요. 붙여 넣어 공유하세요"); },function(){ say("복사하지 못했어요"); }); } };
+  $("pr").onclick=function(){ $("ov").classList.remove("on"); newGame(true); }; $("cl").onclick=function(){ $("ov").classList.remove("on"); };
+}
+function help(){ $("box").innerHTML='<h2>하는 법</h2><p style="text-align:left">숨은 단어는 2~3글자이고, 글자를 <b>낱자(자음·모음) 6개</b>로 쪼갠 것이에요. 예) 학생 → ㅎㅏㄱㅅㅐㅇ<br>겹받침과 ㅘ ㅝ ㅢ 같은 겹모음도 낱자로 나뉩니다 (ㅘ = ㅗ+ㅏ).<br><br>6번 안에 맞히세요. 입력은 낱자 6개를 눌러 글자로 읽히면 돼요(사전 검사는 없어요).<br><span style="color:#5fd68a">초록</span> 자리까지 맞음 · <span style="color:#e3c04a">노랑</span> 다른 자리에 있음 · 회색 없음<br><br>하루에 한 단어, 자정(한국 시간)에 바뀝니다.</p><div class="acts"><button class="btn main" id="cl" type="button">시작</button></div>'; $("ov").classList.add("on"); $("cl").onclick=function(){ $("ov").classList.remove("on"); st("h6-help","1"); }; }
+
+$("kb").addEventListener("click",function(e){ var b=e.target.closest("button"); if(!b) return; var a=b.getAttribute("data-a"),k=b.getAttribute("data-k");
+  if(k) typeJamo(k); else if(a==="back") back(); else if(a==="enter") enter(); else if(a==="shift"){ shift=!shift; draw(); } });
+$("hb").addEventListener("click",help);
+var MAP={KeyQ:["ㅂ","ㅃ"],KeyW:["ㅈ","ㅉ"],KeyE:["ㄷ","ㄸ"],KeyR:["ㄱ","ㄲ"],KeyT:["ㅅ","ㅆ"],KeyY:["ㅛ","ㅛ"],KeyU:["ㅕ","ㅕ"],KeyI:["ㅑ","ㅑ"],KeyO:["ㅐ","ㅒ"],KeyP:["ㅔ","ㅖ"],KeyA:["ㅁ","ㅁ"],KeyS:["ㄴ","ㄴ"],KeyD:["ㅇ","ㅇ"],KeyF:["ㄹ","ㄹ"],KeyG:["ㅎ","ㅎ"],KeyH:["ㅗ","ㅗ"],KeyJ:["ㅓ","ㅓ"],KeyK:["ㅏ","ㅏ"],KeyL:["ㅣ","ㅣ"],KeyZ:["ㅋ","ㅋ"],KeyX:["ㅌ","ㅌ"],KeyC:["ㅊ","ㅊ"],KeyV:["ㅍ","ㅍ"],KeyB:["ㅠ","ㅠ"],KeyN:["ㅜ","ㅜ"],KeyM:["ㅡ","ㅡ"]};
+window.addEventListener("keydown",function(e){ if(e.ctrlKey||e.metaKey||e.altKey||$("ov").classList.contains("on")) return;
+  if(e.key==="Enter"){ e.preventDefault(); enter(); } else if(e.key==="Backspace"){ e.preventDefault(); back(); }
+  else if(MAP[e.code]){ e.preventDefault(); var c=MAP[e.code][e.shiftKey?1:0]; if(over||cur.length>=6) return; cur.push(c); draw(); } });
+newGame(false);
+if(!st("h6-help")) help(); else if(over) setTimeout(function(){ var w=guesses.length&&guesses[guesses.length-1].join("")===ansJ.join(""); result(w); },300);
+})();
+</script>
+</body>
+</html>
