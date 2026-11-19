@@ -397,8 +397,9 @@
       cb({ id: id, title: tx(cfg.title), rows: b.rows.slice(0, TOP).map(function (r) { return { name: r.name, text: fmt(cfg, r.m) }; }) });
     });
   }
-  function countsPublic(cb) {
-    var ids = Object.keys(GAMES), out = {}, left = ids.length;
+  function countsPublic(cb, only) {
+    var ids = (only && only.length) ? only.slice() : Object.keys(GAMES), out = {}, left = ids.length;
+    if (!left) return cb(out);
     withSb(function (c) {
       if (!c) return cb(null);
       ids.forEach(function (id) {
