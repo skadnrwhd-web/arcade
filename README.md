@@ -15,7 +15,7 @@ Blog: https://blog.naver.com/ujnam2197
 ## 새 게임을 올리는 법 (도우미 사용)
 
 1. 게임 파일을 `games/<id>.html` 로 넣는다. (id는 영문 소문자·숫자·-)
-2. 등록한다. 메인 목록 아이콘, 영어 문구, "N종" 숫자, sitemap, 검색용 목록을 한 번에 넣어 준다.
+2. 등록한다. 메인 목록 아이콘, 영어 문구, sitemap, 검색용 목록을 한 번에 넣어 준다.
    ```
    node tools/add-game.js add --id my-game --title "내 게임" --title-en "My Game" --desc "한 줄 설명" --badge 퍼즐 --c1 "#1e1b4b" --c2 "#6366f1"
    ```

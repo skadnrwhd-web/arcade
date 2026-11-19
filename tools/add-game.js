@@ -7,7 +7,7 @@
                   --desc "한 줄 설명" --desc-en "One-line description" --badge 퍼즐 \
                   --c1 "#1e1b4b" --c2 "#6366f1" [--art 그림.svg] [--dry]
 
-   add 가 해 주는 일: 메인 목록에 앱 아이콘 카드 추가, 영어 문구 추가, "N종" 숫자 갱신,
+   add 가 해 주는 일: 메인 목록에 앱 아이콘 카드 추가, 영어 문구 추가, 
                      sitemap.xml 과 검색용 목록(JSON-LD) 추가. --dry 를 붙이면 바꾸지 않고 미리보기만 한다.
    하지 않는 일:      랭킹 등록(rank.js)은 점수 규칙을 사람이 정해야 해서 안내만 출력한다. */
 const fs = require("fs"), path = require("path");
@@ -57,8 +57,6 @@ function check() {
     if (!href && !files.includes(id)) return;          // 바깥 주소로 연결된 게임은 파일 검사 생략
   });
   const n = reg.length;
-  if (!new RegExp("직접 만든 게임 " + n + "종").test(html)) say('제목의 "직접 만든 게임 N종" 숫자가 카드 수(' + n + ")와 다름");
-  if (!new RegExp(n + " games I built").test(html)) say('영어 제목 "N games I built" 숫자가 카드 수(' + n + ")와 다름");
   console.log(bad ? "\n문제 " + bad + "개" : "문제 없음: 카드 " + n + "개, games 파일 " + files.length + "개, 모두 등록되어 있습니다.");
   process.exitCode = bad ? 1 : 0;
 }
@@ -85,9 +83,7 @@ function add(a) {
   const eol = html.includes("\r\n") ? "\r\n" : "\n";
   html = html.slice(0, b) + eol + card.replace(/\n/g, eol) + html.slice(b);
   html = html.replace("var EN={", () => "var EN={t_" + key + ":" + escJs(titleEn) + ",f_" + key + "_p:" + escJs(descEn) + ",");
-  const n = registered(html).length, total = n + 3;
-  html = html.replace(/직접 만든 게임 \d+종/, "직접 만든 게임 " + n + "종").replace(/\d+ games I built/, n + " games I built")
-             .replace(/모두 \d+종입니다/, "모두 " + total + "종입니다").replace(/that's \d+ games in all/, "that's " + total + " games in all");
+  const n = registered(html).length;   /* 게임 개수는 화면에 적지 않는다(사용자 결정) */
   const m = html.match(/"itemListElement": \[/);
   if (m) {
     const s = m.index + m[0].length, e = html.indexOf("]", s), count = (html.slice(s, e).match(/"@type": "ListItem"/g) || []).length;
@@ -98,10 +94,10 @@ function add(a) {
     const d = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
     sm = sm.replace("</urlset>", () => "  <url><loc>" + SITE + "games/" + id + ".html</loc><lastmod>" + d + "</lastmod><priority>0.8</priority></url>\n</urlset>");
   }
-  if (a.dry) { console.log("[미리보기] 바뀌지 않았습니다. 추가될 카드:\n" + card + "\n카드 수: " + n + "개, 전체: " + total + "종"); return; }
+  if (a.dry) { console.log("[미리보기] 바뀌지 않았습니다. 추가될 카드:\n" + card + "\n카드 수: " + n + "개"); return; }
   fs.writeFileSync(P("index.html"), html);
   if (sm) fs.writeFileSync(P("sitemap.xml"), sm);
-  console.log("등록 완료: " + id + " (카드 " + n + "개, 전체 " + total + "종)");
+  console.log("등록 완료: " + id + " (카드 " + n + "개)");
   console.log("\n남은 일(사람이 확인)");
   console.log(" 1. 로컬 미리보기에서 아이콘 모양과 플레이가 되는지 본다.");
   console.log(" 2. 점수 랭킹이 필요하면 rank.js 의 게임 목록에 한 줄을 넣는다. 예:");

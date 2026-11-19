@@ -7,7 +7,7 @@
 <meta name="description" content="설치 없이 브라우저에서 바로 하는 게임. 비개발자가 AI와 함께 만든 게임을 모았습니다.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="UJ ARCADE">
-<meta property="og:title" content="UJ ARCADE | AI로 만든 게임 23종">
+<meta property="og:title" content="UJ ARCADE | AI로 만든 게임">
 <meta property="og:description" content="설치·로그인 없이 브라우저에서 바로 한 판. 비개발자가 AI와 만든 게임 모음.">
 <meta property="og:url" content="https://skadnrwhd-web.github.io/arcade/">
 <meta property="og:image" content="https://skadnrwhd-web.github.io/arcade/og.png">
@@ -133,6 +133,8 @@ h1,h2,h3{margin:0; line-height:1.15; letter-spacing:-.025em; text-wrap:balance}
 .cg-play{display:inline-block; font-size:11.5px; color:var(--muted); font-weight:700}
 .p-play{margin:-2px 0 10px; font-size:12.5px; font-weight:800; color:var(--muted)}
 .p-play[hidden]{display:none}
+/* 플레이 수는 화면에 보이지 않게 한다(서버에는 계속 기록) */
+.cg-play,.p-play,#cgList .game p.cg-play{display:none !important}
 .pick{position:relative}
 .pick .b{padding-bottom:18px}
 .pick .pick-tag{position:absolute; top:12px; right:12px; z-index:2; background:var(--pink); color:#fff; font-size:11px; font-weight:900; letter-spacing:.04em; padding:5px 10px; border-radius:999px}
@@ -382,7 +384,6 @@ body.challenge-on #modal{padding-top:calc(env(safe-area-inset-top) + 58px)}
       <p class="inst-hint" id="installHint" hidden data-i="inst_h">화면 아래의 공유 버튼(⬆)을 누르고 ‘홈 화면에 추가’를 선택하세요.</p>
     </div>
     <div class="pills">
-      <span><b>23</b> <span data-i="p1">개 게임</span></span>
       <span data-i="p2">휴대폰·PC 모두 지원</span>
       <span data-i="p3">로그인 없는 게시판</span>
       <span id="visitPill" hidden>👥 <b id="visitN"></b> <span data-i="vis">명 방문</span></span>
@@ -393,7 +394,7 @@ body.challenge-on #modal{padding-top:calc(env(safe-area-inset-top) + 58px)}
 <section class="sec alt" id="picks" style="border-top:1px solid var(--line)">
   <div class="wrap">
     <div class="sec-head rv">
-      <div><span class="eyebrow" data-i="pk_eb">Today's picks</span><h2 data-i="pk_h">🎯 오늘의 픽 3종</h2></div>
+      <div><span class="eyebrow" data-i="pk_eb">Today's picks</span><h2 data-i="pk_h">🎯 오늘의 픽</h2></div>
       <p data-i="pk_p">고르는 데 쓰는 3초를 아껴 드립니다. 지금 가장 최근에 만든 셋, 한 판에 1~5분이면 끝납니다.</p>
     </div>
     <div class="grid three">
@@ -425,8 +426,8 @@ body.challenge-on #modal{padding-top:calc(env(safe-area-inset-top) + 58px)}
 <section class="sec" id="games">
   <div class="wrap">
     <div class="sec-head rv">
-      <div><span class="eyebrow" data-i="s2_eb">Games</span><h2 data-i="s2_h">직접 만든 게임 20종</h2></div>
-      <p data-i="s2_p">누르면 이 사이트 안에서 바로 열립니다. 게임마다 댓글을 남길 수 있습니다. 아래 보너스 미니게임 3종까지 더하면 모두 23종입니다.</p>
+      <div><span class="eyebrow" data-i="s2_eb">Games</span><h2 data-i="s2_h">직접 만든 게임</h2></div>
+      <p data-i="s2_p">누르면 이 사이트 안에서 바로 열립니다. 게임마다 댓글을 남길 수 있습니다.</p>
     </div>
     <div class="grid five">
       <a class="game rv" href="https://skadnrwhd-web.github.io/seoul-escape/" data-play="seoul-escape" target="_blank" rel="noopener" style="--hue:var(--lime); --c1:#064e3b; --c2:#10b981">
@@ -585,7 +586,7 @@ body.challenge-on #modal{padding-top:calc(env(safe-area-inset-top) + 58px)}
 <section class="sec alt" id="play">
   <div class="wrap">
     <div class="sec-head rv">
-      <div><span class="eyebrow" data-i="s1_eb">Bonus</span><h2 data-i="s1_h">보너스 미니게임 3종</h2></div>
+      <div><span class="eyebrow" data-i="s1_eb">Bonus</span><h2 data-i="s1_h">보너스 미니게임</h2></div>
       <p data-i="s1_p">아이콘을 누르면 바로 시작합니다. 한 판에 1분이면 충분합니다.</p>
     </div>
     <div class="grid three five">
@@ -682,13 +683,13 @@ var EN={n4:"Board",s4_eb:"Community",s4_h:"Board",inst:"📲 Add to Home Screen"
  h_eb:"No install · Free · No ads",h1a:"Open it,",h1b:"play right away",
  h_p:"Browser games built by a non-developer together with AI. Phone or PC, just open the link.",
  c1:"Play now",c2:"Go to the board",p1:"games",p2:"Works on phone and PC",p3:"Board with no login",
- s1_eb:"Bonus",s1_h:"3 bonus mini-games",s1_p:"Tap an icon to start. One round takes about a minute.",
+ s1_eb:"Bonus",s1_h:"Bonus mini-games",s1_p:"Tap an icon to start. One round takes about a minute.",
  b_act:"Action",b_mem:"Memory",b_spd:"Speed",b_alg:"Algorithm",b_cls:"Classic",b_puz:"Puzzle",
  g1_h:"Neon Dodge",g1_p:"Dodge the blocks falling from above and survive as long as you can. Yellow orbs give bonus points.",
  g2_h:"Pair Match",g2_p:"Find eight matching pairs among 16 cards in as few moves as possible.",
  g3_h:"Tap in Order",g3_p:"Tap the scattered numbers from 1 to 25 in order, as fast as you can.",
  best:"Best",start:"Start",
- s2_eb:"Games",s2_h:"20 games I built",s2_p:"Each one opens right here on this site, and you can leave comments on every game. With the 3 bonus mini-games below, that's 23 games in all.",
+ s2_eb:"Games",s2_h:"Games I built",s2_p:"Each one opens right here on this site, and you can leave comments on every game.",
  f1_p:"A pathfinding race between Dijkstra and A* on a Seoul road network.",
  f2_p:"The nostalgic handheld game: push water with a button to land rings on pegs.",
  f3_p:"A 3D balance game: pull blocks out slowly and stack them on top without toppling the tower.",
