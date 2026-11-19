@@ -83,7 +83,7 @@
     if (sbState === 2) return cb(sb); if (sbState === 3) return cb(null);
     sbWait.push(cb); if (sbState === 1) return; sbState = 1;
     function flush(ok) { sbState = ok ? 2 : 3; var w = sbWait; sbWait = []; w.forEach(function (f) { f(ok ? sb : null); }); }
-    function ready() { try { sb = window.supabase.createClient(BACKEND.url, BACKEND.key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }); flush(true); } catch (e) { flush(false); } }
+    function ready() { try { sb = window.supabase.createClient(BACKEND.url, BACKEND.key, { auth: { storageKey: "arc-rank-sb", persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } }); flush(true); } catch (e) { flush(false); } }
     if (window.supabase && window.supabase.createClient) return ready();
     var s = document.createElement("script");
     s.src = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.119.0/dist/umd/supabase.js";
