@@ -2123,14 +2123,15 @@
     var el = $('chStat');
     if (!el) return;
     el.innerHTML = EN
-      ? 'HP <b>' + d.hp + '</b> · Speed <b>' + d.speed + '</b> · starts with <b>' + sig.en + '</b>'
-      : '체력 <b>' + d.hp + '</b> · 이동속도 <b>' + d.speed + '</b> · <b>' + sig.ko + '</b>로 시작';
+      ? 'HP <b>' + d.hp + '</b> · Speed <b>' + d.speed + '</b> · start weapon <b>' + sig.en + '</b>'
+      : '체력 <b>' + d.hp + '</b> · 이동속도 <b>' + d.speed + '</b> · 시작 무기 <b>' + sig.ko + '</b>';
   }
   function selectChar(id) {
     if (!CHARDEF[id]) return;
     charPick = id;
     store('ns-char', id);
     buildCharCards();
+    if (state === 'title') { resetWorld(); paintHud(); }
     initAudio(); resumeAudio();
     tone('triangle', 620, 880, 0.08, 0.05);
   }
