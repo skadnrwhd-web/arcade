@@ -1566,7 +1566,7 @@
   function drawPlayerChar() {
     var d = CHARDEF[charPick] || CHARDEF.blade;
     var spr = (SPR.ch && SPR.ch[d.id]) || SPR.player;
-    var i, tr, s = spr.s * 1.34, f;
+    var i, tr, s = spr.s * 1.45, f;
     for (i = player.trail.length - 1; i >= 0; i--) {
       tr = player.trail[i];
       if (tr.a <= 0.02) continue;
@@ -1576,6 +1576,11 @@
       ctx.drawImage(spr.c, -s / 2, -s / 2, s, s);
       ctx.restore();
     }
+    ctx.globalAlpha = (player.invuln > 0 && Math.floor(player.invuln * 20) % 2 === 0) ? 0.55 : 1;
+    /* 발밑 그림자: 적·이펙트 틈에서도 내 캐릭터가 눈에 띄게 */
+    ctx.globalAlpha *= 0.55;
+    ctx.fillStyle = 'rgba(2,6,14,.9)';
+    ctx.beginPath(); ctx.ellipse(player.x + 2, player.y + 5, s * 0.3, s * 0.24, 0, 0, TAU); ctx.fill();
     ctx.globalAlpha = (player.invuln > 0 && Math.floor(player.invuln * 20) % 2 === 0) ? 0.55 : 1;
     var bob = player.mv > 0.1 ? Math.sin(player.bob * 15) * 0.05 : 0;
     ctx.save();
