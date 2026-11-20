@@ -1812,7 +1812,7 @@
         bossMax: bossAlive ? bossAlive.maxHp : 0, cleared: cleared, fps: lastFps,
         skills: JSON.parse(JSON.stringify(skills)),
         chalTarget: chalTarget, chalHit: chalHit, W: W, H: H, DPR: DPR,
-        player: { x: Math.round(player.x), y: Math.round(player.y) }
+        player: { x: Math.round(player.x), y: Math.round(player.y) }, errors: window.__NS._errs || []
       };
     },
     start: startGame,
@@ -1864,6 +1864,16 @@
       return window.__NS.state();
     }
   };
+
+  /* 런타임 오류 수집(점검용): __NS._errs 에 쌓인다 */
+  window.addEventListener('error', function (ev) {
+    window.__NS._errs = window.__NS._errs || [];
+    window.__NS._errs.push(String((ev && ev.message) || 'error'));
+  });
+  window.addEventListener('unhandledrejection', function (ev) {
+    window.__NS._errs = window.__NS._errs || [];
+    window.__NS._errs.push('promise: ' + String((ev && ev.reason) || ''));
+  });
 
   boot();
 })();
