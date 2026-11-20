@@ -1566,7 +1566,7 @@
   function drawPlayerChar() {
     var d = CHARDEF[charPick] || CHARDEF.blade;
     var spr = (SPR.ch && SPR.ch[d.id]) || SPR.player;
-    var i, tr, s = spr.s, f;
+    var i, tr, s = spr.s * 1.34, f;
     for (i = player.trail.length - 1; i >= 0; i--) {
       tr = player.trail[i];
       if (tr.a <= 0.02) continue;
@@ -1592,9 +1592,10 @@
       ctx.translate(player.x, player.y); ctx.rotate(player.faceAng);
       ctx.fillStyle = d.col2;
       ctx.beginPath();
-      ctx.moveTo(-11 * d.scale, -4.4 * d.scale);
-      ctx.lineTo(-(11 + 10 * f) * d.scale, 0);
-      ctx.lineTo(-11 * d.scale, 4.4 * d.scale);
+      var b0 = s * 0.19, b1 = s * (0.3 + f * 0.15), bw = s * 0.085;
+      ctx.moveTo(-b0, -bw);
+      ctx.lineTo(-b1, 0);
+      ctx.lineTo(-b0, bw);
       ctx.closePath(); ctx.fill();
       ctx.restore();
     }
@@ -2093,8 +2094,10 @@
         var g2 = pw.getContext('2d');
         var spr = SPR.ch && SPR.ch[id];
         if (spr && g2) {
-          var w = spr.c.width, h = spr.c.height, k = Math.min(100 / w, 100 / h);
-          try { g2.drawImage(spr.c, (108 - w * k) / 2, (108 - h * k) / 2, w * k, h * k); } catch (e) { }
+          /* 캐릭터가 크게 보이도록 가운데를 잘라 확대 */
+          var cw = spr.c.width, chh = spr.c.height;
+          var sw = cw * 0.66, sh = chh * 0.66;
+          try { g2.drawImage(spr.c, (cw - sw) / 2, (chh - sh) / 2, sw, sh, 4, 4, 100, 100); } catch (e) { }
         }
         var nm = document.createElement('b');
         nm.textContent = charName(id);
