@@ -530,9 +530,9 @@
     var g = tile.getContext('2d');
     g.setTransform(DPR, 0, 0, DPR, 0, 0);
     g.fillStyle = '#060a16'; g.fillRect(0, 0, T2, T2);
-    g.strokeStyle = 'rgba(70,120,220,.10)'; g.lineWidth = 1;
+    g.strokeStyle = 'rgba(70,130,230,.16)'; g.lineWidth = 1;
     g.beginPath(); g.moveTo(0.5, 0); g.lineTo(0.5, T2); g.moveTo(0, 0.5); g.lineTo(T2, 0.5); g.stroke();
-    g.fillStyle = 'rgba(120,190,255,.10)';
+    g.fillStyle = 'rgba(120,190,255,.18)';
     g.fillRect(0, 0, 1.5, 1.5);
     pat = ctx.createPattern(tile, 'repeat');
     /* 비네트 (한 번만 구워 늘려 그림) */
@@ -1241,7 +1241,7 @@
     hudDirty = false;
   }
   function scoreNow() {
-    return Math.max(0, kills * 10 + Math.floor(Math.min(t, DURATION)) * 5 + level * 50 + bosses * 500 + (cleared ? 3000 : 0));
+    return Math.max(0, kills * 10 + Math.floor(Math.min(t, DURATION)) * 5 + (level - 1) * 50 + bosses * 500 + (cleared ? 3000 : 0));
   }
   function banner(text, cls) {
     var el = $('banner');
@@ -1271,7 +1271,7 @@
     ctx.save();
     ctx.translate(-cam.x + sx, -cam.y + sy);
     ctx.fillStyle = pat;
-    ctx.fillRect(cam.x, cam.y, W, H);
+    ctx.fillRect(cam.x - 16, cam.y - 16, W + 32, H + 32);
     /* 월드 경계 */
     ctx.strokeStyle = 'rgba(90,180,255,.5)';
     ctx.lineWidth = 4;
@@ -1279,7 +1279,6 @@
     ctx.strokeStyle = 'rgba(160,120,255,.22)';
     ctx.lineWidth = 14;
     ctx.strokeRect(2, 2, WORLD.w - 4, WORLD.h - 4);
-    ctx.restore();
 
     /* 젬 */
     var i, e, g;
@@ -1405,6 +1404,7 @@
       }
       ctx.globalAlpha = 1;
     }
+    ctx.restore();
     /* 비네트 + 화면 플래시 */
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.drawImage(VIG, 0, 0, cv.width, cv.height);
