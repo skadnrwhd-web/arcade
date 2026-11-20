@@ -51,7 +51,8 @@
   .bar.hp{height:13px}
   .bar.hp i{background:linear-gradient(90deg,#0f7a5c,#19b489)}
   .bar.hp i.low{background:linear-gradient(90deg,#ff4d6d,#ff9a6d)}
-  .bar.xp{height:9px}
+  .bar.xp{height:10px}
+  .bar.xp span{font-size:9px}
   .bar.xp i{background:linear-gradient(90deg,#4b2fbf,#1c7fb8)}
   #bossWrap{margin-top:6px;display:flex;align-items:center;gap:7px}
   #bossWrap[hidden]{display:none}
@@ -142,7 +143,7 @@
     <div class="btns">
       <button id="mute" class="on" type="button" aria-label="sound on">🔊</button>
       <button id="pauseBtn" type="button" aria-label="pause">❚❚</button>
-      <a id="homeBtn" href="../index.html" aria-label="UJ ARCADE">⌂</a>
+      <a id="homeBtn" href="../index.html" target="_top" aria-label="UJ ARCADE">⌂</a>
       <button id="langBtn" type="button" aria-label="language">EN</button>
     </div>
   </div>
@@ -187,7 +188,7 @@
     <p class="sub" id="pzS">잠깐 쉬어 가세요.</p>
     <button id="resumeBtn" class="big" type="button">계속하기</button>
     <button id="restartBtn" class="ghost" type="button">다시 하기</button>
-    <a class="ghost" id="homeBtn2" href="../index.html" style="display:flex;align-items:center;justify-content:center;text-decoration:none">← UJ ARCADE</a>
+    <a class="ghost" id="homeBtn2" href="../index.html" target="_top" style="display:flex;align-items:center;justify-content:center;text-decoration:none">← UJ ARCADE</a>
   </div>
 </div>
 
@@ -204,7 +205,7 @@
     <p class="best-new" id="ovNew" hidden>NEW BEST!</p>
     <button id="againBtn" class="big" type="button">다시 하기</button>
     <button id="rankBtn" class="ghost" type="button">🏆 랭킹 보기</button>
-    <a class="ghost" id="homeBtn3" href="../index.html" style="display:flex;align-items:center;justify-content:center;text-decoration:none">← UJ ARCADE</a>
+    <a class="ghost" id="homeBtn3" href="../index.html" target="_top" style="display:flex;align-items:center;justify-content:center;text-decoration:none">← UJ ARCADE</a>
   </div>
 </div>
 
@@ -546,7 +547,7 @@
     var g = tile.getContext('2d');
     g.setTransform(DPR, 0, 0, DPR, 0, 0);
     g.fillStyle = '#060a16'; g.fillRect(0, 0, T2, T2);
-    g.strokeStyle = 'rgba(70,130,230,.16)'; g.lineWidth = 1;
+    g.strokeStyle = 'rgba(70,135,235,.20)'; g.lineWidth = 1;
     g.beginPath(); g.moveTo(0.5, 0); g.lineTo(0.5, T2); g.moveTo(0, 0.5); g.lineTo(T2, 0.5); g.stroke();
     g.fillStyle = 'rgba(120,190,255,.18)';
     g.fillRect(0, 0, 1.5, 1.5);
@@ -557,7 +558,7 @@
     var vg = c.getContext('2d');
     var rg = vg.createRadialGradient(s / 2, s / 2, s * 0.22, s / 2, s / 2, s * 0.62);
     rg.addColorStop(0, 'rgba(0,0,0,0)');
-    rg.addColorStop(1, 'rgba(0,0,0,.62)');
+    rg.addColorStop(1, 'rgba(0,0,0,.55)');
     vg.fillStyle = rg; vg.fillRect(0, 0, s, s);
     VIG = c;
   }
@@ -1053,6 +1054,10 @@
       if (p.life != null) p.life -= dt;
       dx = player.x - p.x; dy = player.y - p.y;
       d = Math.sqrt(dx * dx + dy * dy);
+      if (p.t > 9 && d > 20) {          /* 오래 남은 아이템은 천천히 다가온다 */
+        p.x += (dx / d) * 105 * dt; p.y += (dy / d) * 105 * dt;
+        dx = player.x - p.x; dy = player.y - p.y; d = Math.sqrt(dx * dx + dy * dy);
+      }
       var gone = (p.life != null && p.life <= 0);
       if (!gone && d < player.r + 16) {
         if (p.kind === 'heal') {
@@ -1795,6 +1800,7 @@
     layout();
     resetWorld();
     state = 'title';
+    readChallenge();
     applyLang();
     paintHud();
     /* 첫 화면: 적 몇 마리를 미리 보여 준다 */
