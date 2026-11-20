@@ -3,7 +3,7 @@
 Browser games made together with AI, collected in one place.
 Play them at https://skadnrwhd-web.github.io/arcade/
 
-- 21 full games (3D puzzles, a pathfinding race, shooters, a survivor roguelite, a runner, Suika, Gomoku and more) and 3 bonus mini-games — 24 in all
+- 22 full games (3D puzzles, a pathfinding race, shooters, a rail shooter, a survivor roguelite, a runner, Suika, Gomoku and more) and 3 bonus mini-games — 25 in all
 - A no-login message board (nickname only)
 - Share with friends on KakaoTalk
 - Add to your phone home screen like an app (iPhone: Share → Add to Home Screen)

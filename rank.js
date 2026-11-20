@@ -34,7 +34,8 @@
     "brick-breaker-100": { title: ["네온 100공 벽돌깨기", "Neon 100-Ball Brick Breaker"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 3000000] },
     "fourball-billiards": { title: ["실사판 4구 당구", "Real 4-Ball Carom"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 500000] },
     "boxing-champion": { title: ["더 파이팅 복싱", "The Fighting Boxing"], better: "high", unit: ["점", " pts"], label: ["총점", "Score"], bounds: [1, 400000] },
-    "neon-survivor": { title: ["네온 뱀서라이크", "Neon Survivor"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 300000] }
+    "neon-survivor": { title: ["네온 뱀서라이크", "Neon Survivor"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 300000] },
+    "neon-breach":   { title: ["네온 돌입 30초", "Neon Breach 30s"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 300000] }
   };
   /* 하노이탑: 클래식 모드만. 점수 = 이동 횟수*10000 + 걸린 초(최대 9999). 횟수가 적을수록, 같으면 빨리 푼 사람이 위 */
   [[3, 3, 7], [3, 4, 15], [3, 5, 31], [3, 6, 63], [3, 7, 127]].forEach(function (d) { addHanoi("hanoi3d-" + d[1], "하노이탑 3D", "Tower of Hanoi 3D", d[1], d[2]); });
