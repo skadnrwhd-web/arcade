@@ -597,7 +597,6 @@
     $('over').hidden = false;
     syncChrome();
     sfxEnd();
-    banner(T('timeUp'), 'bad');
     paintHudNow();
     try {
       if (window.parent && window.parent !== window) window.parent.postMessage({ arcade: 'gameover', slug: 'neon-breach', score: score }, '*');
@@ -674,7 +673,8 @@
     var cEl = $('combo');
     if (combo >= 2 && state === 'play') {
       cEl.className = 'on';
-      cEl.innerHTML = 'COMBO <b>x' + multNow() + '</b> · ' + combo;
+      var mm = multNow();
+      cEl.innerHTML = mm > 1 ? ('COMBO <b>x' + mm + '</b> · ' + combo) : ('COMBO <b>' + combo + '</b>');
     } else { cEl.className = ''; }
     $('best').textContent = (EN ? 'Best ' : '최고 ') + fmt(Math.max(best, score));
   }
