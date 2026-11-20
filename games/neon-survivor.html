@@ -46,13 +46,13 @@
   .bar{position:relative;height:11px;border-radius:99px;background:rgba(10,16,34,.9);
     border:1px solid rgba(120,170,255,.22);overflow:hidden}
   .bar i{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:99px;display:block;transition:width .12s linear}
-  .bar span{position:absolute;inset:0;font-size:8.5px;font-weight:900;letter-spacing:.06em;color:#dbe8ff;
-    display:flex;align-items:center;justify-content:center;text-shadow:0 1px 2px rgba(0,0,0,.8)}
+  .bar span{position:absolute;inset:0;font-size:8.5px;font-weight:900;letter-spacing:.06em;color:#eaf6ff;
+    display:flex;align-items:center;justify-content:center;text-shadow:0 1px 2px #000,0 0 3px #000}
   .bar.hp{height:13px}
-  .bar.hp i{background:linear-gradient(90deg,#22d3a0,#7dffb0)}
+  .bar.hp i{background:linear-gradient(90deg,#0f7a5c,#19b489)}
   .bar.hp i.low{background:linear-gradient(90deg,#ff4d6d,#ff9a6d)}
   .bar.xp{height:9px}
-  .bar.xp i{background:linear-gradient(90deg,#7b5bff,#37e0ff)}
+  .bar.xp i{background:linear-gradient(90deg,#4b2fbf,#1c7fb8)}
   #bossWrap{margin-top:6px;display:flex;align-items:center;gap:7px}
   #bossWrap[hidden]{display:none}
   #bossWrap .bn{font-size:9.5px;font-weight:900;letter-spacing:.12em;color:#ffb0c8;white-space:nowrap}
@@ -105,7 +105,7 @@
   #over .best-new{color:#ffd166;font-size:11px;font-weight:900;letter-spacing:.08em;margin:6px 0 0}
 
   /* ── 레벨업 3택 ── */
-  #levelup{justify-content:flex-start;padding-top:calc(env(safe-area-inset-top) + 14px);overflow:auto}
+  #levelup{justify-content:center;padding-top:calc(env(safe-area-inset-top) + 22px);overflow:auto}
   #levelup .lvhead{width:100%;max-width:372px;margin:0 auto 10px;text-align:center}
   #levelup .lvhead .k{font-size:10px;font-weight:900;letter-spacing:.2em;color:#8f9bd0}
   #levelup .lvhead h2{font-size:23px;margin:2px 0 2px;background:linear-gradient(90deg,#7dffb0,#37e0ff,#b98bff);
@@ -391,8 +391,23 @@
 
   /* ══════════════════ 스프라이트 캐시 ══════════════════ */
   var SPR = {};
-  function bake(r, bodyCol, edge, g0, g1, pad) {
+  function shapePath(g, cx, cy, r, shape) {
+    var i, a, x, y;
+    g.beginPath();
+    if (shape === 'tri') {
+      g.moveTo(cx, cy - r * 1.05); g.lineTo(cx + r * 0.98, cy + r * 0.78); g.lineTo(cx - r * 0.98, cy + r * 0.78); g.closePath();
+    } else if (shape === 'hex') {
+      for (i = 0; i < 6; i++) { a = -Math.PI / 2 + i * TAU / 6; x = cx + Math.cos(a) * r; y = cy + Math.sin(a) * r; if (i) g.lineTo(x, y); else g.moveTo(x, y); }
+      g.closePath();
+    } else if (shape === 'dia') {
+      g.moveTo(cx, cy - r * 1.05); g.lineTo(cx + r * 0.95, cy); g.lineTo(cx, cy + r * 1.05); g.lineTo(cx - r * 0.95, cy); g.closePath();
+    } else {
+      g.arc(cx, cy, r, 0, TAU);
+    }
+  }
+  function bake(r, bodyCol, edge, g0, g1, pad, shape) {
     pad = pad == null ? 13 : pad;
+    shape = shape || 'circle';
     var s = (r + pad) * 2;
     var c = document.createElement('canvas');
     c.width = c.height = Math.ceil(s * DPR);
@@ -404,11 +419,11 @@
     g.fillStyle = rg;
     g.beginPath(); g.arc(cx, cx, r + pad * 0.85, 0, TAU); g.fill();
     g.fillStyle = bodyCol;
-    g.beginPath(); g.arc(cx, cx, r, 0, TAU); g.fill();
+    shapePath(g, cx, cx, r, shape); g.fill();
     g.strokeStyle = edge; g.lineWidth = Math.max(1.8, r * 0.14);
-    g.beginPath(); g.arc(cx, cx, r * 0.96, 0, TAU); g.stroke();
-    g.fillStyle = 'rgba(255,255,255,.16)';
-    g.beginPath(); g.arc(cx - r * 0.3, cx - r * 0.34, r * 0.34, 0, TAU); g.fill();
+    shapePath(g, cx, cx, r * 0.94, shape); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.26)';
+    g.beginPath(); g.arc(cx, cx, r * 0.26, 0, TAU); g.fill();
     return { c: c, s: s, r: r };
   }
   function bakeGem(col, edge) {
@@ -504,13 +519,14 @@
     clampCam(true);
     hudDirty = true;
   }
+  var SHAPE = { grunt: 'circle', dash: 'tri', tank: 'hex', shooter: 'dia' };
   function buildSprites() {
     for (var k in COL) {
       if (k === 'boss' || k === 'boss2') continue;
-      SPR[k] = bake(ETYPE[k].r, COL[k].body, COL[k].edge, COL[k].g0, COL[k].g1);
+      SPR[k] = bake(ETYPE[k].r, COL[k].body, COL[k].edge, COL[k].g0, COL[k].g1, 13, SHAPE[k] || 'circle');
     }
-    SPR.boss = bake(ETYPE.boss.r, COL.boss.body, COL.boss.edge, COL.boss.g0, COL.boss.g1, 18);
-    SPR.boss2 = bake(ETYPE.boss2.r, COL.boss2.body, COL.boss2.edge, COL.boss2.g0, COL.boss2.g1, 20);
+    SPR.boss = bake(ETYPE.boss.r, COL.boss.body, COL.boss.edge, COL.boss.g0, COL.boss.g1, 18, 'hex');
+    SPR.boss2 = bake(ETYPE.boss2.r, COL.boss2.body, COL.boss2.edge, COL.boss2.g0, COL.boss2.g1, 20, 'hex');
     SPR.player = bakePlayer();
     SPR.gem1 = bakeGem('#7dffb0', '#e9ffe9');
     SPR.gem2 = bakeGem('#5ff0ff', '#e6ffff');
