@@ -26,6 +26,10 @@ h1{margin:0;font-size:34px;font-weight:900;letter-spacing:.02em;background:linea
 @keyframes pop{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes bump{50%{transform:scale(1.18)}}
 #tip{font-size:12px;opacity:.6;text-align:center;width:var(--s)}
+.btn.ic{padding:5px 10px;font-size:16px;line-height:1.2}
+#chalTip{width:var(--s);border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:800;text-align:center;color:#ffd23f;background:linear-gradient(135deg,rgba(255,77,141,.22),rgba(143,107,255,.2));border:1px solid #ff4d8d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#chalTip[hidden]{display:none}
+#chalTip.hit{color:#08160e;background:rgba(125,255,155,.95);border-color:#7dff9b}
 #ov{position:absolute;inset:0;border-radius:16px;background:rgba(8,12,30,.78);display:none;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:5;text-align:center;padding:16px}
 #ov.on{display:flex}
 #ov h2{margin:0;font-size:28px}#ov p{margin:0;opacity:.85}
@@ -34,11 +38,13 @@ h1{margin:0;font-size:34px;font-weight:900;letter-spacing:.02em;background:linea
 </head>
 <body>
 <div id="app">
-  <div id="top"><h1>2048</h1><div class="sc"><div class="box"><small>점수</small><b id="sc">0</b></div><div class="box"><small>최고</small><b id="bs">0</b></div></div></div>
+  <div id="top"><h1>2048</h1><div class="sc"><div class="box"><small>점수</small><b id="sc">0</b></div><div class="box"><small>최고</small><b id="bs">0</b></div><button class="btn ic" id="rk" type="button" aria-label="랭킹" title="랭킹">🏆</button></div></div>
   <div id="bar"><span>같은 숫자를 합쳐 <b>2048</b>을 만드세요</span><span><button class="btn" id="undo" type="button">되돌리기</button> <button class="btn main" id="nw" type="button">새 게임</button></span></div>
+  <div id="chalTip" hidden></div>
   <div id="board"><div id="ov"></div></div>
   <div id="tip">밀어서(스와이프) 또는 방향키·W A S D 로 움직이세요</div>
 </div>
+<script src="../rank.js"></script>
 <script>
 (function(){
 "use strict";
@@ -63,7 +69,25 @@ function mk(r,c,v,anim){ var t={id:nextId++,v:v,r:r,c:c,el:document.createElemen
 function snapshot(){ var a=[]; for(var r=0;r<N;r++) for(var c=0;c<N;c++) if(grid[r][c]) a.push([r,c,grid[r][c].v]); return {tiles:a,score:score}; }
 function clearTiles(){ var ts=board.querySelectorAll(".tile"); for(var i=0;i<ts.length;i++) ts[i].remove(); }
 function restore(s){ clearTiles(); grid=[]; for(var r=0;r<N;r++){ grid[r]=[]; for(var c=0;c<N;c++) grid[r][c]=null; } s.tiles.forEach(function(a){ grid[a[0]][a[1]]=mk(a[0],a[1],a[2],false); }); score=s.score; hud(); }
-function hud(){ $("sc").textContent=score; if(score>best){ best=score; st("m2048-best",String(best)); } $("bs").textContent=best; $("undo").disabled=!prev; }
+function hud(){ $("sc").textContent=score; if(score>best){ best=score; st("m2048-best",String(best)); } $("bs").textContent=best; $("undo").disabled=!prev; paintChallenge(); }
+
+/* ⚔️ 도전장: 링크로 들어오면 목표를 띄우고, 넘는 순간 게임 안에서 바로 알려 준다 */
+var chalTarget=0, chalBy="", chalHit=false;
+function readChallenge(){ var c=null;
+  try{ c=(window.ArcadeChallenge&&ArcadeChallenge.get)?ArcadeChallenge.get():null; }catch(e){}
+  if(!c){ try{ var u=new URLSearchParams(location.search); if(u.get("challenge")) c={slug:u.get("challenge"),score:u.get("score"),by:u.get("by")}; }catch(e){} }
+  if(!c) return; var slug=String(c.slug||""); if(slug&&slug!=="merge-2048") return;
+  var t=Number(c.score); if(c.score==null||c.score===""||!isFinite(t)||t<=0) return;
+  chalTarget=Math.round(t); chalBy=String(c.by||""); chalHit=false; paintChallenge();
+}
+function paintChallenge(){ var el=$("chalTip"); if(!el) return;
+  if(!chalTarget){ el.hidden=true; return; }
+  el.hidden=false;
+  if(score>chalTarget){ chalHit=true; el.className="hit"; el.textContent="🎉 도전 성공! "+score.toLocaleString()+"점 > 목표 "+chalTarget.toLocaleString()+"점"; }
+  else { chalHit=false; el.className=""; el.textContent="⚔️ "+(chalBy?chalBy+"님 ":"")+"목표 "+chalTarget.toLocaleString()+"점 깨기!"; }
+}
+window.addEventListener("message",function(e){ var d=e&&e.data; if(d&&typeof d==="object"&&d.arcade==="challenge") setTimeout(readChallenge,0); });
+document.addEventListener("arcade-challenge-result",function(){ readChallenge(); });
 
 function spawn(){ var e=[]; for(var r=0;r<N;r++) for(var c=0;c<N;c++) if(!grid[r][c]) e.push([r,c]); if(!e.length) return; var p=e[Math.floor(Math.random()*e.length)]; grid[p[0]][p[1]]=mk(p[0],p[1],Math.random()<.9?2:4,true); }
 function start(){ clearTiles(); grid=[]; for(var r=0;r<N;r++){ grid[r]=[]; for(var c=0;c<N;c++) grid[r][c]=null; } score=0; prev=null; over=false; won=false; keepGoing=false; busy=false; ov.classList.remove("on"); spawn(); spawn(); hud(); }
@@ -88,7 +112,8 @@ function move(dir){ if(over||busy) return; var before=snapshot(), moved=false, g
 }
 function canMove(){ for(var r=0;r<N;r++) for(var c=0;c<N;c++){ var t=grid[r][c]; if(!t) return true; if(c+1<N&&grid[r][c+1]&&grid[r][c+1].v===t.v) return true; if(r+1<N&&grid[r+1][c]&&grid[r+1][c].v===t.v) return true; } return false; }
 function check(){ if(won&&!keepGoing){ ov.innerHTML='<h2>🎉 2048 달성!</h2><p>점수 '+score+'</p><div class="acts"><button class="btn main" id="kg" type="button">계속하기</button><button class="btn" id="nw2" type="button">새 게임</button></div>'; ov.classList.add("on"); $("kg").onclick=function(){ keepGoing=true; ov.classList.remove("on"); }; $("nw2").onclick=start; return; }
-  if(!canMove()){ over=true; ov.innerHTML='<h2>더 움직일 수 없어요</h2><p>점수 '+score+(score>=best&&score>0?' · 최고 기록!':'')+'</p><div class="acts"><button class="btn main" id="nw3" type="button">다시 하기</button></div>'; ov.classList.add("on"); $("nw3").onclick=start; } }
+  if(!canMove()){ over=true; ov.innerHTML='<h2>더 움직일 수 없어요</h2><p>점수 '+score+(score>=best&&score>0?' · 최고 기록!':'')+'</p><div class="acts"><button class="btn main" id="nw3" type="button">다시 하기</button></div>'; ov.classList.add("on"); $("nw3").onclick=start;
+    if(window.ArcadeRank) ArcadeRank.show({ id:"merge-2048", score:score, cancelIf:function(){ return !over; } }); } }
 
 /* 입력 */
 window.addEventListener("keydown",function(e){ var m={ArrowLeft:"left",ArrowRight:"right",ArrowUp:"up",ArrowDown:"down",a:"left",d:"right",w:"up",s:"down",A:"left",D:"right",W:"up",S:"down"}[e.key]; if(m){ e.preventDefault(); move(m); } });
@@ -99,7 +124,9 @@ board.addEventListener("pointerup",function(e){ if(!tracking) return; tracking=f
 board.addEventListener("touchmove",function(e){ e.preventDefault(); },{passive:false});
 $("undo").addEventListener("click",function(){ if(!prev||busy) return; over=false; ov.classList.remove("on"); restore(prev); prev=null; hud(); });
 $("nw").addEventListener("click",start);
+$("rk").addEventListener("click",function(){ if(window.ArcadeRank) ArcadeRank.open({ id:"merge-2048" }); });
 start();
+readChallenge();
 })();
 </script>
 </body>

@@ -905,7 +905,8 @@
     var rect = stage.getBoundingClientRect();
     var cw = Math.max(180, Math.round(rect.width));
     var ch = Math.max(200, Math.round(rect.height));
-    var dpr = Math.min(3, Math.max(1, window.devicePixelRatio || 1));
+    /* 레티나 배율은 2배까지만: 다른 게임과 같은 기준(3배는 계산량 2.25배, 화질 차이는 거의 없음) */
+    var dpr = Math.min(2, Math.max(1, window.devicePixelRatio || 1));
     var oldW = G.W, oldH = G.H;
     G.cw = cw; G.ch = ch; G.dpr = dpr;
     cv.width = Math.round(cw * dpr);

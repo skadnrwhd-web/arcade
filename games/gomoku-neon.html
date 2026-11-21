@@ -49,6 +49,7 @@ h1{
   cursor:pointer;font-family:inherit;padding:0;
 }
 .iconBtn:active{background:rgba(20,50,70,.9)}
+#btnRank{margin-left:auto}#btnSettings{margin-left:4px}
 .hud{display:flex;align-items:center;gap:6px;min-height:24px;max-width:600px;overflow:hidden;flex-wrap:nowrap}
 .chip{
   display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;
@@ -175,6 +176,7 @@ h1{
     <div class="brand">
       <span class="brandDots"><i class="b"></i><i class="w"></i></span>
       <h1>네온 오목</h1>
+      <button id="btnRank" class="iconBtn" aria-label="랭킹" title="랭킹">🏆</button>
       <button id="btnSettings" class="iconBtn" aria-label="설정">⚙</button>
     </div>
     <div class="hud">
@@ -240,6 +242,7 @@ h1{
     </div>
   </div>
 </div>
+<script src="../rank.js"></script>
 <script>
 (function(){
   'use strict';
@@ -524,6 +527,11 @@ h1{
     }
     saveStore();
     updateHud();
+    /* ⚔️ 랭킹·도전장: AI를 이길 때마다 쌓이는 승수를 기록한다(2인 대전은 제외) */
+    if(w === settings.color){
+      if(chalTarget && record.w > chalTarget) toast('🎉 도전 성공! ' + record.w + '승 > 목표 ' + chalTarget + '승');
+      if(window.ArcadeRank) ArcadeRank.show({ id:'gomoku-neon', score:record.w, cancelIf:function(){ return !gameOver; } });
+    }
   }
 
   function popMove(){
@@ -1140,6 +1148,25 @@ h1{
     }
   }
 
+  /* ══════════ ⚔️ 도전장 (목표 = AI 승수) ══════════ */
+  var chalTarget = 0;
+  function readChallenge(){
+    var c = null;
+    try{ c = (window.ArcadeChallenge && ArcadeChallenge.get) ? ArcadeChallenge.get() : null; }catch(e){}
+    if(!c){ try{ var u = new URLSearchParams(location.search); if(u.get('challenge')) c = { slug:u.get('challenge'), score:u.get('score'), by:u.get('by') }; }catch(e){} }
+    if(!c) return;
+    var slug = String(c.slug || ''); if(slug && slug !== 'gomoku-neon') return;
+    var t = Number(c.score); if(c.score == null || c.score === '' || !isFinite(t) || t <= 0) return;
+    t = Math.round(t); if(t === chalTarget) return;
+    chalTarget = t;
+    toast('⚔️ ' + (c.by ? c.by + '님 ' : '') + '도전장 · AI ' + t + '승 넘으면 성공!');
+  }
+  window.addEventListener('message', function(e){
+    var d = e && e.data;
+    if(d && typeof d === 'object' && d.arcade === 'challenge') setTimeout(readChallenge, 0);
+  });
+  document.addEventListener('arcade-challenge-result', function(){ readChallenge(); });
+
   function updatePlaceBtn(){
     var b = document.getElementById('btnPlace');
     if(!b) return;
@@ -1309,6 +1336,9 @@ h1{
     if(e.target === this) closeSheet();
   });
   document.getElementById('btnAgain').addEventListener('click', function(){ audio(); newGame(); });
+  document.getElementById('btnRank').addEventListener('click', function(){
+    if(window.ArcadeRank) ArcadeRank.open({ id:'gomoku-neon' });
+  });
   document.getElementById('btnCloseOver').addEventListener('click', hideOver);
 
   var segMode = document.getElementById('segMode');
@@ -1347,6 +1377,7 @@ h1{
   syncUI();
   layout();
   newGame();
+  readChallenge();
   requestAnimationFrame(frame);
   setTimeout(function(){ layout(); }, 260);
 

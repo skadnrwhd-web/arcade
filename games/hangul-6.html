@@ -35,16 +35,21 @@ h1 small{display:block;font-size:11px;font-weight:600;opacity:.65}
 .stats{display:flex;justify-content:space-around;margin:10px 0 14px}.stats b{display:block;font-size:22px}.stats span{font-size:11px;opacity:.7}
 .acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 pre{margin:0 0 12px;font-family:inherit;font-size:15px;line-height:1.3}
+#chalTip{width:100%;max-width:440px;border-radius:999px;padding:7px 12px;font-size:12.5px;font-weight:800;text-align:center;color:#ffd23f;background:linear-gradient(135deg,rgba(255,77,141,.22),rgba(143,107,255,.2));border:1px solid #ff4d8d;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#chalTip[hidden]{display:none}
+#chalTip.hit{color:#08160e;background:rgba(125,255,155,.95);border-color:#7dff9b}
 </style>
 </head>
 <body>
 <div id="app">
-  <div id="top"><h1>글자 6칸<small id="sub">오늘의 단어</small></h1><div><button class="btn" id="hb" type="button">도움말</button></div></div>
+  <div id="top"><h1>글자 6칸<small id="sub">오늘의 단어</small></h1><div><button class="btn" id="rb" type="button" aria-label="랭킹" title="랭킹">🏆</button> <button class="btn" id="hb" type="button">도움말</button></div></div>
+  <div id="chalTip" hidden></div>
   <div id="board"></div>
   <div id="kb"></div>
 </div>
 <div id="msg"></div>
 <div id="ov"><div id="box"></div></div>
+<script src="../rank.js"></script>
 <script>
 (function(){
 "use strict";
@@ -112,7 +117,30 @@ function draw(){
     k+='</div>'; });
   k+='<div class="kr"><button class="k w2" style="max-width:none;flex:3" data-a="enter" type="button">입력</button></div>';
   $("kb").innerHTML=k;
+  paintChallenge();
 }
+
+/* ⚔️ 도전장: 목표(시도 횟수)보다 적게 맞히면 성공. 게임 안에서도 바로 알려 준다 */
+var chalTarget=0, chalBy="";
+function readChallenge(){ var c=null;
+  try{ c=(window.ArcadeChallenge&&ArcadeChallenge.get)?ArcadeChallenge.get():null; }catch(e){}
+  if(!c){ try{ var u=new URLSearchParams(location.search); if(u.get("challenge")) c={slug:u.get("challenge"),score:u.get("score"),by:u.get("by")}; }catch(e){} }
+  if(!c) return; var slug=String(c.slug||""); if(slug&&slug!=="hangul-6") return;
+  var t=Number(c.score); if(c.score==null||c.score===""||!isFinite(t)||t<=0) return;
+  chalTarget=Math.round(t); chalBy=String(c.by||""); paintChallenge();
+}
+function paintChallenge(){ var el=$("chalTip"); if(!el) return;
+  if(!chalTarget){ el.hidden=true; return; }
+  el.hidden=false;
+  var won=guesses.length>0&&guesses[guesses.length-1].join("")===ansJ.join("");
+  if(won){ var n=guesses.length;
+    if(n<chalTarget){ el.className="hit"; el.textContent="🎉 도전 성공! "+n+"번 < 목표 "+chalTarget+"번"; }
+    else { el.className=""; el.textContent="😖 목표 "+chalTarget+"번 · 이번엔 "+n+"번"; }
+    return; }
+  el.className=""; el.textContent="⚔️ "+(chalBy?chalBy+"님 ":"")+"목표 "+chalTarget+"번보다 적게 맞혀야 성공!";
+}
+window.addEventListener("message",function(e){ var d=e&&e.data; if(d&&typeof d==="object"&&d.arcade==="challenge") setTimeout(readChallenge,0); });
+document.addEventListener("arcade-challenge-result",function(){ readChallenge(); });
 function say(t){ var m=$("msg"); m.textContent=t; m.classList.add("on"); clearTimeout(say.t); say.t=setTimeout(function(){ m.classList.remove("on"); },1400); }
 
 /* ---------- 입력 ---------- */
@@ -126,7 +154,8 @@ function enter(){ if(over) return;
   if(!practice){ st("h6-today",JSON.stringify({day:DAY,g:guesses,done:over})); if(over) finish(win); }
   draw();
   if(practice&&over) setTimeout(function(){ result(win); },500);
-  else if(!practice&&over) setTimeout(function(){ result(win); },500); }
+  else if(!practice&&over) setTimeout(function(){ result(win); },500);
+  if(win&&!practice) setTimeout(function(){ if(window.ArcadeRank) ArcadeRank.show({ id:"hangul-6", score:guesses.length, delay:0, cancelIf:function(){ return practice; } }); },1500); }
 function finish(win){ if(stats.last===DAY) return; stats.played++; if(win){ stats.wins++; stats.streak=(stats.last===DAY-1)?stats.streak+1:1; if(stats.streak>stats.max) stats.max=stats.streak; } else stats.streak=0; stats.last=DAY; st("h6-stats",JSON.stringify(stats)); }
 function shareText(){ var s=guesses.map(function(g){ return score(g,ansJ).map(function(x){ return ["⬛","🟨","🟩"][x]; }).join(""); }).join("\n");
   var win=guesses.length&&guesses[guesses.length-1].join("")===ansJ.join("");
@@ -134,9 +163,10 @@ function shareText(){ var s=guesses.map(function(g){ return score(g,ansJ).map(fu
 function result(win){
   var h='<h2>'+(win?"맞혔어요!":"아쉬워요")+'</h2><p>정답은 <b>'+answer+'</b> 입니다.</p>';
   if(!practice){ h+='<div class="stats"><div><b>'+stats.played+'</b><span>플레이</span></div><div><b>'+(stats.played?Math.round(stats.wins*100/stats.played):0)+'%</b><span>승률</span></div><div><b>'+stats.streak+'</b><span>연속</span></div><div><b>'+stats.max+'</b><span>최고 연속</span></div></div>'; }
-  h+='<pre>'+shareText().split("\n").slice(1,-1).join("\n")+'</pre><div class="acts">'+(practice?"":'<button class="btn main" id="sh" type="button">결과 공유</button>')+'<button class="btn" id="pr" type="button">연습 한 판</button><button class="btn" id="cl" type="button">닫기</button></div>';
+  h+='<pre>'+shareText().split("\n").slice(1,-1).join("\n")+'</pre><div class="acts">'+(practice?"":'<button class="btn main" id="sh" type="button">결과 공유</button><button class="btn" id="rk2" type="button">🏆 랭킹</button>')+'<button class="btn" id="pr" type="button">연습 한 판</button><button class="btn" id="cl" type="button">닫기</button></div>';
   $("box").innerHTML=h; $("ov").classList.add("on");
   var sh=$("sh"); if(sh) sh.onclick=function(){ var t=shareText(); if(navigator.share){ navigator.share({text:t}).catch(function(){}); } else if(navigator.clipboard){ navigator.clipboard.writeText(t).then(function(){ say("복사했어요. 붙여 넣어 공유하세요"); },function(){ say("복사하지 못했어요"); }); } };
+  var rk2=$("rk2"); if(rk2) rk2.onclick=function(){ if(window.ArcadeRank) ArcadeRank.open({ id:"hangul-6" }); };
   $("pr").onclick=function(){ $("ov").classList.remove("on"); newGame(true); }; $("cl").onclick=function(){ $("ov").classList.remove("on"); };
 }
 function help(){ $("box").innerHTML='<h2>하는 법</h2><p style="text-align:left">숨은 단어는 2~3글자이고, 글자를 <b>낱자(자음·모음) 6개</b>로 쪼갠 것이에요. 예) 학생 → ㅎㅏㄱㅅㅐㅇ<br>겹받침과 ㅘ ㅝ ㅢ 같은 겹모음도 낱자로 나뉩니다 (ㅘ = ㅗ+ㅏ).<br><br>6번 안에 맞히세요. 입력은 낱자 6개를 눌러 글자로 읽히면 돼요(사전 검사는 없어요).<br><span style="color:#5fd68a">초록</span> 자리까지 맞음 · <span style="color:#e3c04a">노랑</span> 다른 자리에 있음 · 회색 없음<br><br>하루에 한 단어, 자정(한국 시간)에 바뀝니다.</p><div class="acts"><button class="btn main" id="cl" type="button">시작</button></div>'; $("ov").classList.add("on"); $("cl").onclick=function(){ $("ov").classList.remove("on"); st("h6-help","1"); }; }
@@ -144,11 +174,13 @@ function help(){ $("box").innerHTML='<h2>하는 법</h2><p style="text-align:lef
 $("kb").addEventListener("click",function(e){ var b=e.target.closest("button"); if(!b) return; var a=b.getAttribute("data-a"),k=b.getAttribute("data-k");
   if(k) typeJamo(k); else if(a==="back") back(); else if(a==="enter") enter(); else if(a==="shift"){ shift=!shift; draw(); } });
 $("hb").addEventListener("click",help);
+$("rb").addEventListener("click",function(){ if(window.ArcadeRank) ArcadeRank.open({ id:"hangul-6" }); });
 var MAP={KeyQ:["ㅂ","ㅃ"],KeyW:["ㅈ","ㅉ"],KeyE:["ㄷ","ㄸ"],KeyR:["ㄱ","ㄲ"],KeyT:["ㅅ","ㅆ"],KeyY:["ㅛ","ㅛ"],KeyU:["ㅕ","ㅕ"],KeyI:["ㅑ","ㅑ"],KeyO:["ㅐ","ㅒ"],KeyP:["ㅔ","ㅖ"],KeyA:["ㅁ","ㅁ"],KeyS:["ㄴ","ㄴ"],KeyD:["ㅇ","ㅇ"],KeyF:["ㄹ","ㄹ"],KeyG:["ㅎ","ㅎ"],KeyH:["ㅗ","ㅗ"],KeyJ:["ㅓ","ㅓ"],KeyK:["ㅏ","ㅏ"],KeyL:["ㅣ","ㅣ"],KeyZ:["ㅋ","ㅋ"],KeyX:["ㅌ","ㅌ"],KeyC:["ㅊ","ㅊ"],KeyV:["ㅍ","ㅍ"],KeyB:["ㅠ","ㅠ"],KeyN:["ㅜ","ㅜ"],KeyM:["ㅡ","ㅡ"]};
 window.addEventListener("keydown",function(e){ if(e.ctrlKey||e.metaKey||e.altKey||$("ov").classList.contains("on")) return;
   if(e.key==="Enter"){ e.preventDefault(); enter(); } else if(e.key==="Backspace"){ e.preventDefault(); back(); }
   else if(MAP[e.code]){ e.preventDefault(); var c=MAP[e.code][e.shiftKey?1:0]; if(over||cur.length>=6) return; cur.push(c); draw(); } });
 newGame(false);
+readChallenge();
 if(!st("h6-help")) help(); else if(over) setTimeout(function(){ var w=guesses.length&&guesses[guesses.length-1].join("")===ansJ.join(""); result(w); },300);
 })();
 </script>
