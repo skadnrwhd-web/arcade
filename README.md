@@ -3,7 +3,8 @@
 Browser games made together with AI, collected in one place.
 Play them at https://skadnrwhd-web.github.io/arcade/
 
-- 22 full games (3D puzzles, a pathfinding race, shooters, a rail shooter, a survivor roguelite, a runner, Suika, Gomoku and more) and 3 bonus mini-games — 25 in all
+- 18 full games (3D puzzles, a pathfinding race, shooters, a rail shooter, a survivor roguelite, a runner, Suika, Gomoku and more) and 3 bonus mini-games — 21 in all
+- The main game screens have a `⌂` button back to the arcade (Gem Match, 2048, 글자 6칸, 4-ball billiards, Neon Gomoku), and Gem Match·2048·글자 6칸 have sound with a mute toggle
 - A no-login message board (nickname only)
 - Share with friends on KakaoTalk
 - Add to your phone home screen like an app (iPhone: Share → Add to Home Screen)
