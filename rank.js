@@ -37,8 +37,8 @@
     "neon-survivor": { title: ["네온 뱀서라이크", "Neon Survivor"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 300000] },
     "neon-breach":   { title: ["네온 돌입 30초", "Neon Breach 30s"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 300000] },
     "merge-2048":    { title: ["2048", "2048"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [4, 2000000] },
-    "hangul-6":      { title: ["글자 6칸", "Hangul 6"], better: "low", unit: ["번", " tries"], label: ["시도 횟수", "Tries"], bounds: [1, 6] },
-    "gomoku-neon":   { title: ["네온 오목", "Neon Gomoku"], better: "high", unit: ["승", " wins"], label: ["AI 승수", "AI wins"], bounds: [1, 9000] }
+    "hangul-6":      { title: ["글자 6칸", "Hangul 6"], better: "low", unit: ["번", " tries"], unit1: ["번", " try"], label: ["시도 횟수", "Tries"], bounds: [1, 6] },
+    "gomoku-neon":   { title: ["네온 오목", "Neon Gomoku"], better: "high", unit: ["승", ""], label: ["AI 승수", "AI wins"], bounds: [1, 9000] }
   };
   /* 하노이탑: 클래식 모드만. 점수 = 이동 횟수*10000 + 걸린 초(최대 9999). 횟수가 적을수록, 같으면 빨리 푼 사람이 위 */
   [[3, 3, 7], [3, 4, 15], [3, 5, 31], [3, 6, 63], [3, 7, 127]].forEach(function (d) { addHanoi("hanoi3d-" + d[1], "하노이탑 3D", "Tower of Hanoi 3D", d[1], d[2]); });
@@ -77,11 +77,13 @@
   function keyRange(cfg) { var lo = cfg.bounds[0], hi = cfg.bounds[1]; return cfg.better === "low" ? [pad(MAXV - hi), pad(MAXV - lo)] : [pad(lo), pad(hi)]; }
   function inBounds(cfg, m) { return typeof m === "number" && isFinite(m) && Math.floor(m) === m && m >= cfg.bounds[0] && m <= cfg.bounds[1]; }
   function fmt(cfg, m) {
+    /* 단수 표기(영어 1 try / 1 win): unit1 이 있으면 값이 1일 때 그쪽을 쓴다 */
+    var U = tx(cfg.unit1 && m === 1 ? cfg.unit1 : cfg.unit);
     if (cfg.fmt === "level") return (lang() ? "Level " : "레벨 ") + Math.floor(m / 100000) + " · " + (m % 100000).toLocaleString() + (lang() ? " pts" : "점");
     if (cfg.fmt === "movesec") return Math.floor(m / 10000) + (lang() ? " moves · " : "번 · ") + (m % 10000) + (lang() ? "s" : "초");
-    if (cfg.fmt === "tenths") return (m / 10).toFixed(1) + tx(cfg.unit);
-    if (cfg.fmt === "centis") return (m / 100).toFixed(2) + tx(cfg.unit);
-    return m.toLocaleString() + tx(cfg.unit);
+    if (cfg.fmt === "tenths") return (m / 10).toFixed(1) + U;
+    if (cfg.fmt === "centis") return (m / 100).toFixed(2) + U;
+    return m.toLocaleString() + U;
   }
 
   /* ---- 서버(Supabase) ---- */
