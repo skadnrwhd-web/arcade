@@ -8,8 +8,11 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:#0b1020;color:#fff;font-family:system-ui,-apple-system,"Segoe UI","Malgun Gothic",sans-serif;overflow:hidden;user-select:none;-webkit-user-select:none;overscroll-behavior:none}
 #app{height:100svh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:10px;background:radial-gradient(circle at 50% 0,#2b2160 0,#0b1020 70%)}
-#top{width:var(--s);display:flex;align-items:center;justify-content:space-between;gap:8px}
-h1{margin:0;font-size:34px;font-weight:900;letter-spacing:.02em;background:linear-gradient(90deg,#ffd23f,#ff7a59);-webkit-background-clip:text;background-clip:text;color:transparent}
+#top{width:var(--s);display:flex;align-items:center;justify-content:space-between;gap:6px}
+.tl{display:flex;align-items:center;gap:7px;min-width:0}
+h1{margin:0;font-size:28px;font-weight:900;letter-spacing:.02em;background:linear-gradient(90deg,#ffd23f,#ff7a59);-webkit-background-clip:text;background-clip:text;color:transparent}
+.btn.ic.home{text-decoration:none;display:grid;place-items:center;width:36px;height:34px;padding:0;font-size:16px}
+#snd.off{opacity:.5}
 .sc{display:flex;gap:8px}
 .box{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:5px 12px;text-align:center;min-width:64px}
 .box small{display:block;font-size:10px;opacity:.65;letter-spacing:.08em}
@@ -38,7 +41,7 @@ h1{margin:0;font-size:34px;font-weight:900;letter-spacing:.02em;background:linea
 </head>
 <body>
 <div id="app">
-  <div id="top"><h1>2048</h1><div class="sc"><div class="box"><small>점수</small><b id="sc">0</b></div><div class="box"><small>최고</small><b id="bs">0</b></div><button class="btn ic" id="rk" type="button" aria-label="랭킹" title="랭킹">🏆</button></div></div>
+  <div id="top"><div class="tl"><a class="btn ic home" href="../index.html" aria-label="UJ ARCADE 홈으로" title="홈">⌂</a><h1>2048</h1></div><div class="sc"><div class="box"><small>점수</small><b id="sc">0</b></div><div class="box"><small>최고</small><b id="bs">0</b></div><button class="btn ic" id="snd" type="button" aria-label="소리 끄기" aria-pressed="true" title="소리">🔊</button><button class="btn ic" id="rk" type="button" aria-label="랭킹" title="랭킹">🏆</button></div></div>
   <div id="bar"><span>같은 숫자를 합쳐 <b>2048</b>을 만드세요</span><span><button class="btn" id="undo" type="button">되돌리기</button> <button class="btn main" id="nw" type="button">새 게임</button></span></div>
   <div id="chalTip" hidden></div>
   <div id="board"><div id="ov"></div></div>
@@ -53,6 +56,39 @@ var grid, score, best=0, prev=null, over=false, won=false, keepGoing=false, next
 function $(id){ return document.getElementById(id); }
 function st(k,v){ try{ if(v===undefined) return localStorage.getItem(k); localStorage.setItem(k,v); }catch(e){ return null; } }
 best=+st("m2048-best")||0;
+
+/* ---------- 소리: Web Audio 합성(파일 없음) · 음소거는 localStorage arc-sound ---------- */
+var SFX=(function(){
+  var ac=null, on=true;
+  try{ on=localStorage.getItem("arc-sound")!=="0"; }catch(e){}
+  function ctx(){
+    if(!on) return null;
+    if(!ac){ var C=window.AudioContext||window.webkitAudioContext; if(!C) return null; try{ ac=new C(); }catch(e){ return null; } }
+    if(ac.state==="suspended"){ try{ ac.resume(); }catch(e){} }
+    return ac;
+  }
+  function tone(f,dur,type,vol,at,to){
+    var c=ctx(); if(!c) return;
+    var t0=c.currentTime+(at||0), o=c.createOscillator(), g=c.createGain();
+    o.type=type||"sine"; o.frequency.setValueAtTime(Math.max(30,f),t0);
+    if(to){ try{ o.frequency.exponentialRampToValueAtTime(Math.max(30,to),t0+dur); }catch(e){} }
+    g.gain.setValueAtTime(.0001,t0);
+    g.gain.exponentialRampToValueAtTime(vol==null?.14:vol,t0+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+    o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+dur+.03);
+  }
+  return {
+    on:function(){ return on; },
+    set:function(v){ on=!!v; try{ localStorage.setItem("arc-sound", on?"1":"0"); }catch(e){} if(on) ctx(); },
+    unlock:function(){ ctx(); },
+    tap:function(){ tone(760,.05,"sine",.07); },
+    slide:function(){ tone(300,.06,"triangle",.06,0,380); },
+    merge:function(lv,at){ var f=Math.min(1600,392*Math.pow(1.12,Math.max(1,lv)-1)); tone(f,.16,"triangle",.13,at||0); },
+    win:function(){ [523.25,659.25,783.99,1046.5,1318.51].forEach(function(f,i){ tone(f,.30,"triangle",.14,i*.10); }); },
+    over:function(){ [392,329.63,261.63,196].forEach(function(f,i){ tone(f,.32,"sawtooth",.11,i*.12); }); }
+  };
+})();
+function paintSnd(){ var b=$("snd"); if(!b) return; b.textContent=SFX.on()?"🔊":"🔇"; b.className="btn ic"+(SFX.on()?"":" off"); b.setAttribute("aria-pressed",SFX.on()?"true":"false"); b.setAttribute("aria-label",SFX.on()?"소리 끄기":"소리 켜기"); }
 
 /* 크기: 화면에 맞는 정사각형 */
 function size(){ var s=Math.floor(Math.min(window.innerWidth-20,window.innerHeight-210,480)); if(s<220) s=220; document.documentElement.style.setProperty("--s",s+"px"); }
@@ -106,13 +142,13 @@ function move(dir){ if(over||busy) return; var before=snapshot(), moved=false, g
       if(o.gone){ moved=true; o.gone.r=p[0]; o.gone.c=p[1]; pos(o.gone); dying.push([o.keep,o.gone]); } });
   }
   if(!moved){ return; }
-  prev=before; busy=true;
-  setTimeout(function(){ dying.forEach(function(d){ d[1].el.remove(); d[0].v*=2; gain+=d[0].v; paint(d[0]); d[0].el.classList.remove("new"); d[0].el.classList.remove("merge"); void d[0].el.offsetWidth; d[0].el.classList.add("merge"); if(d[0].v===2048&&!won){ won=true; } });
+  prev=before; busy=true; SFX.slide();
+  setTimeout(function(){ var mi=0; dying.forEach(function(d){ d[1].el.remove(); d[0].v*=2; gain+=d[0].v; paint(d[0]); d[0].el.classList.remove("new"); d[0].el.classList.remove("merge"); void d[0].el.offsetWidth; d[0].el.classList.add("merge"); SFX.merge(Math.log(d[0].v)/Math.LN2,mi*.035); mi++; if(d[0].v===2048&&!won){ won=true; } });
     score+=gain; spawn(); hud(); busy=false; check(); },130);
 }
 function canMove(){ for(var r=0;r<N;r++) for(var c=0;c<N;c++){ var t=grid[r][c]; if(!t) return true; if(c+1<N&&grid[r][c+1]&&grid[r][c+1].v===t.v) return true; if(r+1<N&&grid[r+1][c]&&grid[r+1][c].v===t.v) return true; } return false; }
-function check(){ if(won&&!keepGoing){ ov.innerHTML='<h2>🎉 2048 달성!</h2><p>점수 '+score+'</p><div class="acts"><button class="btn main" id="kg" type="button">계속하기</button><button class="btn" id="nw2" type="button">새 게임</button></div>'; ov.classList.add("on"); $("kg").onclick=function(){ keepGoing=true; ov.classList.remove("on"); }; $("nw2").onclick=start; return; }
-  if(!canMove()){ over=true; ov.innerHTML='<h2>더 움직일 수 없어요</h2><p>점수 '+score+(score>=best&&score>0?' · 최고 기록!':'')+'</p><div class="acts"><button class="btn main" id="nw3" type="button">다시 하기</button></div>'; ov.classList.add("on"); $("nw3").onclick=start;
+function check(){ if(won&&!keepGoing){ SFX.win(); ov.innerHTML='<h2>🎉 2048 달성!</h2><p>점수 '+score+'</p><div class="acts"><button class="btn main" id="kg" type="button">계속하기</button><button class="btn" id="nw2" type="button">새 게임</button></div>'; ov.classList.add("on"); $("kg").onclick=function(){ keepGoing=true; ov.classList.remove("on"); }; $("nw2").onclick=start; return; }
+  if(!canMove()){ over=true; SFX.over(); ov.innerHTML='<h2>더 움직일 수 없어요</h2><p>점수 '+score+(score>=best&&score>0?' · 최고 기록!':'')+'</p><div class="acts"><button class="btn main" id="nw3" type="button">다시 하기</button></div>'; ov.classList.add("on"); $("nw3").onclick=start;
     if(window.ArcadeRank) ArcadeRank.show({ id:"merge-2048", score:score, cancelIf:function(){ return !over; } }); } }
 
 /* 입력 */
@@ -125,6 +161,9 @@ board.addEventListener("touchmove",function(e){ e.preventDefault(); },{passive:f
 $("undo").addEventListener("click",function(){ if(!prev||busy) return; over=false; ov.classList.remove("on"); restore(prev); prev=null; hud(); });
 $("nw").addEventListener("click",start);
 $("rk").addEventListener("click",function(){ if(window.ArcadeRank) ArcadeRank.open({ id:"merge-2048" }); });
+$("snd").addEventListener("click",function(){ SFX.set(!SFX.on()); paintSnd(); if(SFX.on()) SFX.tap(); });
+board.addEventListener("pointerdown",function(){ SFX.unlock(); },{passive:true});
+paintSnd();
 start();
 readChallenge();
 })();

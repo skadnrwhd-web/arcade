@@ -13,6 +13,10 @@ h1{margin:0;font-size:18px;letter-spacing:.02em}
 h1 small{display:block;font-size:11px;font-weight:600;opacity:.65}
 .btn{font:inherit;font-weight:800;border:0;border-radius:12px;padding:8px 14px;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
 .btn.main{background:linear-gradient(135deg,#37e0ff,#6d5cff)}
+.tbtns{display:flex;align-items:center;gap:5px}
+.btn.home{display:grid;place-items:center;padding:8px 10px;font-size:15px;line-height:1;text-decoration:none}
+.btn.snd{padding:8px 10px;font-size:14px}
+.btn.snd.off{opacity:.5}
 #board{flex:1;min-height:0;width:100%;max-width:440px;display:flex;flex-direction:column;justify-content:center;gap:6px}
 .row{display:grid;grid-template-columns:repeat(6,1fr) 52px;gap:6px;align-items:center}
 .t{aspect-ratio:1;max-height:min(58px,7.4svh);justify-self:stretch;border-radius:10px;border:2px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);display:grid;place-items:center;font-size:clamp(18px,5.4vw,26px);font-weight:800;transition:transform .15s}
@@ -42,7 +46,7 @@ pre{margin:0 0 12px;font-family:inherit;font-size:15px;line-height:1.3}
 </head>
 <body>
 <div id="app">
-  <div id="top"><h1>글자 6칸<small id="sub">오늘의 단어</small></h1><div><button class="btn" id="rb" type="button" aria-label="랭킹" title="랭킹">🏆</button> <button class="btn" id="hb" type="button">도움말</button></div></div>
+  <div id="top"><h1>글자 6칸<small id="sub">오늘의 단어</small></h1><div class="tbtns"><a class="btn home" href="../index.html" aria-label="UJ ARCADE 홈으로" title="홈">⌂</a><button class="btn snd" id="snd" type="button" aria-label="소리 끄기" aria-pressed="true">🔊</button><button class="btn" id="rb" type="button" aria-label="랭킹" title="랭킹">🏆</button> <button class="btn" id="hb" type="button">도움말</button></div></div>
   <div id="chalTip" hidden></div>
   <div id="board"></div>
   <div id="kb"></div>
@@ -96,6 +100,40 @@ function newGame(prac){
   draw();
 }
 function $(id){ return document.getElementById(id); }
+
+/* ---------- 소리: Web Audio 합성(파일 없음) · 음소거는 localStorage arc-sound ---------- */
+var SFX=(function(){
+  var ac=null, on=true;
+  try{ on=localStorage.getItem("arc-sound")!=="0"; }catch(e){}
+  function ctx(){
+    if(!on) return null;
+    if(!ac){ var C=window.AudioContext||window.webkitAudioContext; if(!C) return null; try{ ac=new C(); }catch(e){ return null; } }
+    if(ac.state==="suspended"){ try{ ac.resume(); }catch(e){} }
+    return ac;
+  }
+  function tone(f,dur,type,vol,at,to){
+    var c=ctx(); if(!c) return;
+    var t0=c.currentTime+(at||0), o=c.createOscillator(), g=c.createGain();
+    o.type=type||"sine"; o.frequency.setValueAtTime(Math.max(30,f),t0);
+    if(to){ try{ o.frequency.exponentialRampToValueAtTime(Math.max(30,to),t0+dur); }catch(e){} }
+    g.gain.setValueAtTime(.0001,t0);
+    g.gain.exponentialRampToValueAtTime(vol==null?.14:vol,t0+.01);
+    g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+    o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+dur+.03);
+  }
+  return {
+    on:function(){ return on; },
+    set:function(v){ on=!!v; try{ localStorage.setItem("arc-sound", on?"1":"0"); }catch(e){} if(on) ctx(); },
+    unlock:function(){ ctx(); },
+    tap:function(){ tone(720,.05,"triangle",.07); },
+    back:function(){ tone(420,.06,"sine",.06,0,330); },
+    bad:function(){ tone(190,.16,"sine",.11,0,150); },
+    submit:function(){ tone(560,.09,"triangle",.10); tone(760,.10,"sine",.07,.06); },
+    win:function(){ [659.25,783.99,1046.5,1318.51].forEach(function(f,i){ tone(f,.26,"triangle",.14,i*.09); }); },
+    lose:function(){ [392,329.63,261.63].forEach(function(f,i){ tone(f,.30,"sawtooth",.10,i*.12); }); }
+  };
+})();
+function paintSnd(){ var b=$("snd"); if(!b) return; b.textContent=SFX.on()?"🔊":"🔇"; b.className="btn snd"+(SFX.on()?"":" off"); b.setAttribute("aria-pressed",SFX.on()?"true":"false"); b.setAttribute("aria-label",SFX.on()?"소리 끄기":"소리 켜기"); }
 function score(g,a){ var r=[0,0,0,0,0,0],cnt={},i; for(i=0;i<6;i++){ if(g[i]===a[i]) r[i]=2; else cnt[a[i]]=(cnt[a[i]]||0)+1; }
   for(i=0;i<6;i++){ if(r[i]!==2&&cnt[g[i]]>0){ r[i]=1; cnt[g[i]]--; } } return r; }
 function mark(g){ var r=score(g,ansJ); for(var i=0;i<6;i++){ if(r[i]>(keyState[g[i]]===undefined?-1:keyState[g[i]])) keyState[g[i]]=r[i]; } }
@@ -144,13 +182,14 @@ document.addEventListener("arcade-challenge-result",function(){ readChallenge();
 function say(t){ var m=$("msg"); m.textContent=t; m.classList.add("on"); clearTimeout(say.t); say.t=setTimeout(function(){ m.classList.remove("on"); },1400); }
 
 /* ---------- 입력 ---------- */
-function typeJamo(c){ if(over||cur.length>=6) return; cur.push(c); if(shift){ shift=false; } draw(); }
-function back(){ if(over||!cur.length) return; cur.pop(); draw(); }
+function typeJamo(c){ if(over||cur.length>=6) return; SFX.tap(); cur.push(c); if(shift){ shift=false; } draw(); }
+function back(){ if(over||!cur.length) return; SFX.back(); cur.pop(); draw(); }
 function enter(){ if(over) return;
-  if(cur.length<6){ say("낱자 6개를 모두 넣어 주세요"); return; }
-  var p=parse(cur,0); if(!p){ say("글자로 읽을 수 없는 조합이에요"); return; }
+  if(cur.length<6){ SFX.bad(); say("낱자 6개를 모두 넣어 주세요"); return; }
+  var p=parse(cur,0); if(!p){ SFX.bad(); say("글자로 읽을 수 없는 조합이에요"); return; }
   var g=cur.slice(); guesses.push(g); cur=[]; mark(g);
   var win=g.join("")===ansJ.join(""); over=win||guesses.length>=6;
+  if(win) SFX.win(); else if(over) SFX.lose(); else SFX.submit();
   if(!practice){ st("h6-today",JSON.stringify({day:DAY,g:guesses,done:over})); if(over) finish(win); }
   draw();
   if(practice&&over) setTimeout(function(){ result(win); },500);
@@ -178,7 +217,10 @@ $("rb").addEventListener("click",function(){ if(window.ArcadeRank) ArcadeRank.op
 var MAP={KeyQ:["ㅂ","ㅃ"],KeyW:["ㅈ","ㅉ"],KeyE:["ㄷ","ㄸ"],KeyR:["ㄱ","ㄲ"],KeyT:["ㅅ","ㅆ"],KeyY:["ㅛ","ㅛ"],KeyU:["ㅕ","ㅕ"],KeyI:["ㅑ","ㅑ"],KeyO:["ㅐ","ㅒ"],KeyP:["ㅔ","ㅖ"],KeyA:["ㅁ","ㅁ"],KeyS:["ㄴ","ㄴ"],KeyD:["ㅇ","ㅇ"],KeyF:["ㄹ","ㄹ"],KeyG:["ㅎ","ㅎ"],KeyH:["ㅗ","ㅗ"],KeyJ:["ㅓ","ㅓ"],KeyK:["ㅏ","ㅏ"],KeyL:["ㅣ","ㅣ"],KeyZ:["ㅋ","ㅋ"],KeyX:["ㅌ","ㅌ"],KeyC:["ㅊ","ㅊ"],KeyV:["ㅍ","ㅍ"],KeyB:["ㅠ","ㅠ"],KeyN:["ㅜ","ㅜ"],KeyM:["ㅡ","ㅡ"]};
 window.addEventListener("keydown",function(e){ if(e.ctrlKey||e.metaKey||e.altKey||$("ov").classList.contains("on")) return;
   if(e.key==="Enter"){ e.preventDefault(); enter(); } else if(e.key==="Backspace"){ e.preventDefault(); back(); }
-  else if(MAP[e.code]){ e.preventDefault(); var c=MAP[e.code][e.shiftKey?1:0]; if(over||cur.length>=6) return; cur.push(c); draw(); } });
+  else if(MAP[e.code]){ e.preventDefault(); var c=MAP[e.code][e.shiftKey?1:0]; if(over||cur.length>=6) return; SFX.tap(); cur.push(c); draw(); } });
+$("snd").addEventListener("click",function(){ SFX.set(!SFX.on()); paintSnd(); if(SFX.on()) SFX.tap(); });
+document.addEventListener("pointerdown",function(){ SFX.unlock(); },{passive:true});
+paintSnd();
 newGame(false);
 readChallenge();
 if(!st("h6-help")) help(); else if(over) setTimeout(function(){ var w=guesses.length&&guesses[guesses.length-1].join("")===ansJ.join(""); result(w); },300);

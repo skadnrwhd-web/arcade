@@ -26,6 +26,10 @@ html,body{margin:0;height:100%;background:#0b1020;color:#fff;font-family:system-
 .pill.mv b{font-size:20px}
 .goal b{margin-left:4px}
 .goal.done{opacity:.45;text-decoration:line-through}
+.hbtn{display:grid;place-items:center;width:34px;height:34px;padding:0;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;text-decoration:none;font-size:17px;font-weight:800;line-height:1;cursor:pointer}
+.hbtn:active{transform:scale(.94)}
+.hbtn.snd{font-size:15px}
+.hbtn.off{opacity:.5}
 canvas{touch-action:none;border-radius:18px;background:#121a38;box-shadow:0 10px 40px rgba(0,0,0,.5);display:block}
 #tip{font-size:12px;opacity:.7;text-align:center;max-width:480px;line-height:1.5}
 #ov{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(5,8,20,.7);z-index:5}
@@ -44,6 +48,8 @@ button{font:inherit;font-weight:800;border:0;border-radius:14px;padding:12px 22p
     <div class="pill"><small>레벨</small><b id="lv">1</b></div>
     <div class="pill mv"><small>남은 횟수</small><b id="mv">0</b></div>
     <div class="pill"><small>점수</small><b id="sc">0</b></div>
+    <button class="hbtn snd" id="snd" type="button" aria-label="소리 끄기" aria-pressed="true">🔊</button>
+    <a class="hbtn" href="../index.html" aria-label="UJ ARCADE 홈으로" title="홈">⌂</a>
   </div>
   <div id="goals" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center"></div>
   <canvas id="cv"></canvas>
@@ -63,6 +69,56 @@ function store(k,v){ try{ if(v===undefined) return localStorage.getItem(k); loca
 function rnd(n){ return Math.floor(Math.random()*n); }
 function sleep(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
 function $(id){ return document.getElementById(id); }
+
+/* ---------- 소리: Web Audio 합성(파일 없음) · 음소거는 localStorage arc-sound ---------- */
+var SFX=(function(){
+  var ac=null, on=true;
+  try{ on=localStorage.getItem("arc-sound")!=="0"; }catch(e){}
+  function ctx(){
+    if(!on) return null;
+    if(!ac){ var C=window.AudioContext||window.webkitAudioContext; if(!C) return null; try{ ac=new C(); }catch(e){ return null; } }
+    if(ac.state==="suspended"){ try{ ac.resume(); }catch(e){} }
+    return ac;
+  }
+  function tone(f,dur,type,vol,at,to){
+    var c=ctx(); if(!c) return;
+    var t0=c.currentTime+(at||0), o=c.createOscillator(), g=c.createGain();
+    o.type=type||"sine"; o.frequency.setValueAtTime(Math.max(30,f),t0);
+    if(to){ try{ o.frequency.exponentialRampToValueAtTime(Math.max(30,to),t0+dur); }catch(e){} }
+    g.gain.setValueAtTime(.0001,t0);
+    g.gain.exponentialRampToValueAtTime(vol==null?.14:vol,t0+.012);
+    g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+    o.connect(g); g.connect(c.destination); o.start(t0); o.stop(t0+dur+.03);
+  }
+  function noise(dur,vol,at,hz){
+    var c=ctx(); if(!c) return;
+    var t0=c.currentTime+(at||0), len=Math.max(1,Math.floor(c.sampleRate*dur));
+    var buf=c.createBuffer(1,len,c.sampleRate), d=buf.getChannelData(0);
+    for(var i=0;i<len;i++) d[i]=(Math.random()*2-1)*(1-i/len);
+    var s=c.createBufferSource(); s.buffer=buf;
+    var bp=c.createBiquadFilter(); bp.type="bandpass"; bp.frequency.value=hz||900; bp.Q.value=.9;
+    var g=c.createGain(); g.gain.setValueAtTime(vol==null?.18:vol,t0); g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+    s.connect(bp); bp.connect(g); g.connect(c.destination); s.start(t0); s.stop(t0+dur+.02);
+  }
+  var SC=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.51];
+  return {
+    on:function(){ return on; },
+    set:function(v){ on=!!v; try{ localStorage.setItem("arc-sound", on?"1":"0"); }catch(e){} if(on) ctx(); },
+    unlock:function(){ ctx(); },
+    tap:function(){ tone(880,.06,"sine",.07); },
+    swap:function(){ tone(520,.07,"triangle",.10); tone(700,.07,"sine",.06,.05); },
+    bad:function(){ tone(200,.14,"sine",.12,0,150); },
+    /* 일반 매치 · 콤보마다 한 음씩 올라가는 음계 */
+    match:function(n){ var i=Math.min(SC.length-1,Math.max(0,(n||1)-1)); tone(SC[i],.20,"triangle",.15); tone(SC[i]*2,.10,"sine",.05,.03); },
+    special:function(){ tone(660,.09,"square",.07); tone(990,.10,"square",.06,.07); tone(1320,.14,"sine",.05,.15); },
+    boom:function(){ noise(.34,.20,0,760); tone(150,.34,"sawtooth",.12,0,55); },
+    rainbow:function(){ for(var i=0;i<6;i++) tone(SC[i]*1.5,.14,"sine",.09,i*.045); },
+    level:function(){ [523.25,659.25,783.99,1046.5,1318.51].forEach(function(f,i){ tone(f,.30,"triangle",.14,i*.10); }); },
+    over:function(){ [392,329.63,261.63,196].forEach(function(f,i){ tone(f,.32,"sawtooth",.11,i*.13); }); },
+    shuffle:function(){ tone(240,.22,"sine",.09,0,560); }
+  };
+})();
+function paintSnd(){ var b=$("snd"); if(!b) return; b.textContent=SFX.on()?"🔊":"🔇"; b.className="hbtn snd"+(SFX.on()?"":" off"); b.setAttribute("aria-pressed",SFX.on()?"true":"false"); b.setAttribute("aria-label",SFX.on()?"소리 끄기":"소리 켜기"); }
 
 function newGem(x,y){ return {t:rnd(K), s:0, x:x, y:y, v:0, sc:1}; }
 
@@ -120,7 +176,7 @@ function expand(set){
   }
 }
 function burst(x,y,col){ for(var i=0;i<6;i++) parts.push({x:x+.5,y:y+.5,vx:(Math.random()-.5)*6,vy:(Math.random()-.5)*6-1,l:1,c:col}); }
-function clearSet(set, make){
+function clearSet(set, make, mult){
   expand(set);
   var made=(make||[]).filter(function(m){ return !set.has(m.k); });
   var n=0;
@@ -131,7 +187,9 @@ function clearSet(set, make){
     fx.push(g); grid[r][c]=null; n++;
   });
   made.forEach(function(m){ var g=grid[(m.k/N)|0][m.k%N]; if(g){ g.s=m.s; if(m.s===4) g.t=-1; g.sc=1.5; } });
-  score+=n*10; hud();
+  var gain=n*10*Math.max(1,mult||1);
+  score+=gain; hud();
+  return {n:n, gain:gain};
 }
 function gravity(){
   for(var c=0;c<N;c++){
@@ -161,49 +219,89 @@ async function resolveLoop(){
       make.push({k:piv[0]*N+piv[1], s: L>=5?4:(run.dir==="h"?2:1)});
     });
     make.forEach(function(m){ mark.delete(m.k); });
-    clearSet(mark, make);
-    if(combo>=2) say("콤보 x"+combo);
-    await sleep(220);
+    var res=clearSet(mark, make, combo);
+    SFX.match(combo);
+    if(make.length) SFX.special();
+    if(combo>=2) say("콤보 x"+combo+" · +"+res.gain);
+    await sleep(240);
     gravity();
     await waitSettle();
   }
   hint=[];
+  return combo;
 }
 function say(t){ var m=$("msg"); m.textContent=t; m.classList.add("on"); clearTimeout(say.t); say.t=setTimeout(function(){ m.classList.remove("on"); },900); }
 
 /* ---------- 바꾸기 ---------- */
+/* 특수젬끼리 바꿨을 때 터지는 범위 */
+function addRow(set,r){ if(r<0||r>=N) return; for(var c=0;c<N;c++) set.add(r*N+c); }
+function addCol(set,c){ if(c<0||c>=N) return; for(var r=0;r<N;r++) set.add(r*N+c); }
+function addBox(set,r,c,rad){ for(var i=-rad;i<=rad;i++) for(var j=-rad;j<=rad;j++){ var rr=r+i,cc=c+j; if(rr>=0&&rr<N&&cc>=0&&cc<N) set.add(rr*N+cc); } }
+function pairSet(ga,gb,ka,kb){
+  var set=new Set(), A=ga.s||0, B=gb.s||0;
+  var ra=(ka/N)|0, ca=ka%N, rb=(kb/N)|0, cb=kb%N;
+  if(A===4&&B===4){ for(var i=0;i<N*N;i++) set.add(i); return {set:set,kind:"rainbow"}; }   /* 무지개+무지개 = 판 전체 */
+  if(A===4||B===4){                                                                          /* 무지개+보석 = 같은 색 전부 */
+    var X=A===4?gb:ga, kr=A===4?ka:kb, kx=A===4?kb:ka;
+    set.add(kr); set.add(kx);
+    if(X.s){ addRow(set,(kx/N)|0); addCol(set,kx%N); }
+    if(X.t>=0) for(var r=0;r<N;r++) for(var c=0;c<N;c++){ var g=grid[r][c]; if(g&&g.t===X.t) set.add(r*N+c); }
+    return {set:set,kind:"rainbow"};
+  }
+  var rokA=(A===1||A===2), rokB=(B===1||B===2), bomA=(A===3), bomB=(B===3);
+  if((rokA&&bomB)||(bomA&&rokB)){                        /* 로켓+폭탄 = 3줄 십자 폭발 */
+    var rr=rokA?ra:rb, cc=rokA?ca:cb;
+    addRow(set,rr-1); addRow(set,rr); addRow(set,rr+1);
+    addCol(set,cc-1); addCol(set,cc); addCol(set,cc+1);
+    return {set:set,kind:"cross"};
+  }
+  if(rokA&&rokB){                                        /* 로켓+로켓 = 두 줄·두 열 */
+    addRow(set,ra); addCol(set,ca); addRow(set,rb); addCol(set,cb);
+    return {set:set,kind:"cross"};
+  }
+  if(bomA&&bomB){ addBox(set,ra,ca,2); addBox(set,rb,cb,2); return {set:set,kind:"boom"}; }   /* 폭탄+폭탄 = 5×5 */
+  set.add(ka); set.add(kb);
+  return {set:set,kind:"special"};
+}
 function adj(a,b){ return Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1])===1; }
 async function trySwap(a,b){
   if(busy||gameOver) return; busy=true; sel=null;
   var ga=grid[a[0]][a[1]], gb=grid[b[0]][b[1]];
   swapCells(a,b); await waitSettle();
-  var special = ga.s===4||gb.s===4||(ga.s&&gb.s);
+  var special = (ga&&ga.s===4)||(gb&&gb.s===4)||(ga&&gb&&ga.s&&gb.s);
   hint=[a,b];
   if(special){
     moves--; hud();
-    var set=new Set();
-    var ka=a[0]*N+a[1], kb=b[0]*N+b[1];
-    if(ga.s===4&&gb.s===4){ for(var i=0;i<N*N;i++) set.add(i); }
-    else if(ga.s===4||gb.s===4){
-      var R=ga.s===4?ga:gb, X=ga.s===4?gb:ga, kr=ga.s===4?ka:kb;
-      set.add(kr);
-      if(X.t>=0) for(var r=0;r<N;r++) for(var c=0;c<N;c++){ var g=grid[r][c]; if(g&&g.t===X.t) set.add(r*N+c); }
-    } else { set.add(ka); set.add(kb); }
-    clearSet(set); await sleep(260); gravity(); await waitSettle();
+    /* 바꾼 뒤의 자리: ga는 b자리, gb는 a자리로 갔다 */
+    var ka=b[0]*N+b[1], kb=a[0]*N+a[1];
+    var pair=pairSet(ga,gb,ka,kb);
+    var res=clearSet(pair.set);
+    if(pair.kind==="rainbow") SFX.rainbow();
+    else if(pair.kind==="cross"||pair.kind==="boom") SFX.boom();
+    else SFX.special();
+    say("특수 보석 폭발 · +"+res.gain);
+    await sleep(320); gravity(); await waitSettle();
   } else if(!findRuns().length){
-    swapCells(a,b); await waitSettle(); busy=false; return;
-  } else { moves--; hud(); }
+    swapCells(a,b); SFX.bad(); await waitSettle(); busy=false; return;
+  } else { moves--; hud(); SFX.swap(); }
   await resolveLoop();
   await afterTurn();
 }
+function rankScore(){ return Math.min(level,99)*100000+Math.min(score,99999); }
 async function afterTurn(){
   hud();
   var win=goals.every(function(g){ return g.n<=0; });
-  if(win){ gameOver=true; store("gm-best",String(Math.max(+store("gm-best")||1,level+1)));
-    show("레벨 "+level+" 클리어!","점수 "+score,"다음 레벨",function(){ level++; start(); }); return; }
-  if(moves<=0){ gameOver=true; show("아쉬워요","목표를 다 모으지 못했어요","다시 도전",function(){ start(); });
-    if(window.ArcadeRank) ArcadeRank.show({ id:"gem-match", score:level*100000+Math.min(score,99999), cancelIf:function(){ return !gameOver; } }); return; }
-  if(!hasMove()){ say("움직일 곳이 없어 섞는 중"); await sleep(600); do{ fill(); }while(findRuns().length||!hasMove()); await waitSettle(); }
+  if(win){ gameOver=true; SFX.level();
+    store("gm-best",String(Math.max(+store("gm-best")||1,level+1)));
+    var lv=level;
+    show("레벨 "+level+" 클리어!","점수 "+score+" · 남은 횟수 "+Math.max(0,moves),"다음 레벨",function(){ level++; start(); });
+    /* 레벨을 깨도 바로 기록을 남기고 도전장 판정을 받을 수 있게 한다 */
+    if(window.ArcadeRank) ArcadeRank.show({ id:"gem-match", score:rankScore(), delay:1500, cancelIf:function(){ return level!==lv; } });
+    return; }
+  if(moves<=0){ gameOver=true; SFX.over();
+    show("아쉬워요","목표를 다 모으지 못했어요","다시 도전",function(){ start(); });
+    if(window.ArcadeRank) ArcadeRank.show({ id:"gem-match", score:rankScore(), cancelIf:function(){ return !gameOver; } }); return; }
+  if(!hasMove()){ say("움직일 곳이 없어 섞는 중"); SFX.shuffle(); await sleep(600); do{ fill(); }while(findRuns().length||!hasMove()); await waitSettle(); }
   busy=false;
 }
 function show(h,p,b,fn){ $("oh").textContent=h; $("op").textContent=p; $("ob").textContent=b; $("ob").onclick=function(){ $("ov").classList.remove("on"); fn(); }; $("ov").classList.add("on"); }
@@ -211,7 +309,7 @@ function start(){ busy=true; setupLevel(); size(); say("레벨 "+level+" 시작"
 
 /* ---------- 그리기 ---------- */
 function size(){
-  dpr=window.devicePixelRatio||1;
+  dpr=Math.min(window.devicePixelRatio||1,2);   /* 레티나 3배 과부하 방지: 2배 상한 */
   var s=Math.floor(Math.min(window.innerWidth-16, window.innerHeight-170, 520)); if(s<200) s=200;
   cs=s/N; cv.style.width=s+"px"; cv.style.height=s+"px"; cv.width=Math.round(s*dpr); cv.height=Math.round(s*dpr);
 }
@@ -265,11 +363,11 @@ function frame(t){
 var down=null, acted=false;
 function cellAt(e){ var b=cv.getBoundingClientRect(), x=(e.clientX-b.left)/b.width*N, y=(e.clientY-b.top)/b.height*N; return {r:Math.floor(y),c:Math.floor(x),x:x,y:y}; }
 cv.addEventListener("pointerdown",function(e){
-  e.preventDefault(); if(busy||gameOver) return;
+  e.preventDefault(); SFX.unlock(); if(busy||gameOver) return;
   var p=cellAt(e); if(p.r<0||p.r>=N||p.c<0||p.c>=N) return;
   down={r:p.r,c:p.c,x:p.x,y:p.y}; acted=false;
   if(sel&&adj(sel,[p.r,p.c])){ acted=true; trySwap(sel,[p.r,p.c]); sel=null; }
-  else sel=[p.r,p.c];
+  else { sel=[p.r,p.c]; SFX.tap(); }
   try{ cv.setPointerCapture(e.pointerId); }catch(x){}
 });
 cv.addEventListener("pointermove",function(e){
@@ -284,6 +382,8 @@ window.addEventListener("pointerup",function(){ down=null; });
 window.addEventListener("resize",size);
 
 var saved=+store("gm-best")||1; level=Math.min(saved,60);
+paintSnd();
+$("snd").addEventListener("click",function(){ SFX.set(!SFX.on()); paintSnd(); if(SFX.on()) SFX.tap(); });
 size(); start(); requestAnimationFrame(frame);
 })();
 </script>
