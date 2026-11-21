@@ -244,9 +244,12 @@ footer a:hover{color:#fff}
 #pRep[hidden]{display:none}
 @media (max-width:700px){ #pRep .rt{display:none} }
 .cbtn{display:none; background:rgba(255,255,255,.1); color:var(--ink); border:1px solid var(--line)}
-@media (max-width:700px){
+/* 태블릿 가로(아이패드 등)까지 게임을 화면 폭 전체로 크게 연다. 예전에는 700px까지만 전체화면이라
+   아이패드 가로(1180px)에서는 1040px 판 안에 갇혀 게임 화면이 985px로 줄었고, 숫자전쟁처럼 가로로 긴
+   게임은 오른쪽 숫자패드가 잘렸다. 지금은 태블릿 폭까지 전체화면 + 실제 보이는 폭(--vvw)에 맞춘다 */
+@media (max-width:1200px), (max-width:1400px) and (max-height:1100px){
   #player{padding:0; align-items:stretch}
-  #player .panel.wide{width:100%; max-height:none; height:100%; border-radius:0; border:0; padding:0 0 28px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
+  #player .panel.wide{width:100%; max-width:var(--vvw,100%); max-height:none; height:100%; border-radius:0; border:0; padding:0 0 28px; overflow-y:auto; overflow-x:hidden; display:flex; flex-direction:column; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
   #player .frame{order:1; flex:none; height:calc(100vh - 50px); height:calc(100svh - 50px); border:0; border-radius:0; margin:0}
   #player .panel-top{order:0; position:sticky; top:0; z-index:5; flex:none; height:50px; margin:0; padding:0 8px; gap:6px; flex-wrap:nowrap; background:var(--card)}
   #player .panel-top h3{font-size:14px; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1}
@@ -257,7 +260,7 @@ footer a:hover{color:#fff}
   #player .thread{order:4; margin:0 10px}
   #player .c-hint{order:5; margin:10px 14px 0}
 }
-.panel.wide{width:min(1040px,100%)}
+.panel.wide{width:min(1040px,100%); max-width:var(--vvw,100%)}
 .p-actions{display:flex; align-items:center; gap:8px}
 #pClose{width:auto; min-width:38px; height:38px; padding:0 13px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; gap:6px; color:var(--ink); font:inherit; font-size:14px; font-weight:800; white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent}
 @media (max-width:360px){ #pClose .x-t{display:none} #pClose{padding:0; width:38px} }
@@ -434,7 +437,7 @@ body.challenge-on #modal{padding-top:calc(env(safe-area-inset-top) + 58px)}
           <svg viewBox="0 0 320 176" fill="none"><rect x="72" y="138" width="176" height="14" rx="7" fill="#fff"/><g fill="#fff" opacity=".75"><rect x="94" y="54" width="8" height="86" rx="4"/><rect x="134" y="54" width="8" height="86" rx="4"/><rect x="174" y="54" width="8" height="86" rx="4"/><rect x="214" y="54" width="8" height="86" rx="4"/></g><rect x="194" y="122" width="48" height="16" rx="8" fill="#fb7185" stroke="#fff" stroke-width="3"/><rect x="202" y="106" width="32" height="16" rx="8" fill="#fde047" stroke="#fff" stroke-width="3"/><rect x="114" y="122" width="48" height="16" rx="8" fill="#34d399" stroke="#fff" stroke-width="3"/></svg></div>
         <div class="b"><h3>Tower of Hanoi 3D II</h3><p data-i="f5_p">기둥이 네 개로 늘어난 하노이의 탑. 최적 풀이와 자동 풀이 포함.</p><div class="meta"><span data-i="newtab">댓글 남기기</span><span class="go">▶ <span data-i="open">플레이</span></span></div></div>
       </a>
-      <a class="game rv" href="https://numwar-game.vercel.app/" data-play="numwar" target="_blank" rel="noopener" style="--hue:var(--cyan); --c1:#1e3a8a; --c2:#60a5fa">
+      <a class="game rv" href="https://numwar-game.vercel.app/" data-play="numwar" data-minw="500" target="_blank" rel="noopener" style="--hue:var(--cyan); --c1:#1e3a8a; --c2:#60a5fa">
         <div class="cover"><span class="badge" data-i="b_edu">수학</span>
           <svg viewBox="0 0 320 176" fill="none"><text x="160" y="76" text-anchor="middle" font-family="sans-serif" font-weight="900" font-size="46" fill="#fff">7×8</text><rect x="116" y="92" width="88" height="56" rx="16" fill="#fde047" stroke="#fff" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"/><circle cx="142" cy="116" r="7" fill="#1e3a8a"/><circle cx="178" cy="116" r="7" fill="#1e3a8a"/><path d="M142 134h36" stroke="#1e3a8a" stroke-width="5" stroke-linecap="round"/><path d="M128 94l-8-14M192 94l8-14" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg></div>
         <div class="b"><h3 data-i="t_numwar">숫자전쟁</h3><p data-i="f6_p">몬스터가 다가오기 전에 식을 풀어 물리치는 초등 1~6학년 계산 배틀.</p><div class="meta"><span data-i="newtab">댓글 남기기</span><span class="go">▶ <span data-i="open">플레이</span></span></div></div>
@@ -958,6 +961,21 @@ function recordPlay(id,kind,name){ if(!id) return; var k="arc-pc-"+id,seen=false
 
 /* 내 게임을 사이트 안에서 열기 */
 var player=document.getElementById("player"),pFrame=document.getElementById("pFrame"),pTitle=document.getElementById("pTitle"),pNew=document.getElementById("pNew"),pThread=document.getElementById("pThread"),pOpener=null;
+/* 화면을 확대(핀치·두 번 탭)해 둔 상태에서도 플레이어가 화면 오른쪽 밖으로 나가지 않도록,
+   지금 실제로 보이는 폭을 재서 --vvw 에 넣는다(레이아웃 폭이 아니라 visualViewport 기준) */
+function fitVVW(){ var v=window.visualViewport,w=Math.round((v&&v.width)||window.innerWidth||0); if(w>0) document.documentElement.style.setProperty("--vvw",w+"px"); }
+fitVVW(); window.addEventListener("resize",fitVVW); window.addEventListener("orientationchange",fitVVW);
+if(window.visualViewport){ window.visualViewport.addEventListener("resize",fitVVW); window.visualViewport.addEventListener("scroll",fitVVW); }
+/* 게임이 제 화면 최소 폭보다 좁게 열리면(아이폰 세로 등) 오른쪽 숫자패드가 잘린다.
+   카드에 data-minw(게임이 필요한 최소 폭)가 있으면, 그 폭으로 게임을 띄운 뒤 화면에 맞게 줄여 보여 준다.
+   숫자전쟁은 가로 배치(정답판 + 3열 숫자패드)라 약 470px 아래에서 오른쪽 3·6·9·발사가 잘리므로 500px로 잡았다. */
+function fitFrame(f){ if(!f||!pFrame.contains(f)) return; var mw=parseInt(f.getAttribute("data-minw")||"0",10); if(!mw) return;
+  var w=pFrame.clientWidth,h=pFrame.clientHeight; if(!w||!h) return;
+  if(w<mw){ var s=w/mw; f.style.position="absolute"; f.style.left="0"; f.style.top="0"; f.style.width=mw+"px"; f.style.height=Math.ceil(h/s)+"px"; f.style.transform="scale("+s+")"; f.style.transformOrigin="top left"; }
+  else { f.style.position=""; f.style.left=""; f.style.top=""; f.style.width=""; f.style.height=""; f.style.transform=""; f.style.transformOrigin=""; }
+}
+function fitOpenFrame(){ var f=pFrame.querySelector("iframe"); if(f) fitFrame(f); }
+window.addEventListener("resize",fitOpenFrame); window.addEventListener("orientationchange",fitOpenFrame);
 function openPlayer(a){ var cg=a.getAttribute("data-cg"),slug=cg?cg.replace(/^cgame:/,""):a.getAttribute("data-play"),url=a.getAttribute("data-url")||a.href,name=a.getAttribute("data-title")||a.querySelector("h3").textContent; pOpener=a; shareHash=(cg?"#cgame-":"#game-")+slug;
   track('game_play',{game_id:slug,game_name:name,game_type:cg?'community':'official'});
   var pKey=cg?("cgame-"+slug):slug;
@@ -973,7 +991,8 @@ function openPlayer(a){ var cg=a.getAttribute("data-cg"),slug=cg?cg.replace(/^cg
   } else {
   f=document.createElement("iframe"); f.src=url; f.title=name; f.setAttribute("allow","fullscreen; gamepad; accelerometer; gyroscope; autoplay; web-share; clipboard-write"); f.setAttribute("allowfullscreen","");
   if(cg){ f.setAttribute("sandbox","allow-scripts allow-same-origin allow-forms allow-pointer-lock allow-modals allow-popups allow-popups-to-escape-sandbox allow-downloads allow-orientation-lock allow-presentation"); f.setAttribute("referrerpolicy","no-referrer"); }
-  pFrame.appendChild(f); }
+  if(a.getAttribute("data-minw")) f.setAttribute("data-minw",a.getAttribute("data-minw"));
+  pFrame.appendChild(f); setTimeout(function(){ fitFrame(f); },0); }
   pRep.hidden=!cg; pRepId=cg?slug:""; pRepT.textContent=T(" 신고"," Report");
   if(cg){ var w=el("div","cg-warn",T("다른 사람이 올린 외부 사이트입니다. 개인정보·비밀번호는 입력하지 마세요. 문제가 있으면 🚩 신고를 눌러 주세요. (눌러서 닫기)","This is an outside site posted by another person. Do not enter personal info or passwords. Tap 🚩 to report a problem. (tap to close)"));
     w.addEventListener("click",function(){ w.remove(); }); pFrame.appendChild(w); setTimeout(function(){ if(w.parentNode) w.remove(); },9000);
