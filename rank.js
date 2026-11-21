@@ -35,7 +35,10 @@
     "fourball-billiards": { title: ["실사판 4구 당구", "Real 4-Ball Carom"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 500000] },
     "boxing-champion": { title: ["더 파이팅 복싱", "The Fighting Boxing"], better: "high", unit: ["점", " pts"], label: ["총점", "Score"], bounds: [1, 400000] },
     "neon-survivor": { title: ["네온 뱀서라이크", "Neon Survivor"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 300000] },
-    "neon-breach":   { title: ["네온 돌입 30초", "Neon Breach 30s"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 300000] }
+    "neon-breach":   { title: ["네온 돌입 30초", "Neon Breach 30s"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 300000] },
+    "merge-2048":    { title: ["2048", "2048"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [4, 2000000] },
+    "hangul-6":      { title: ["글자 6칸", "Hangul 6"], better: "low", unit: ["번", " tries"], label: ["시도 횟수", "Tries"], bounds: [1, 6] },
+    "gomoku-neon":   { title: ["네온 오목", "Neon Gomoku"], better: "high", unit: ["승", " wins"], label: ["AI 승수", "AI wins"], bounds: [1, 9000] }
   };
   /* 하노이탑: 클래식 모드만. 점수 = 이동 횟수*10000 + 걸린 초(최대 9999). 횟수가 적을수록, 같으면 빨리 푼 사람이 위 */
   [[3, 3, 7], [3, 4, 15], [3, 5, 31], [3, 6, 63], [3, 7, 127]].forEach(function (d) { addHanoi("hanoi3d-" + d[1], "하노이탑 3D", "Tower of Hanoi 3D", d[1], d[2]); });
@@ -62,7 +65,9 @@
     brag: ["📋 자랑 문구 복사", "📋 Copy brag text"], bragDone: ["✓ 복사했어요! 링크는 첫 댓글에", "✓ Copied! Link in the first comment"], bragAsk: ["이 문구를 복사하세요 (링크는 첫 댓글에)", "Copy this text (link in the first comment)"]
   };
   function lang() { try { return localStorage.getItem("arc-lang") === "en" ? 1 : 0; } catch (e) { return 0; } }
-  function T(k) { var v = TXT[k]; return v ? v[lang()] : k; }
+  /* T(키) 는 TXT 표에서, T(한국어, 영어) 는 표에 없는 문구를 그 자리에서 고른다.
+     (예전에는 두 번째 인자를 무시해 도전장 문구가 영어 모드에서도 한국어로 나왔다) */
+  function T(k, en) { var v = TXT[k]; if (v) return v[lang()]; return (lang() && en != null) ? en : k; }
   function tx(a) { return Array.isArray(a) ? a[lang()] : (a == null ? "" : a); }
 
   /* ---- 점수 ↔ 정렬용 글자 ---- */
@@ -173,7 +178,7 @@
 
     /* ⚔️ 도전장: 이 게임에 걸린 목표가 있으면 결과를 창 위쪽에 먼저 보여 준다 */
     var c = chalFor(id), res = valid ? compare(id, score) : null, chalBtn = null;
-    function chName() { return (c && c.by) || T("도전자", "a challenger"); }
+    function chName() { return (c && c.by) || T("도전자", "Challenger"); }
     function mkChalBtn(label, cls) {
       var b = el("button", cls || null, label); b.type = "button";
       b.addEventListener("click", function () { shareChallenge(id, score, myName || store("arc-nick") || "", b); });
@@ -185,9 +190,9 @@
       if (c.score != null) cbox.appendChild(el("div", "chal-t", T("목표: ", "Target: ") + scoreText(id, c.score) + T(" 깨기!", " to beat!")));
       else cbox.appendChild(el("div", "chal-t", T("이 게임에서 나를 이겨 보세요!", "Try to beat me in this game!")));
       if (valid && res != null) {
-        if (res === 1) cbox.appendChild(el("div", "chal-r win", "🎉 " + T("도전 성공! " + chName() + "님의 기록을 깼습니다!", "Challenge cleared! You beat " + chName() + "'s record!")));
+        if (res === 1) cbox.appendChild(el("div", "chal-r win", "🎉 " + T("도전 성공! ", "Challenge cleared! ") + chName() + T("님의 기록을 깼습니다!", "'s record beaten!")));
         else if (res === 0) cbox.appendChild(el("div", "chal-r tie", "🤝 " + T("목표와 동점이에요. 한 판만 더!", "You tied the target. One more round!")));
-        else cbox.appendChild(el("div", "chal-r", "😖 " + T("아쉽게 못 넘었어요 · 내 기록 " + scoreText(id, score), "Just short · your record " + scoreText(id, score))));
+        else cbox.appendChild(el("div", "chal-r", "😖 " + T("아쉽게 못 넘었어요 · 내 기록 ", "Just short · your record ") + scoreText(id, score)));
       }
       chalBtn = mkChalBtn(res === 1 ? "⚔️ " + T("반격 도전장 보내기", "Send a counter-challenge") : "⚔️ " + T("도전장 보내기", "Send a challenge"));
       cbox.appendChild(chalBtn);
@@ -322,10 +327,10 @@
   function gameNameOf(id) { var c = cfgFor(id); return c ? tx(c.title) : String(id || ""); }
   function chalLine(id, score, by) {      /* 카톡에 붙여넣을 한 줄 */
     var nm = gameNameOf(id), cfg = cfgFor(id);
-    if (score == null) return T(nm + "에서 나를 이겨 보세요!", "Beat my score in " + nm + "!");
+    if (score == null) return lang() ? ("Beat my score in " + nm + "!") : (nm + "에서 나를 이겨 보세요!");
     var st = scoreText(id, score);
-    if (cfg && cfg.better === "low") return T(nm + " " + st + "보다 빠르게 깰 수 있나요?", "Can you clear " + nm + " faster than " + st + "?");
-    return T(nm + " " + st + " 깰 수 있나요?", "Can you beat " + st + " in " + nm + "?");
+    if (cfg && cfg.better === "low") return lang() ? ("Can you clear " + nm + " faster than " + st + "?") : (nm + " " + st + "보다 빠르게 깰 수 있나요?");
+    return lang() ? ("Can you beat " + st + " in " + nm + "?") : (nm + " " + st + " 깰 수 있나요?");
   }
   function chalText(id, score, by) {
     var who = by || T("도전자", "a challenger");
