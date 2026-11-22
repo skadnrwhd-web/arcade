@@ -1036,9 +1036,18 @@
     ctx.fillStyle = 'rgba(130,90,200,.10)';
     for (x = 0; x <= s.w; x += 40) ctx.fillRect(x, 0, 1, DH);
     for (y = 0; y <= DH; y += 40) ctx.fillRect(0, y, s.w, 1);
+    /* 배경 장식: 어두운 기둥과 조명 — 빈 공간이 벽처럼 보이게 */
+    var top = s.crop || 0, px2;
+    for (px2 = 70; px2 < s.w; px2 += 150) {
+      ctx.fillStyle = 'rgba(118,82,190,.055)'; ctx.fillRect(px2, top, 46, DH - top);
+      ctx.fillStyle = 'rgba(255,120,170,.10)'; ctx.fillRect(px2 + 20, top + 18, 6, 3);
+      ctx.fillStyle = 'rgba(255,120,170,.055)'; ctx.fillRect(px2 + 20, top + 21, 6, 26);
+    }
+    ctx.fillStyle = 'rgba(255,120,170,.05)';
+    for (px2 = 0; px2 < s.w; px2 += 300) ctx.fillRect(px2, DH - 150, s.w, 1);
     /* 네온 경계 */
-    ctx.fillStyle = 'rgba(255,77,109,.16)'; ctx.fillRect(0, 0, s.w, 2); ctx.fillRect(0, DH - 2, s.w, 2);
-    ctx.fillStyle = 'rgba(140,110,255,.12)'; ctx.fillRect(0, 0, 2, DH); ctx.fillRect(s.w - 2, 0, 2, DH);
+    ctx.fillStyle = 'rgba(255,77,109,.16)'; ctx.fillRect(0, top, s.w, 2); ctx.fillRect(0, DH - 2, s.w, 2);
+    ctx.fillStyle = 'rgba(140,110,255,.12)'; ctx.fillRect(0, top, 2, DH - top); ctx.fillRect(s.w - 2, top, 2, DH - top);
   }
 
   function drawSolids() {
