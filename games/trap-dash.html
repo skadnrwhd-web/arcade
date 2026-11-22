@@ -298,7 +298,7 @@
   var DH = 620;
   var DW = 430;
   var GRAV = 1900, JUMP = 760, RUN = 205, ACC = 2500, FRIC = 2400, MAXFALL = 1400;
-  var PW = 26, PH = 34;
+  var PW = 30, PH = 40;
   var RESPAWN_T = 0.35;
 
   /* ══════════ 스테이지 데이터 ══════════ */
@@ -306,14 +306,14 @@
   var CR8 = tiles(160, 10, 60, 560, 60);
 
   var STAGES = [
-    { ko: '첫걸음', en: 'First Steps', w: 560, spawn: [30, 526],
+    { ko: '첫걸음', en: 'First Steps', w: 560, spawn: [30, 520],
       solids: [{ x: 0, y: 560, w: 170, h: 60 }, { x: 310, y: 560, w: 250, h: 60 }],
       crumble: [{ x: 170, y: 560, w: 140, h: 60 }],
       pop: [{ x: 392, y: 560, w: 44, h: 44, trig: 95, delay: 0.12, hold: 1.1 }],
       doors: [{ x: 478, y: 494, kind: 'real' }],
       hint: '빛나는 문으로 들어가면 클리어!' },
 
-    { ko: '가시의 리듬', en: 'Spike Rhythm', w: 600, spawn: [30, 526],
+    { ko: '가시의 리듬', en: 'Spike Rhythm', w: 600, spawn: [30, 520],
       solids: [{ x: 0, y: 560, w: 600, h: 60 }],
       pop: [{ x: 190, y: 560, w: 46, h: 46, trig: 100, delay: 0.10, hold: 0.85 },
             { x: 320, y: 560, w: 46, h: 46, trig: 100, delay: 0.10, hold: 0.85 },
@@ -321,7 +321,7 @@
       doors: [{ x: 522, y: 494, kind: 'real' }],
       hint: '바닥이 수상하면 점프!' },
 
-    { ko: '천장은 무섭다', en: 'Mind the Ceiling', w: 620, spawn: [30, 526],
+    { ko: '천장은 무섭다', en: 'Mind the Ceiling', w: 620, spawn: [30, 520],
       solids: [{ x: 0, y: 560, w: 620, h: 60 }],
       drop: [{ x: 150, w: 44, h: 70, trig: 55 }, { x: 250, w: 44, h: 70, decoy: 1 },
              { x: 356, w: 44, h: 70, trig: 55 }, { x: 452, w: 44, h: 70, decoy: 1 },
@@ -329,61 +329,61 @@
       doors: [{ x: 556, y: 494, kind: 'real' }],
       hint: '천장을 보세요… 아니, 보지 마세요' },
 
-    { ko: '도망가는 문', en: 'Runaway Door', w: 620, spawn: [30, 526],
+    { ko: '도망가는 문', en: 'Runaway Door', w: 620, spawn: [30, 520],
       solids: [{ x: 0, y: 560, w: 620, h: 60 }],
       doors: [{ x: 250, y: 494, kind: 'vanish', trig: 46 },
               { x: 340, y: 494, kind: 'run', to: 436, trig: 110 },
               { x: 500, y: 494, kind: 'real' }],
       hint: '문이 세 개? 진짜는 하나뿐' },
 
-    { ko: '중력 반전', en: 'Gravity Flip', w: 600, spawn: [30, 526],
+    { ko: '중력 반전', en: 'Gravity Flip', w: 600, spawn: [30, 520],
       solids: [{ x: 0, y: 0, w: 600, h: 60 }, { x: 0, y: 560, w: 600, h: 60 }],
       grav: [{ x: 196, y: 546, w: 64, h: 14, to: -1 }],
       pop: [{ x: 352, y: 60, w: 46, h: 46, trig: 92, delay: 0.10, hold: 1.2, dir: -1 }],
       doors: [{ x: 470, y: 60, kind: 'real', flip: 1 }],
       hint: '발밑의 보라 발판을 밟으면 세상이 뒤집힙니다' },
 
-    { ko: '스프링의 배신', en: 'Spring Betrayal', w: 580, spawn: [30, 526],
+    { ko: '스프링의 배신', en: 'Spring Betrayal', w: 580, spawn: [30, 520],
       solids: [{ x: 0, y: 560, w: 580, h: 60 }, { x: 400, y: 340, w: 170, h: 20 }],
       spike: [{ x: 150, y: 60, w: 180, h: 40 }],
       spring: [{ x: 206, y: 546, w: 64, h: 14, power: 1350 }, { x: 380, y: 546, w: 58, h: 14, power: 1000 }],
       doors: [{ x: 500, y: 274, kind: 'real' }],
       hint: '스프링은 친구일까요?' },
 
-    { ko: '조작 반전', en: 'Reversed Controls', w: 560, spawn: [30, 526],
+    { ko: '조작 반전', en: 'Reversed Controls', w: 560, spawn: [30, 520],
       solids: [{ x: 0, y: 560, w: 560, h: 60 }],
       invert: [{ x: 170, y: 0, w: 230, h: 560 }],
       doors: [{ x: 470, y: 494, kind: 'real' }],
       hint: '이 구간에서는… 발이 말을 안 들을 겁니다' },
 
-    { ko: '무너지는 다리', en: 'Crumbling Bridge', w: 900, spawn: [30, 526],
+    { ko: '무너지는 다리', en: 'Crumbling Bridge', w: 900, spawn: [30, 520],
       solids: [{ x: 0, y: 560, w: 160, h: 60 }, { x: 760, y: 560, w: 140, h: 60 }],
       crumble: CR8,
       doors: [{ x: 420, y: 494, kind: 'vanish' }, { x: 818, y: 494, kind: 'real' }],
       hint: '다리는 오래 못 버팁니다. 멈추지 마세요' },
 
-    { ko: '벽에서 가시', en: 'Spike Wall', w: 660, spawn: [30, 526],
+    { ko: '벽에서 가시', en: 'Spike Wall', w: 660, spawn: [30, 520],
       solids: [{ x: 0, y: 560, w: 660, h: 60 }],
       shooter: [{ x: 180, y: 505, dir: 1, interval: 1.5, phase: 0, speed: 420 },
                 { x: 420, y: 505, dir: -1, interval: 1.5, phase: 0.72, speed: 420 }],
       doors: [{ x: 560, y: 494, kind: 'real' }],
       hint: '가시가 날아옵니다. 점프로 피하세요' },
 
-    { ko: '가짜 바닥', en: 'Fake Floor', w: 620, spawn: [30, 526],
+    { ko: '가짜 바닥', en: 'Fake Floor', w: 620, spawn: [30, 520],
       solids: [{ x: 0, y: 560, w: 200, h: 60 }, { x: 270, y: 560, w: 130, h: 60 }, { x: 470, y: 560, w: 150, h: 60 }],
       fake: [{ x: 200, y: 560, w: 70, h: 60 }, { x: 400, y: 560, w: 70, h: 60 }],
       pop: [{ x: 330, y: 560, w: 40, h: 46, trig: 70, delay: 0.08, hold: 1.0 }],
       doors: [{ x: 530, y: 494, kind: 'real' }],
       hint: '바닥 무늬를 잘 보세요' },
 
-    { ko: '문이 도망간다', en: 'The Door Runs', w: 660, spawn: [30, 526],
+    { ko: '문이 도망간다', en: 'The Door Runs', w: 660, spawn: [30, 520],
       solids: [{ x: 0, y: 560, w: 660, h: 60 }, { x: 470, y: 440, w: 120, h: 20 },
                { x: 350, y: 330, w: 110, h: 20 }, { x: 470, y: 230, w: 130, h: 20 }],
       crusher: [{ x: 250, y: 0, w: 60, h: 70, trig: 85 }],
       doors: [{ x: 300, y: 494, kind: 'slide', to: 560, tx: 500, ty: 164 }],
       hint: '' },
 
-    { ko: '마지막 함정', en: 'Final Trap', w: 820, spawn: [30, 526],
+    { ko: '마지막 함정', en: 'Final Trap', w: 820, spawn: [30, 520],
       solids: [{ x: 0, y: 560, w: 180, h: 60 }, { x: 330, y: 560, w: 130, h: 60 }, { x: 560, y: 560, w: 260, h: 60 }],
       crumble: [{ x: 180, y: 560, w: 150, h: 60 }, { x: 460, y: 560, w: 100, h: 60 }],
       pop: [{ x: 360, y: 560, w: 42, h: 48, trig: 80, delay: 0.06, hold: 1.2 }],
@@ -419,7 +419,7 @@
     topPad = Math.max(46, hh + 4);
     botPad = Math.max(70, ch + 2);
     var vh = Math.max(180, H - topPad - botPad);
-    scale = clamp(Math.min(vh / DH, W / DW), 0.3, 3);
+    scale = clamp(Math.min(vh / DH, (W / DW) * 1.35), 0.3, 2.4);
     viewH = DH * scale;
     viewW = W / scale;
     offY = topPad + (vh - viewH) / 2;
