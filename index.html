@@ -17,6 +17,7 @@
 <link rel="canonical" href="https://skadnrwhd-web.github.io/arcade/">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="theme-color" content="#090a14">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1279,6 +1280,8 @@ function chalResult(d){ if(!chalState) return; var r=Number(d&&d.result); if(r!=
   else if(chalBar&&/(^| )on( |$)/.test(chalBar.className)) chalBanner(r===0?"tie":"lose",d); }
 function chalSrcOk(e){ var f=document.querySelector("#pFrame iframe"); return !!(f&&f.contentWindow&&e.source===f.contentWindow); }
 window.addEventListener("message",function(e){ var d=e&&e.data; if(!d||typeof d!=="object") return;
+  /* 게임 화면의 홈(⌂) 버튼: 플레이어만 닫고 메인으로. 답을 주면 게임 쪽 예비 이동이 취소된다 */
+  if(d.arcade==="home"){ if(!chalSrcOk(e)) return; try{ e.source.postMessage({arcade:"home-ok"},"*"); }catch(err){} closePlayer(); return; }
   if(d.arcade==="challenge-hello"){ if(!chalState) return; try{ if(e.source) e.source.postMessage({arcade:"challenge",slug:chalState.slug,score:chalState.score,by:chalState.by},"*"); }catch(err){} return; }
   if(d.arcade!=="score"&&d.arcade!=="challenge-result") return;
   if(!chalSrcOk(e)) return;   /* 지금 열린 게임 창이 보낸 것만 받는다(다른 iframe 이 장난하지 못하게) */
