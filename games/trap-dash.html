@@ -207,7 +207,14 @@
 
   var app = $('app'), cv = $('stage'), ctx = cv.getContext('2d');
   var FRAME = null;
-  try { var fm = /[?&]frame=(\d{3,4})x(\d{3,4})/.exec(location.search); if (fm) { FRAME = { w: +fm[1], h: +fm[2] }; document.body.className = 'framed'; } } catch (e) { }
+  try {
+    var fm = /[?&]frame=(\d{3,4})x(\d{3,4})/.exec(location.search);
+    if (fm) {
+      FRAME = { w: +fm[1], h: +fm[2] };
+      document.body.className = 'framed';
+      app.style.width = FRAME.w + 'px'; app.style.height = FRAME.h + 'px';
+    }
+  } catch (e) { }
 
   /* ══════════ 소리 (Web Audio 합성) ══════════ */
   var AC = null, master = null, noiseBuf = null, muted = (store('arc-sound') === '0');
