@@ -18,7 +18,7 @@
   ].join('');
 
   var SEL = '[data-home],a[aria-label="UJ ARCADE 홈으로"],a[aria-label="아케이드 홈"],'
-    + 'a[aria-label="UJ ARCADE"],a#btnHome,a#homeBtn,a#homeBtn2,a#homeBtn3';
+    + 'a[aria-label="UJ ARCADE"],a[href="../index.html"],a#btnHome,a#homeBtn,a#homeBtn2,a#homeBtn3';
 
   function injectCss() {
     if (document.getElementById('ujHomeCss')) return;
