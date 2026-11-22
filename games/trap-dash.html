@@ -6,12 +6,12 @@
 <meta name="theme-color" content="#07040f">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>네온 트랩 대시 - 배신하는 바닥·가시·문 함정 플랫포머 | UJ ARCADE</title>
-<meta name="description" content="평범해 보이는 출구로 가는 길에 바닥이 꺼지고, 가시가 솟고, 문이 도망갑니다. 죽으면 0.35초 만에 바로 리스폰되는 12단계 함정 플랫포머. 터치·키보드 지원, 설치 없이 바로 플레이.">
+<meta name="description" content="평범해 보이는 출구로 가는 길에 바닥이 꺼지고, 가시가 솟고, 문이 도망갑니다. 죽으면 0.35초 만에 바로 리스폰되는 24단계 함정 플랫포머. 터치·키보드 지원, 설치 없이 바로 플레이.">
 <link rel="canonical" href="https://skadnrwhd-web.github.io/arcade/games/trap-dash.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="UJ ARCADE">
 <meta property="og:title" content="네온 트랩 대시 - 배신하는 바닥·가시·문 함정 플랫포머">
-<meta property="og:description" content="바닥이 꺼지고 가시가 솟고 문이 도망가는 12단계 함정 플랫포머. 죽으면 0.35초 만에 바로 리스폰.">
+<meta property="og:description" content="바닥이 꺼지고 가시가 솟고 문이 도망가는 24단계 함정 플랫포머. 죽으면 0.35초 만에 바로 리스폰.">
 <meta property="og:url" content="https://skadnrwhd-web.github.io/arcade/games/trap-dash.html">
 <meta property="og:image" content="https://skadnrwhd-web.github.io/arcade/og.png">
 <meta property="og:image:width" content="1200">
@@ -121,7 +121,7 @@
     <span id="best">최고 0</span>
   </div>
   <div class="mid">
-    <span id="stageChip">STAGE 1 / 12</span>
+    <span id="stageChip">STAGE 1 / 24</span>
     <span id="deathChip">사망 0</span>
   </div>
   <div class="btns">
@@ -147,7 +147,7 @@
   <h1>😈 네온 트랩 대시</h1>
   <p>출구는 저기 보이는데, 가는 길이 <b>당신을 배신합니다</b>.<br>
      바닥이 꺼지고, 가시가 솟고, 문이 도망가죠.<br>
-     죽어도 <b>0.35초</b>면 다시 섭니다. 12개의 함정을 뚫고 나가세요.</p>
+     죽어도 <b>0.35초</b>면 다시 섭니다. 24개의 함정을 뚫고 나가세요.</p>
   <div class="rec">
     <div>최고 점수<b id="tBest">0</b></div>
     <div>최고 스테이지<b id="tStage">1</b></div>
@@ -199,6 +199,8 @@
   window.addEventListener('unhandledrejection', function (e) { try { ERR.push('reject:' + String(e.reason)); } catch (x) { } });
 
   var DEBUG = /[?&]debug=1/.test(location.search);
+  var EN = false;
+  try { EN = (store('arc-lang') === 'en') || /[?&]lang=en/.test(location.search); } catch (e) { }
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { } return null; }
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
   function num(k, d) { var v = parseFloat(store(k)); return isNaN(v) ? d : v; }
@@ -310,6 +312,7 @@
 
   /* ══════════ 스테이지 데이터 ══════════ */
   function tiles(x0, n, w, y, h) { var a = [], i; for (i = 0; i < n; i++) a.push({ x: x0 + i * w, y: y, w: w, h: h }); return a; }
+  function tilesF(x0, n, w, y, h, fuse) { var a = tiles(x0, n, w, y, h), i; for (i = 0; i < n; i++) a[i].fuse = fuse; return a; }
   var CR8 = tiles(160, 10, 60, 560, 60);
 
   var STAGES = [
@@ -318,7 +321,7 @@
       crumble: [{ x: 170, y: 560, w: 140, h: 60 }],
       pop: [{ x: 392, y: 560, w: 44, h: 44, trig: 95, delay: 0.12, hold: 1.1 }],
       doors: [{ x: 478, y: 494, kind: 'real' }],
-      hint: '빛나는 문으로 들어가면 클리어!' },
+      hint: '빛나는 문으로 들어가면 클리어!', hintEn: 'Step into the glowing door to clear!' },
 
     { ko: '가시의 리듬', en: 'Spike Rhythm', w: 600, spawn: [30, 520], crop: 140,
       solids: [{ x: 0, y: 560, w: 600, h: 60 }],
@@ -326,7 +329,7 @@
             { x: 320, y: 560, w: 46, h: 46, trig: 100, delay: 0.10, hold: 0.85 },
             { x: 412, y: 560, w: 42, h: 52, trig: 52, delay: 0.04, hold: 1.5 }],
       doors: [{ x: 522, y: 494, kind: 'real' }],
-      hint: '바닥이 수상하면 점프!' },
+      hint: '바닥이 수상하면 점프!', hintEn: 'If the floor looks off, jump!' },
 
     { ko: '천장은 무섭다', en: 'Mind the Ceiling', w: 620, spawn: [30, 520], crop: 0,
       solids: [{ x: 0, y: 560, w: 620, h: 60 }],
@@ -334,61 +337,61 @@
              { x: 356, w: 44, h: 70, trig: 55 }, { x: 452, w: 44, h: 70, decoy: 1 },
              { x: 520, w: 44, h: 70, trig: 45 }],
       doors: [{ x: 556, y: 494, kind: 'real' }],
-      hint: '천장을 보세요… 아니, 보지 마세요' },
+      hint: '천장을 보세요… 아니, 보지 마세요', hintEn: 'Watch the ceiling... no, don\'t.' },
 
     { ko: '도망가는 문', en: 'Runaway Door', w: 620, spawn: [30, 520], crop: 140,
       solids: [{ x: 0, y: 560, w: 620, h: 60 }],
       doors: [{ x: 250, y: 494, kind: 'vanish', trig: 46 },
               { x: 340, y: 494, kind: 'run', to: 436, trig: 110 },
               { x: 500, y: 494, kind: 'real' }],
-      hint: '문이 세 개? 진짜는 하나뿐' },
+      hint: '문이 세 개? 진짜는 하나뿐', hintEn: 'Three doors? Only one is real.' },
 
     { ko: '중력 반전', en: 'Gravity Flip', w: 600, spawn: [30, 520], crop: 0,
       solids: [{ x: 0, y: 0, w: 600, h: 60 }, { x: 0, y: 560, w: 600, h: 60 }],
       grav: [{ x: 196, y: 546, w: 64, h: 14, to: -1 }],
       pop: [{ x: 352, y: 60, w: 46, h: 46, trig: 92, delay: 0.10, hold: 1.2, dir: -1 }],
       doors: [{ x: 470, y: 60, kind: 'real', flip: 1 }],
-      hint: '발밑의 보라 발판을 밟으면 세상이 뒤집힙니다' },
+      hint: '발밑의 보라 발판을 밟으면 세상이 뒤집힙니다', hintEn: 'Step on the purple pad and the world flips.' },
 
     { ko: '스프링의 배신', en: 'Spring Betrayal', w: 580, spawn: [30, 520], crop: 0,
       solids: [{ x: 0, y: 560, w: 580, h: 60 }, { x: 400, y: 340, w: 170, h: 20 }],
       spike: [{ x: 150, y: 60, w: 180, h: 40 }],
       spring: [{ x: 206, y: 546, w: 64, h: 14, power: 1350 }, { x: 380, y: 546, w: 58, h: 14, power: 1000 }],
       doors: [{ x: 500, y: 274, kind: 'real' }],
-      hint: '스프링은 친구일까요?' },
+      hint: '스프링은 친구일까요?', hintEn: 'Is the spring your friend?' },
 
     { ko: '조작 반전', en: 'Reversed Controls', w: 560, spawn: [30, 520], crop: 140,
       solids: [{ x: 0, y: 560, w: 560, h: 60 }],
       invert: [{ x: 170, y: 0, w: 230, h: 560 }],
       doors: [{ x: 470, y: 494, kind: 'real' }],
-      hint: '이 구간에서는… 발이 말을 안 들을 겁니다' },
+      hint: '이 구간에서는… 발이 말을 안 들을 겁니다', hintEn: 'In this zone... your feet stop listening.' },
 
     { ko: '무너지는 다리', en: 'Crumbling Bridge', w: 900, spawn: [30, 520], crop: 140,
       solids: [{ x: 0, y: 560, w: 160, h: 60 }, { x: 760, y: 560, w: 140, h: 60 }],
       crumble: CR8,
       doors: [{ x: 420, y: 494, kind: 'vanish' }, { x: 818, y: 494, kind: 'real' }],
-      hint: '다리는 오래 못 버팁니다. 멈추지 마세요' },
+      hint: '다리는 오래 못 버팁니다. 멈추지 마세요', hintEn: 'The bridge won\'t last. Don\'t stop.' },
 
     { ko: '벽에서 가시', en: 'Spike Wall', w: 660, spawn: [30, 520], crop: 140,
       solids: [{ x: 0, y: 560, w: 660, h: 60 }],
       shooter: [{ x: 180, y: 505, dir: 1, interval: 1.5, phase: 0, speed: 420 },
                 { x: 420, y: 505, dir: -1, interval: 1.5, phase: 0.72, speed: 420 }],
       doors: [{ x: 560, y: 494, kind: 'real' }],
-      hint: '가시가 날아옵니다. 점프로 피하세요' },
+      hint: '가시가 날아옵니다. 점프로 피하세요', hintEn: 'Spikes incoming. Jump over them.' },
 
     { ko: '가짜 바닥', en: 'Fake Floor', w: 620, spawn: [30, 520], crop: 140,
       solids: [{ x: 0, y: 560, w: 200, h: 60 }, { x: 270, y: 560, w: 130, h: 60 }, { x: 470, y: 560, w: 150, h: 60 }],
       fake: [{ x: 200, y: 560, w: 70, h: 60 }, { x: 400, y: 560, w: 70, h: 60 }],
       pop: [{ x: 330, y: 560, w: 40, h: 46, trig: 70, delay: 0.08, hold: 1.0 }],
       doors: [{ x: 530, y: 494, kind: 'real' }],
-      hint: '바닥 무늬를 잘 보세요' },
+      hint: '바닥 무늬를 잘 보세요', hintEn: 'Mind the floor pattern.' },
 
     { ko: '문이 도망간다', en: 'The Door Runs', w: 660, spawn: [30, 520], crop: 100,
       solids: [{ x: 0, y: 560, w: 660, h: 60 }, { x: 470, y: 440, w: 120, h: 20 },
                { x: 350, y: 330, w: 110, h: 20 }, { x: 470, y: 230, w: 130, h: 20 }],
       crusher: [{ x: 250, y: 0, w: 60, h: 70, trig: 85 }],
       doors: [{ x: 300, y: 494, kind: 'slide', to: 560, tx: 500, ty: 164 }],
-      hint: '' },
+      hint: '', hintEn: '' },
 
     { ko: '마지막 함정', en: 'Final Trap', w: 820, spawn: [30, 520], crop: 0,
       solids: [{ x: 0, y: 560, w: 180, h: 60 }, { x: 330, y: 560, w: 130, h: 60 }, { x: 560, y: 560, w: 260, h: 60 }],
@@ -396,7 +399,122 @@
       pop: [{ x: 360, y: 560, w: 42, h: 48, trig: 80, delay: 0.06, hold: 1.2 }],
       drop: [{ x: 500, w: 44, h: 70, trig: 50 }],
       doors: [{ x: 720, y: 494, kind: 'real' }],
-      hint: '여기까지 왔다면… 마지막까지 조심' }
+      hint: '여기까지 왔다면… 마지막까지 조심', hintEn: 'You made it this far. Careful to the end.' },
+
+    /* ══════════ 확장 13 ~ 24 ══════════ */
+    { ko: '가짜 골대', en: 'Fake Finish', w: 700, spawn: [30, 520], crop: 140,
+      solids: [{ x: 0, y: 560, w: 700, h: 60 }],
+      pop: [{ x: 150, y: 560, base: 560, w: 44, h: 44, trig: 76, delay: 0.12, hold: 1.0 },
+            { x: 352, y: 560, base: 560, w: 46, h: 46, trig: 76, delay: 0.10, hold: 1.0 }],
+      crusher: [{ x: 574, y: 0, w: 52, h: 60, trig: 170 }],
+      doors: [{ x: 250, y: 494, kind: 'decoy', trig: 56 },
+              { x: 434, y: 494, kind: 'decoy', trig: 56 },
+              { x: 636, y: 494, kind: 'real' }],
+      hint: '반짝이는 문이 셋? 진짜는 하나뿐입니다', hintEn: 'Three shining doors? Only one is real.' },
+
+    { ko: '무너지는 바닥', en: 'Collapsing Floor', w: 900, spawn: [30, 520], crop: 0,
+      solids: [{ x: 0, y: 560, w: 190, h: 60 }, { x: 430, y: 560, w: 470, h: 60 }],
+      crumble: tilesF(190, 3, 80, 560, 60, 0.55),
+      drop: [{ x: 516, w: 44, h: 64, trig: 150 }, { x: 700, w: 44, h: 64, trig: 150 }],
+      doors: [{ x: 860, y: 494, kind: 'real' }],
+      hint: '발밑부터 무너지고, 천장은 내려옵니다', hintEn: 'The floor gives way and the ceiling comes down.' },
+
+    { ko: '점프하면 뒤로', en: 'Jump Back Dash', w: 830, spawn: [30, 520], crop: 100,
+      solids: [{ x: 0, y: 560, w: 170, h: 60 }, { x: 260, y: 560, w: 130, h: 60 },
+               { x: 480, y: 560, w: 130, h: 60 }, { x: 700, y: 560, w: 130, h: 60 }],
+      wind: [{ x: 150, y: 180, w: 690, h: 380, vx: -50, air: 1 }],
+      pop: [{ x: 330, y: 560, base: 560, w: 42, h: 44, trig: 68, delay: 0.10, hold: 0.9 }],
+      doors: [{ x: 756, y: 494, kind: 'real' }],
+      hint: '뛰면 뒤로 밀립니다. 달려서 넘으세요!', hintEn: 'Jumping pushes you backwards. Run and leap!' },
+
+    { ko: '깜빡이는 발판', en: 'Blinking Steps', w: 860, spawn: [30, 520], crop: 100,
+      solids: [{ x: 0, y: 560, w: 180, h: 60 }, { x: 768, y: 560, w: 92, h: 60 }],
+      blink: [{ x: 210, y: 500, w: 88, h: 18, period: 2.6, phase: 0.00, duty: 0.7 },
+              { x: 340, y: 468, w: 88, h: 18, period: 2.6, phase: 0.34, duty: 0.7 },
+              { x: 470, y: 500, w: 88, h: 18, period: 2.6, phase: 0.68, duty: 0.7 },
+              { x: 600, y: 468, w: 88, h: 18, period: 2.6, phase: 0.06, duty: 0.7 },
+              { x: 696, y: 520, w: 74, h: 18, period: 2.6, phase: 0.46, duty: 0.7 }],
+      doors: [{ x: 794, y: 494, kind: 'real' }],
+      hint: '발판이 사라집니다. 보일 때만 딛으세요', hintEn: 'Steps vanish. Only step while they show.' },
+
+    { ko: '조여오는 천장', en: 'Closing Ceiling', w: 860, spawn: [30, 520], crop: 140,
+      solids: [{ x: 0, y: 560, w: 860, h: 60 }],
+      crusher: [{ x: 240, y: 0, w: 54, h: 48, trig: 210 },
+                { x: 440, y: 0, w: 54, h: 48, trig: 210 },
+                { x: 640, y: 0, w: 54, h: 48, trig: 210 }],
+      pop: [{ x: 150, y: 560, base: 560, w: 42, h: 44, trig: 64, delay: 0.10, hold: 0.9 }],
+      doors: [{ x: 790, y: 494, kind: 'real' }],
+      hint: '천장이 계속 내려앉습니다. 틈이 있을 때만!', hintEn: 'The ceiling keeps dropping. Only when there is a gap!' },
+
+    { ko: '2단 점프의 유혹', en: 'Double-Jump Bait', w: 840, spawn: [30, 520], crop: 100,
+      solids: [{ x: 0, y: 560, w: 840, h: 60 }],
+      fake: [{ x: 376, y: 432, w: 176, h: 18 }],
+      spike: [{ x: 440, y: 520, w: 90, h: 40 }],
+      pop: [{ x: 236, y: 560, base: 560, w: 42, h: 44, trig: 66, delay: 0.10, hold: 0.9 },
+            { x: 640, y: 560, base: 560, w: 42, h: 44, trig: 66, delay: 0.10, hold: 0.95 }],
+      doors: [{ x: 444, y: 366, kind: 'decoy', trig: 48 },
+              { x: 760, y: 494, kind: 'real' }],
+      hint: '2단 점프가 필요할 것 같죠? 아마도.', hintEn: 'Looks like you need a double jump? Maybe.' },
+
+    { ko: '가속 발판 역주행', en: 'Runaway Belts', w: 920, spawn: [30, 520], crop: 140,
+      solids: [{ x: 0, y: 560, w: 920, h: 60 }],
+      belt: [{ x: 180, y: 560, w: 170, h: 60, speed: -130 },
+             { x: 430, y: 560, w: 150, h: 60, speed: 250 },
+             { x: 660, y: 560, w: 180, h: 60, speed: -170 }],
+      spike: [{ x: 596, y: 520, w: 40, h: 40 }],
+      pop: [{ x: 300, y: 560, base: 560, w: 42, h: 44, trig: 62, delay: 0.10, hold: 0.9 },
+            { x: 760, y: 560, base: 560, w: 42, h: 44, trig: 62, delay: 0.10, hold: 0.9 }],
+      doors: [{ x: 872, y: 494, kind: 'real' }],
+      hint: '발판이 당신을 밀어냅니다. 이번엔 뒤로!', hintEn: 'The floor pushes you. This time backwards!' },
+
+    { ko: '보스 연쇄 함정', en: 'Trap Chain Boss', w: 1020, spawn: [30, 520], crop: 0,
+      solids: [{ x: 0, y: 560, w: 320, h: 60 }, { x: 470, y: 560, w: 240, h: 60 }, { x: 830, y: 560, w: 190, h: 60 }],
+      crumble: [].concat(tilesF(320, 2, 75, 560, 60, 0.5), tilesF(710, 3, 40, 560, 60, 0.45)),
+      shooter: [{ x: 500, y: 505, dir: -1, interval: 1.7, phase: 0, speed: 400 }],
+      drop: [{ x: 556, w: 44, h: 64, trig: 54 }],
+      crusher: [{ x: 636, y: 0, w: 50, h: 60, trig: 180 }],
+      pop: [{ x: 180, y: 560, base: 560, w: 44, h: 44, trig: 72, delay: 0.10, hold: 1.0 },
+            { x: 900, y: 560, base: 560, w: 44, h: 44, trig: 64, delay: 0.10, hold: 0.9 }],
+      doors: [{ x: 862, y: 494, kind: 'vanish', trig: 46 },
+              { x: 946, y: 494, kind: 'real' }],
+      hint: '보스는 없습니다. 함정만 있을 뿐', hintEn: 'No boss here. Only traps.' },
+
+    { ko: '보이지 않는 발판', en: 'Invisible Steps', w: 860, spawn: [30, 520], crop: 100,
+      solids: [{ x: 0, y: 560, w: 180, h: 60 }, { x: 780, y: 560, w: 80, h: 60 }],
+      hidden: [{ x: 206, y: 500, w: 84, h: 18 }, { x: 322, y: 468, w: 84, h: 18 },
+               { x: 438, y: 500, w: 84, h: 18 }, { x: 554, y: 468, w: 84, h: 18 },
+               { x: 662, y: 508, w: 78, h: 18 }],
+      doors: [{ x: 794, y: 494, kind: 'real' }],
+      hint: '보이지 않는 발판. 하지만 분명히 있습니다', hintEn: 'Invisible steps. They are definitely there.' },
+
+    { ko: '중력 반전 구간', en: 'Gravity Flip Run', w: 820, spawn: [30, 520], crop: 0,
+      solids: [{ x: 0, y: 0, w: 820, h: 60 }, { x: 0, y: 560, w: 820, h: 60 }],
+      grav: [{ x: 180, y: 546, w: 64, h: 14, to: -1 }, { x: 690, y: 60, w: 64, h: 14, to: 1 }],
+      pop: [{ x: 470, y: 60, base: 60, w: 44, h: 44, trig: 70, delay: 0.10, hold: 0.9, dir: -1 },
+            { x: 580, y: 60, base: 60, w: 44, h: 44, trig: 70, delay: 0.10, hold: 0.9, dir: -1 }],
+      doors: [{ x: 760, y: 494, kind: 'real' }],
+      hint: '세상이 또 뒤집힙니다. 이번엔 천장을 걸어서', hintEn: 'The world flips again. Walk the ceiling this time.' },
+
+    { ko: '추격 레이저', en: 'Laser Chase', w: 1020, spawn: [30, 520], crop: 140,
+      solids: [{ x: 0, y: 560, w: 1020, h: 60 }],
+      chase: { w: 64, speed: 104, trig: 220, behind: 300 },
+      pop: [{ x: 300, y: 560, base: 560, w: 44, h: 46, trig: 70, delay: 0.10, hold: 0.95 },
+            { x: 560, y: 560, base: 560, w: 44, h: 46, trig: 70, delay: 0.10, hold: 0.95 },
+            { x: 770, y: 560, base: 560, w: 44, h: 46, trig: 70, delay: 0.10, hold: 0.95 }],
+      doors: [{ x: 950, y: 494, kind: 'real' }],
+      hint: '벽이 따라옵니다. 뒤는 보지 마세요', hintEn: 'The wall is coming. Don\'t look back.' },
+
+    { ko: '파이널', en: 'Final Betrayal', w: 1120, spawn: [30, 520], crop: 0,
+      solids: [{ x: 0, y: 560, w: 240, h: 60 }, { x: 430, y: 560, w: 260, h: 60 }, { x: 900, y: 560, w: 220, h: 60 }],
+      crumble: [].concat(tilesF(240, 3, 64, 560, 60, 0.5), tilesF(690, 3, 70, 560, 60, 0.45)),
+      crusher: [{ x: 520, y: 0, w: 52, h: 52, trig: 210 }],
+      beam: [{ x: 640, y: 0, w: 20, h: 560, period: 2.6, phase: 0.2, duty: 0.3 }],
+      chase: { w: 64, speed: 96, trig: 760, behind: 280 },
+      pop: [{ x: 120, y: 560, base: 560, w: 42, h: 44, trig: 66, delay: 0.10, hold: 0.9 }],
+      doors: [{ x: 300, y: 494, kind: 'decoy', trig: 46 },
+              { x: 900, y: 494, kind: 'run', to: 1080, trig: 96 },
+              { x: 1030, y: 494, kind: 'real' }],
+      hint: '마지막 함정은, 가장 가까운 곳에 있습니다', hintEn: 'The last trap is the closest one.' }
   ];
   var NST = STAGES.length;
 
@@ -451,9 +569,9 @@
     S = {
       d: d, n: stageN, w: d.w, h: DH, crop: (d.crop || 0),
       solids: (d.solids || []).map(function (r) { return { x: r.x, y: r.y, w: r.w, h: r.h }; }),
-      crumbles: (d.crumble || []).map(function (r) { return { x: r.x, y: r.y, w: r.w, h: r.h, on: false, t: 0, alive: true }; }),
+      crumbles: (d.crumble || []).map(function (r) { return { x: r.x, y: r.y, w: r.w, h: r.h, on: false, t: 0, alive: true, fuse: r.fuse || 0.26 }; }),
       pops: (d.pop || []).map(function (r) {
-        return { x: r.x, y: r.y, w: r.w, h: r.h, trig: r.trig || 90, delay: r.delay || 0.1,
+        return { x: r.x, y: r.y, w: r.w, h: r.h, base: r.base, trig: r.trig || 90, delay: r.delay || 0.1,
                  hold: r.hold || 1, dir: r.dir || 1, up: 0, st: 'idle', t: 0, cool: 0, fired: false };
       }),
       drops: (d.drop || []).map(function (r) {
@@ -470,6 +588,19 @@
       crushers: (d.crusher || []).map(function (r) { return { x: r.x, y: r.y, w: r.w, h: r.h, trig: r.trig || 80, st: 'idle', vy: 0 }; }),
       fakes: (d.fake || []).map(function (r) { return { x: r.x, y: r.y, w: r.w, h: r.h }; }),
       spikes: (d.spike || []).map(function (r) { return { x: r.x, y: r.y, w: r.w, h: r.h }; }),
+      belts: (d.belt || []).map(function (r) { return { x: r.x, y: r.y, w: r.w, h: r.h, sp: r.speed || 0 }; }),
+      blinks: (d.blink || []).map(function (r) {
+        return { x: r.x, y: r.y, w: r.w, h: r.h, period: r.period || 2.4, phase: r.phase || 0,
+                 duty: r.duty || 0.62, vis: 1 };
+      }),
+      hiddens: (d.hidden || []).map(function (r) { return { x: r.x, y: r.y, w: r.w, h: r.h }; }),
+      beams: (d.beam || []).map(function (r) {
+        return { x: r.x, y: r.y || 0, w: r.w || 20, h: r.h || 560, period: r.period || 1.8,
+                 phase: r.phase || 0, duty: r.duty || 0.42, on: false };
+      }),
+      winds: (d.wind || []).map(function (r) { return { x: r.x, y: r.y, w: r.w, h: r.h, vx: r.vx || 0, air: !!r.air }; }),
+      chase: d.chase ? { x: 0, w: d.chase.w || 64, speed: d.chase.speed || 104,
+                         trig: d.chase.trig || 200, behind: d.chase.behind || 280, on: false } : null,
       doors: (d.doors || []).map(function (r) {
         return { x: r.x, y: r.y, w: 54, h: 66, kind: r.kind, to: r.to || 0, tx: r.tx || 0, ty: r.ty || 0,
                  trig: r.trig || (r.kind === 'vanish' ? 48 : 150), flip: !!r.flip, st: 0, t: 0,
@@ -484,7 +615,7 @@
     parts.length = 0;
     deadT = 0; clearT = 0;
     setChip();
-    showHint(d.hint || '');
+    showHint((EN && d.hintEn) ? d.hintEn : (d.hint || ''));
     paintChal();
     resize();
   }
@@ -618,7 +749,7 @@
     state = 'play';
     loadStage(1);
     paintScore(); paintBest();
-    banner('<span>STAGE 1</span><small>' + STAGES[0].ko + '</small>', '', 1.4);
+    banner('<span>STAGE 1</span><small>' + ((EN && STAGES[0].en) ? STAGES[0].en : STAGES[0].ko) + '</small>', '', 1.4);
     sfx('ui');
     if (window.ArcadeRank) { try { ArcadeRank.close(); } catch (e) { } }
   }
@@ -660,6 +791,10 @@
       bonusScore = Math.max(0, 5000 - deaths * 100);
       score += bonusScore;
       sfx('win');
+      for (var q = 0; q < 6; q++) {
+        burst(PL.x + PW / 2 + (q - 2.5) * 46, 300 + (q % 2) * 40, 16, q % 2 ? '255,210,63' : '255,120,160', 1.25);
+      }
+      shake = 10;
     } else {
       bonusScore = 0;
     }
@@ -667,10 +802,10 @@
     if (stageN > bestStage) { bestStage = stageN; store('arc-best-stage-trap-dash', String(bestStage)); }
     banner(null); hideOverlays();
     var s = Math.round(score), isNew = s > 0 && s >= bestScore;
-    $('ovTitle').textContent = complete ? '🏁 전 구간 돌파!' : '여기까지!';
+    $('ovTitle').textContent = complete ? ('🏆 ' + NST + ' STAGE CLEAR!') : '여기까지!';
     $('ovScore').textContent = s.toLocaleString();
     $('ovScore').className = 'big' + (isNew ? ' new' : '');
-    $('ovSub').textContent = complete ? '함정 12개를 모두 통과했습니다' : ('스테이지 ' + stageN + '에서 멈췄습니다');
+    $('ovSub').textContent = complete ? ('함정 ' + NST + '개를 모두 통과했습니다') : ('스테이지 ' + stageN + '에서 멈췄습니다');
     $('ovStage').textContent = (complete ? NST : stageN) + ' / ' + NST;
     $('ovDeaths').textContent = deaths + '회';
     $('ovBonus').textContent = complete ? ('+' + bonusScore.toLocaleString()) : '0';
@@ -689,6 +824,9 @@
     for (i = 0; i < S.solids.length; i++) _sol.push(S.solids[i]);
     for (i = 0; i < S.crumbles.length; i++) if (S.crumbles[i].alive) _sol.push(S.crumbles[i]);
     for (i = 0; i < S.crushers.length; i++) { var c = S.crushers[i]; if (c.st === 'rest') _sol.push(c); }
+    for (i = 0; i < S.belts.length; i++) _sol.push(S.belts[i]);
+    for (i = 0; i < S.blinks.length; i++) if (S.blinks[i].vis) _sol.push(S.blinks[i]);
+    for (i = 0; i < S.hiddens.length; i++) _sol.push(S.hiddens[i]);
     return _sol;
   }
 
@@ -703,7 +841,7 @@
       }
       if (c.on) {
         c.t += dt;
-        if (c.t > 0.26) {
+        if (c.t > c.fuse) {
           c.alive = false;
           burst(c.x + c.w / 2, c.y + 6, 8, '190,120,160', 0.7);
         }
@@ -838,6 +976,14 @@
         }
       } else if (d.kind === 'vanish') {
         if (dist < d.trig) { d.gone = true; burst(d.x + 27, d.y + 33, 14, '255,120,160', 0.9); sfx('trap'); shake = Math.max(shake, 4); }
+      } else if (d.kind === 'decoy') {
+        if (dist < d.trig) {
+          d.gone = true;
+          burst(d.x + 27, d.y + 33, 26, '255,210,63', 1.15);
+          burst(d.x + 27, d.y + 33, 12, '255,120,160', 0.9);
+          banner('<span>😈 속았지?</span><small>가짜 골대였습니다</small>', 'bad', 1.35);
+          sfx('trap'); shake = Math.max(shake, 6);
+        }
       } else if (d.kind === 'slide') {
         if (d.st === 0) {
           if (dist < d.trig) { d.st = 1; d.t = 0; sfx('boing'); }
@@ -855,6 +1001,35 @@
         }
       }
     }
+  }
+
+  /* ══════════ 확장 기믹 업데이트 ══════════ */
+  function updateBlinks() {
+    for (var i = 0; i < S.blinks.length; i++) {
+      var b = S.blinks[i];
+      var ph = ((S.t / b.period) + b.phase) % 1;
+      b.vis = ph < b.duty ? 1 : 0;
+    }
+  }
+  function updateBeams() {
+    for (var i = 0; i < S.beams.length; i++) {
+      var b = S.beams[i];
+      var ph = ((S.t / b.period) + b.phase) % 1;
+      b.on = ph < b.duty;
+    }
+  }
+  function updateChase(dt) {
+    var c = S.chase;
+    if (!c) return;
+    if (!c.on) {
+      if (PL.x > c.trig) {
+        c.on = true; c.x = PL.x - c.behind;
+        banner('<span>😈 도망쳐!</span><small>벽이 따라옵니다</small>', 'bad', 1.5);
+        sfx('trap'); shake = Math.max(shake, 8);
+      }
+      return;
+    }
+    c.x += c.speed * dt;
   }
 
   /* ══════════ 위험 판정 ══════════ */
@@ -884,6 +1059,15 @@
       r = S.crushers[i];
       if (r.st === 'fall' && hit(PL.x + 3, PL.y + 2, PW - 6, PH - 4, r.x, r.y, r.w, r.h)) return true;
     }
+    /* 확장: 레이저·추격벽 */
+    for (i = 0; i < S.beams.length; i++) {
+      r = S.beams[i];
+      if (r.on && hit(PL.x + 4, PL.y + 2, PW - 8, PH - 4, r.x, r.y, r.w, r.h)) return true;
+    }
+    if (S.chase && S.chase.on) {
+      r = S.chase;
+      if (hit(PL.x + 3, PL.y + 2, PW - 6, PH - 4, r.x, 0, r.w + 8, 560)) return true;
+    }
     return false;
   }
   function touchWin() {
@@ -903,6 +1087,7 @@
     if (state === 'play' || state === 'dead') {
       updateCrumbles(dt); updatePops(dt); updateDrops(dt);
       updateGravs(dt); updateShooters(dt); updateCrushers(dt); updateDoors(dt);
+      updateBlinks(); updateBeams(); updateChase(dt);
     }
 
     /* 사망 연출 중에는 플레이어를 멈춤 */
@@ -936,10 +1121,18 @@
     PL.vy += GRAV * gdir * dt;
     if (PL.vy * gdir > MAXFALL) PL.vy = MAXFALL * gdir;
 
+    /* 돌풍 구역 (공중에서만 부는 바람) */
+    var wvx = 0, wvy = 0;
+    for (i = 0; i < S.winds.length; i++) {
+      var wz = S.winds[i];
+      if (wz.air && PL.grounded) continue;
+      if (hit(PL.x, PL.y, PW, PH, wz.x, wz.y, wz.w, wz.h)) { wvx += wz.vx; }
+    }
+
     var list = solidList(), i, s;
 
     /* X축 */
-    PL.x += PL.vx * dt;
+    PL.x += (PL.vx + wvx) * dt;
     for (i = 0; i < list.length; i++) {
       s = list[i];
       if (!hit(PL.x, PL.y, PW, PH, s.x, s.y, s.w, s.h)) continue;
@@ -977,6 +1170,17 @@
       }
     }
     PL.sq += (1 - PL.sq) * Math.min(1, dt * 14);
+
+    /* 가속 발판: 서 있는 동안 좌우로 밀림 */
+    if (PL.grounded && gdir > 0) {
+      for (i = 0; i < S.belts.length; i++) {
+        s = S.belts[i];
+        if (!s.sp) continue;
+        if (Math.abs(PL.y + PH - s.y) < 5 && PL.x + PW > s.x + 1 && PL.x < s.x + s.w - 1) {
+          PL.x = clamp(PL.x + s.sp * dt, 0, S.w - PW);
+        }
+      }
+    }
 
     /* 세계 밖 */
     if (PL.y > DH + 90 || PL.y + PH < -110) { die(); return; }
@@ -1023,15 +1227,16 @@
   function doorDraw(d, t) {
     var x = d.x, y = d.y, w = d.w, h = d.h;
     if (d.gone) return;
+    var gold = d.kind === 'decoy';
     var pulse = 0.55 + 0.45 * Math.sin(t * 4 + x * 0.05 + (d.hop || 0));
     var bounce = d.st === 1 ? Math.sin(d.hop) * 3 : 0;
     y += bounce;
     /* 문틀 */
     ctx.fillStyle = '#1b1030'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
-    ctx.fillStyle = 'rgba(255,90,130,' + (0.16 + pulse * 0.16) + ')'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
+    ctx.fillStyle = (gold ? 'rgba(255,210,63,' : 'rgba(255,90,130,') + (0.16 + pulse * 0.16) + ')'; ctx.fillRect(x - 4, y - 4, w + 8, h + 8);
     /* 문짝 */
-    ctx.fillStyle = '#2b1546'; ctx.fillRect(x, y, w, h);
-    ctx.fillStyle = 'rgba(255,120,170,' + (0.30 + pulse * 0.30) + ')'; ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
+    ctx.fillStyle = gold ? '#3a2a08' : '#2b1546'; ctx.fillRect(x, y, w, h);
+    ctx.fillStyle = (gold ? 'rgba(255,225,120,' : 'rgba(255,120,170,') + (0.30 + pulse * 0.30) + ')'; ctx.fillRect(x + 4, y + 4, w - 8, h - 8);
     ctx.fillStyle = 'rgba(255,235,245,.9)'; ctx.fillRect(x + 9, y + 9, w - 18, 5);
     /* 손잡이 */
     ctx.fillStyle = '#ffe9a8'; ctx.fillRect(x + w - 15, y + h * 0.52, 5, 9);
@@ -1039,6 +1244,11 @@
     ctx.fillStyle = 'rgba(255,235,245,' + (0.5 + pulse * 0.5) + ')';
     ctx.fillRect(x + w / 2 - 6, y - 13, 3, 3); ctx.fillRect(x + w / 2 + 4, y - 15, 3, 3);
     ctx.fillRect(x + w / 2 - 1, y - 19, 3, 3);
+    if (gold) {
+      ctx.fillStyle = 'rgba(255,225,140,' + (0.35 + pulse * 0.45) + ')';
+      ctx.fillRect(x - 12, y + h * 0.3, 5, 5); ctx.fillRect(x + w + 7, y + h * 0.65, 4, 4);
+      ctx.fillRect(x + 4, y - 26, 4, 4);
+    }
   }
 
   function drawRoom(cam) {
@@ -1191,6 +1401,85 @@
       else tri(r.x + r.w, r.y, r.x, r.y + r.h / 2, r.x + r.w, r.y + r.h, '#ff4d6d');
       ctx.fillStyle = 'rgba(255,220,230,.6)';
       ctx.fillRect(r.vx > 0 ? r.x - 8 : r.x + r.w, r.y + r.h / 2 - 1.5, 8, 3);
+    }
+  }
+
+  /* ── 확장 기믹 그리기 ── */
+  function drawTraps2(t) {
+    var i, r, k, ax, off, a, near, left, ph2, warn;
+
+    /* 가속 발판 */
+    for (i = 0; i < S.belts.length; i++) {
+      r = S.belts[i];
+      ctx.fillStyle = '#12203a'; ctx.fillRect(r.x, r.y, r.w, r.h);
+      ctx.fillStyle = 'rgba(110,220,255,.85)'; ctx.fillRect(r.x, r.y, r.w, 3);
+      off = ((t * r.sp) % 22 + 22) % 22;
+      ctx.fillStyle = 'rgba(110,220,255,.28)';
+      for (ax = r.x - 22; ax < r.x + r.w; ax += 22) ctx.fillRect(ax + off, r.y + 6, 9, 3);
+      for (k = 0; k < 3; k++) {
+        ax = r.x + r.w * (0.22 + k * 0.26);
+        if (r.sp > 0) tri(ax - 6, r.y + 33, ax + 6, r.y + 41, ax - 6, r.y + 49, 'rgba(150,235,255,.5)');
+        else tri(ax + 6, r.y + 33, ax - 6, r.y + 41, ax + 6, r.y + 49, 'rgba(150,235,255,.5)');
+      }
+    }
+
+    /* 깜빡이는 발판 */
+    for (i = 0; i < S.blinks.length; i++) {
+      r = S.blinks[i];
+      if (r.vis) {
+        ctx.fillStyle = '#16233a'; ctx.fillRect(r.x, r.y, r.w, r.h);
+        ctx.fillStyle = 'rgba(120,240,255,.9)'; ctx.fillRect(r.x, r.y, r.w, 2.5);
+        ctx.fillStyle = 'rgba(120,240,255,.3)'; ctx.fillRect(r.x + 3, r.y + 7, r.w - 6, 1.6);
+        left = (r.duty - ((S.t / r.period + r.phase) % 1)) / r.duty;
+        ctx.fillStyle = 'rgba(180,250,255,' + (0.35 + 0.45 * clamp(left, 0, 1)) + ')';
+        ctx.fillRect(r.x, r.y + r.h - 2, r.w * clamp(left, 0, 1), 2);
+      } else {
+        ctx.strokeStyle = 'rgba(120,240,255,.22)'; ctx.lineWidth = 1.2;
+        if (ctx.setLineDash) ctx.setLineDash([5, 6]);
+        ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+        if (ctx.setLineDash) ctx.setLineDash([]);
+      }
+    }
+
+    /* 보이지 않는 발판 */
+    var pulse = (S.t % 3) < 0.55;
+    for (i = 0; i < S.hiddens.length; i++) {
+      r = S.hiddens[i];
+      near = Math.abs((PL.x + PW / 2) - (r.x + r.w / 2)) < 120 && Math.abs((PL.y + PH / 2) - (r.y + r.h / 2)) < 200;
+      a = pulse ? 0.46 : (near ? 0.3 : 0.07);
+      ctx.fillStyle = 'rgba(150,110,255,' + a + ')'; ctx.fillRect(r.x, r.y, r.w, r.h);
+      if (pulse || near) {
+        ctx.fillStyle = 'rgba(215,195,255,' + (a + 0.3) + ')'; ctx.fillRect(r.x, r.y, r.w, 2);
+      }
+    }
+
+    /* 레이저 빔 */
+    for (i = 0; i < S.beams.length; i++) {
+      r = S.beams[i];
+      if (r.on) {
+        ctx.fillStyle = 'rgba(255,60,90,.26)'; ctx.fillRect(r.x - 9, r.y, r.w + 18, r.h);
+        ctx.fillStyle = 'rgba(255,110,140,.95)'; ctx.fillRect(r.x, r.y, r.w, r.h);
+        ctx.fillStyle = 'rgba(255,240,246,.9)'; ctx.fillRect(r.x + r.w / 2 - 3, r.y, 6, r.h);
+      } else {
+        ph2 = ((S.t / r.period) + r.phase) % 1;
+        warn = ph2 > 0.86;
+        ctx.fillStyle = warn ? 'rgba(255,120,150,.6)' : 'rgba(255,90,120,.20)';
+        ctx.fillRect(r.x + r.w / 2 - 1, r.y, warn ? 3 : 2, r.h);
+        ctx.fillStyle = warn ? 'rgba(255,150,175,.85)' : 'rgba(255,90,120,.32)';
+        ctx.fillRect(r.x, r.y, r.w, 4); ctx.fillRect(r.x, r.y + r.h - 4, r.w, 4);
+      }
+    }
+
+    /* 추격벽 */
+    if (S.chase && S.chase.on) {
+      r = S.chase;
+      ctx.fillStyle = '#1a0610'; ctx.fillRect(r.x, 0, r.w, 560);
+      ctx.fillStyle = 'rgba(255,77,109,.30)'; ctx.fillRect(r.x + r.w - 12, 0, 12, 560);
+      for (ax = 0; ax < 560; ax += 28) {
+        tri(r.x + r.w, ax, r.x + r.w + 17, ax + 14, r.x + r.w, ax + 28, '#ff4d6d');
+      }
+      ctx.fillStyle = 'rgba(255,150,180,.85)';
+      ctx.fillRect(r.x + 12, 250, 4, 60); ctx.fillRect(r.x + 12, 320, 4, 12);
     }
   }
 
@@ -1485,6 +1774,7 @@
     drawRoom(cam);
     drawSolids();
     drawTraps(tsec);
+    drawTraps2(tsec);
     for (var i = 0; i < S.doors.length; i++) doorDraw(S.doors[i], tsec);
     drawGhosts();
     drawPlayer(tsec);
@@ -1516,7 +1806,7 @@
         else {
           loadStage(stageN + 1);
           state = 'play';
-          banner('<span>STAGE ' + stageN + '</span><small>' + STAGES[stageN - 1].ko + '</small>', '', 1.3);
+          banner('<span>STAGE ' + stageN + '</span><small>' + ((EN && STAGES[stageN - 1].en) ? STAGES[stageN - 1].en : STAGES[stageN - 1].ko) + '</small>', '', 1.3);
         }
       }
     }
@@ -1597,6 +1887,18 @@
                springs: S.springs.length, crushers: S.crushers.length, bullets: S.bullets.length };
     },
     press: function (k, on) { setKey(k, on); },
+    step: function (dt) {
+      if (!DEBUG) return false;
+      paused = false;
+      if (state === 'play' || state === 'dead') {
+        var left = dt;
+        while (left > 0.0001) { physStep(STEP); left -= STEP; }
+      }
+      updateTimers(dt);
+      return true;
+    },
+    get live() { return DEBUG ? S : null; },
+    get stages() { return DEBUG ? STAGES : null; },
     go: function (n) { if (!DEBUG) return false; paused = false; hideOverlays(); state = 'play'; loadStage(n); return true; },
     place: function (x, y) { if (!DEBUG) return false; PL.x = x; PL.y = y; PL.vx = 0; PL.vy = 0; return true; },
     start: function () { if (!DEBUG) return false; startRun(); return true; }
