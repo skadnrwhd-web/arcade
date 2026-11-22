@@ -1146,7 +1146,7 @@
   $('tSkin').addEventListener('click', openSkins);
   $('skinBtn').addEventListener('click', openSkins);
   $('skClose').addEventListener('click', closeSkins);
-  $('ovHome').addEventListener('click', function () { location.href = '../index.html'; });
+  $('ovHome').addEventListener('click', function () { if (window.ujHome) window.ujHome(); else location.href = '../index.html'; });
   $('mute').addEventListener('click', function () {
     initAudio(); resumeAudio();
     muted = !muted; store('arc-sound', muted ? '0' : '1');
@@ -1193,5 +1193,6 @@
   };
 })();
 </script>
+<script src="home.js"></script>
 </body>
 </html>
