@@ -40,7 +40,8 @@
     "hangul-6":      { title: ["글자 6칸", "Hangul 6"], better: "low", unit: ["번", " tries"], unit1: ["번", " try"], label: ["시도 횟수", "Tries"], bounds: [1, 6] },
     "gomoku-neon":   { title: ["네온 오목", "Neon Gomoku"], better: "high", unit: ["승", ""], label: ["AI 승수", "AI wins"], bounds: [1, 9000] },
     "spider-hook":   { title: ["네온 스파이더 훅", "Neon Spider Hook"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 500000] },
-    "trap-dash":     { title: ["네온 트랩 대시", "Neon Trap Dash"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 160000] }
+    "trap-dash":     { title: ["네온 트랩 대시", "Neon Trap Dash"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 160000] },
+    "drive-mad":     { title: ["네온 드라이브 매드", "Neon Drive Mad"], better: "high", unit: ["점", " pts"], label: ["점수", "Score"], bounds: [1, 40000] }
   };
   /* 하노이탑: 클래식 모드만. 점수 = 이동 횟수*10000 + 걸린 초(최대 9999). 횟수가 적을수록, 같으면 빨리 푼 사람이 위 */
   [[3, 3, 7], [3, 4, 15], [3, 5, 31], [3, 6, 63], [3, 7, 127]].forEach(function (d) { addHanoi("hanoi3d-" + d[1], "하노이탑 3D", "Tower of Hanoi 3D", d[1], d[2]); });
