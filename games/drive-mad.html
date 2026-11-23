@@ -1646,7 +1646,7 @@
       /* 무인 주행(검증용): 초당 물리 스텝을 돌리고 결과를 돌려준다 */
       if (!DEBUG) return null;
       opt = opt || {};
-      var maxT = seconds || 40, t = 0, crashAt = -1, lastX = car.x, stuckT = 0, commit = 0, brakeMode = false;
+      var maxT = seconds || 40, t = 0, crashAt = -1, lastX = car.x, stuckT = 0, commit = 0, brakeMode = false, blockPrev = false;
       while (t < maxT && state === 'play') {
         var g = 1, b = 0;
         if (!car.onGround) {
@@ -1657,19 +1657,23 @@
           if (opt.careful) { /* 로터 대기 */ }
         }
         /* 회전 막대가 앞을 막고 있으면 기다린다 */
-        var block = false;
-        for (var i = 0; i < S.haz.length; i++) {
+        var block = false, near = null, i;
+        for (i = 0; i < S.haz.length; i++) {
           var h = S.haz[i], dd = h.cx - car.x;
-          if (dd > 0 && dd < 9) {
-            var low = h.cy + Math.abs(Math.sin(h.a)) * h.hw;
-            if (low > -2.15) block = true;
+          if (dd > -1 && dd < 13 && !near) {
+            near = h;
+            block = (h.cy + Math.abs(Math.sin(h.a)) * h.hw) > -2.15;
           }
         }
+        if (near) {
+          if (block) { brakeMode = true; }
+          else if (blockPrev && Math.abs(car.vx) < 4) { commit = 1.7; brakeMode = false; }
+          blockPrev = block;
+        } else { blockPrev = false; }
         if (commit > 0) { commit -= STEP; g = 1; b = 0; }
-        else if (block) { brakeMode = true; g = 0; b = (Math.abs(car.vx) > 0.6) ? 1 : 0; }
         else if (brakeMode) {
-          if (Math.abs(car.vx) < 0.7) { brakeMode = false; commit = 1.5; g = 1; b = 0; }
-          else { g = 0; b = (car.vx > 0.6) ? 1 : 0; }
+          g = 0;
+          b = (Math.abs(car.vx) > 0.6 && car.vx > 0) ? 1 : 0;
         }
         inp.gas = g > 0; inp.brake = b > 0;
         physStep(STEP); updateTimers(STEP);
