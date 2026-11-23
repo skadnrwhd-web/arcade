@@ -63,6 +63,10 @@
     font-size:12px;font-weight:800;color:#a9d6ff;text-shadow:0 2px 10px #000;padding:0 18px;pointer-events:none;
     transition:opacity .3s;opacity:1}
   #hint.off{opacity:0}
+  /* 넓은 화면(태블릿 가로)에서는 안내 문구가 차 위에 겹치지 않게 위쪽으로 */
+  @media (min-aspect-ratio: 1/1) {
+    #hint{top:calc(env(safe-area-inset-top) + 88px);bottom:auto;font-size:12.5px}
+  }
   #banner{position:absolute;left:0;right:0;top:31%;z-index:5;text-align:center;pointer-events:none;opacity:0;
     transform:translateY(8px) scale(.94);transition:opacity .16s,transform .16s}
   #banner.show{opacity:1;transform:none}
