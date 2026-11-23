@@ -1670,6 +1670,7 @@
           if (commit <= 0 && (blocking || tooFast)) { g = 0; b = (car.vx > 0.8) ? 1 : 0; }
         } else { blockPrev = false; }
         if (commit > 0) { commit -= STEP; g = 1; b = 0; }
+        if (commit > 0 && near && gap < 9 && (near.cy + Math.abs(Math.sin(near.a)) * near.hw) > -2.4) { commit = 0; g = 0; b = (car.vx > 0.8) ? 1 : 0; }
         inp.gas = g > 0; inp.brake = b > 0;
         physStep(STEP); updateTimers(STEP);
         t += STEP;
