@@ -766,7 +766,8 @@
         }
         comp = MAXCOMP;
       }
-      var fUp = SPR_K * comp - SPR_C * vdown;
+      /* 감쇠력은 압축을 막고(위로), 신장을 막는다(아래로) → +C*vdown */
+      var fUp = SPR_K * comp + SPR_C * vdown;
       w.comp = comp; w.vdown = vdown;
       if (fUp < 0) fUp = 0;
       w.fUp = fUp;
