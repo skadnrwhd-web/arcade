@@ -1456,6 +1456,7 @@
     }
   }
   function updateTimers(dt) {
+    tsec += dt;
     updateParts(dt);
     updateKinematic(dt, tsec);
     if (shake > 0) { shake -= dt * 42; if (shake < 0) shake = 0; }
@@ -1500,7 +1501,6 @@
     lastT = now;
     if (dt > 0.05) dt = 0.05;
     if (dt < 0) dt = 0;
-    tsec += dt;
     fpsN++; fpsAcc += dt;
     if (fpsAcc >= 0.5) { fps = Math.round(fpsN / fpsAcc); fpsN = 0; fpsAcc = 0; if (fpsEl) fpsEl.textContent = fps + ' fps'; }
     if (!paused && state !== 'title' && state !== 'done') {
