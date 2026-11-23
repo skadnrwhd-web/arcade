@@ -328,7 +328,7 @@
   var WHEEL_R = 0.58, WHEEL_X = 0.88, ANCHOR_Y = 0.16;
   var REST = 0.56, MAXCOMP = 0.34, MAXEXT = 0.20;
   var SPR_K = 150, SPR_C = 11;
-  var ENGINE = 30, BRAKE_F = 52, REVERSE = 13, MAXSPD = 15;
+  var ENGINE = 30, BRAKE_F = 42, REVERSE = 13, MAXSPD = 15;
   var GRIP = 3.0, GRIPMAX = 20, DRAG = 0.0135;
   var AIR_TQ = 15, AIR_MAXW = 5.4;
   var RESPAWN_T = 0.5;
@@ -427,9 +427,9 @@
 
     { ko: '무너지는 발판', en: 'Collapsing Slabs', par: 12, build: function () {
         var s = [slab(-18, 10, 0)], i;
-        for (i = 0; i < 6; i++) { var x = 12.5 + i * 4; s.push(crumble(x, x + 2.8, 0, 0.32)); }
-        s.push(slab(38, 56, 0));
-        return { x0: -18, x1: 56, spawn: [-3, 0], finish: 46, finishY: 0, solids: s, haz: [],
+        for (i = 0; i < 7; i++) { var x = 10.2 + i * 3.2; s.push(crumble(x, x + 3.05, 0, 0.32)); }
+        s.push(slab(33.4, 52, 0));
+        return { x0: -18, x1: 52, spawn: [-3, 0], finish: 44, finishY: 0, solids: s, haz: [],
           hint: ['발판은 밟고 0.3초면 무너집니다', 'The slabs give way in 0.3s'] };
       } },
 
@@ -538,7 +538,7 @@
   var NST = STAGES.length;
 
   /* ══════════ 상태 ══════════ */
-  var S = null, state = 'title';
+  var S = null, state = 'title', lastCrashInfo = null;
   var stageN = 1, score = 0, crashes = 0, stageCrashes = 0, startTime = 0, stageTime = 0, totalStars = 0;
   var bestScore = num('arc-best-drive-mad', 0), bestStage = num('arc-best-stage-drive-mad', 1), bestStars = num('arc-best-stars-drive-mad', 0);
   var curStars = 0, clearT = 0, crashT = 0, scrapeT = 0, hintT = 0, bT = 0, paused = false;
@@ -805,7 +805,7 @@
       }
 
       fx += f * tx; fy += f * ty;
-      tq += (rcX * (f * ty) - rcY * (f * tx)) * 0.2;
+      tq += (rcX * (f * ty) - rcY * (f * tx)) * 0.13;
       w.spin += (vt / WHEEL_R) * dt * 1.0;
 
       if (hit.piece.t === 'crumble' && !hit.piece.on) {
@@ -919,6 +919,7 @@
   function crash(reason) {
     if (state !== 'play') return;
     state = 'crash'; crashT = 0;
+    lastCrashInfo = { why: reason, x: +car.x.toFixed(2), y: +car.y.toFixed(2), a: +car.a.toFixed(2), vx: +car.vx.toFixed(2), vy: +car.vy.toFixed(2), t: +stageTime.toFixed(2), stage: stageN };
     crashes++; stageCrashes++;
     var cs = Math.cos(car.a), sn = Math.sin(car.a), i, lx, ly;
     for (i = 0; i < 6; i++) {
@@ -1581,11 +1582,29 @@
   }
 
   /* ══════════ 확인용 훅 ══════════ */
+  function __trace(sec, hz) {
+    var out = [], step = 1 / (hz || 8), acc2 = 0, t = 0;
+    while (t < sec && state === 'play') {
+      inp.gas = true; inp.brake = false;
+      physStep(STEP); updateTimers(STEP); t += STEP;
+      acc2 += STEP;
+      if (acc2 >= step) {
+        acc2 = 0;
+        out.push({ t: +t.toFixed(2), x: +car.x.toFixed(2), y: +car.y.toFixed(2), a: +car.a.toFixed(2),
+          vx: +car.vx.toFixed(1), vy: +car.vy.toFixed(1), g: car.onGround });
+      }
+    }
+    inp.gas = false;
+    return { rows: out, state: state, crash: lastCrashInfo };
+  }
+
   window.__DM = {
     get state() { return state; },
     get stage() { return stageN; },
     get score() { return Math.round(score); },
     get crashes() { return crashes; },
+    get stageCrashes() { return stageCrashes; },
+    get lastCrash() { return lastCrashInfo; },
     get stars() { return totalStars; },
     get fps() { return fps; },
     get errors() { return ERR.slice(); },
@@ -1651,6 +1670,8 @@
       return { state: state, t: +t.toFixed(2), x: +car.x.toFixed(2), y: +car.y.toFixed(2), stage: stageN,
         score: Math.round(score), crashes: crashes, stuck: +stuckT.toFixed(2), finish: S.finish };
     },
+    trace: function (sec, hz) { return __trace(sec, hz); },
+    setPaused: function (v) { paused = !!v; },
     reset: function () { score = 0; crashes = 0; totalStars = 0; startRun(); return true; }
   };
 
