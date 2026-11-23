@@ -328,7 +328,7 @@
   var WHEEL_R = 0.58, WHEEL_X = 0.88, ANCHOR_Y = 0.16;
   var REST = 0.56, MAXCOMP = 0.34, MAXEXT = 0.20;
   var SPR_K = 150, SPR_C = 11;
-  var ENGINE = 30, BRAKE_F = 42, REVERSE = 13, MAXSPD = 15;
+  var ENGINE = 17, BRAKE_F = 34, REVERSE = 11, MAXSPD = 15;
   var GRIP = 3.0, GRIPMAX = 20, DRAG = 0.0135;
   var AIR_TQ = 15, AIR_MAXW = 5.4;
   var RESPAWN_T = 0.5;
@@ -746,7 +746,7 @@
       if (!hit) { w.on = false; w.len = REST + MAXEXT; continue; }
       var dist = hit.t - WHEEL_R;
       if (dist > REST + MAXEXT) { w.on = false; w.len = REST + MAXEXT; continue; }
-      w.on = true; w.nx = hit.nx; w.ny = hit.ny;
+      w.on = true; w.nx = hit.nx; w.ny = hit.ny; w.len = dist; w.dist = dist; w.hitT = hit.t;
       var rxA = ax - car.x, ryA = ay - car.y;
       var vax = car.vx - car.av * ryA, vay = car.vy + car.av * rxA;
       var vdown = vax * dx + vay * dy;
@@ -754,7 +754,7 @@
       if (comp > MAXCOMP) {
         /* 범프 스톱: 서스펜션이 끝까지 접히면 차체가 휠에 걸린 것처럼 강하게 받아낸다 */
         var vUp = -(vax * dx + vay * dy);
-        if (vUp < 0) {
+        if (vUp < -2.5) {
           var rn = rxA * (-dy) - ryA * (-dx);
           var den = 1 + rn * rn / INERTIA;
           var jj = -(1 + 0.1) * vUp / den;
@@ -765,7 +765,9 @@
         comp = MAXCOMP;
       }
       var fUp = SPR_K * comp - SPR_C * vdown;
+      w.comp = comp; w.vdown = vdown;
       if (fUp < 0) fUp = 0;
+      w.fUp = fUp;
       if (fUp > 950) fUp = 950;
       fx += -dx * fUp; fy += -dy * fUp;
       tq += rxA * (-dy * fUp) - ryA * (-dx * fUp);
@@ -805,7 +807,7 @@
       }
 
       fx += f * tx; fy += f * ty;
-      tq += (rcX * (f * ty) - rcY * (f * tx)) * 0.13;
+      tq += (rcX * (f * ty) - rcY * (f * tx)) * 0.035;
       w.spin += (vt / WHEEL_R) * dt * 1.0;
 
       if (hit.piece.t === 'crumble' && !hit.piece.on) {
@@ -1610,7 +1612,7 @@
     get errors() { return ERR.slice(); },
     get paused() { return paused; },
     get car() { return { x: +car.x.toFixed(2), y: +car.y.toFixed(2), a: +car.a.toFixed(3), vx: +car.vx.toFixed(2), vy: +car.vy.toFixed(2), av: +car.av.toFixed(2), onGround: car.onGround, speed: +Math.sqrt(car.vx * car.vx + car.vy * car.vy).toFixed(2) }; },
-    get wheels() { return wheels.map(function (w) { return { on: w.on, len: +w.len.toFixed(3) }; }); },
+    get wheels() { return wheels.map(function (w) { return { on: w.on, len: +w.len.toFixed(3), dist: +(w.dist || 0).toFixed(3), comp: +(w.comp || 0).toFixed(3), fUp: +(w.fUp || 0).toFixed(1), vdown: +(w.vdown || 0).toFixed(2), n: [+(w.nx || 0).toFixed(2), +(w.ny || 0).toFixed(2)] }; }); },
     get view() { return { W: viewW, H: viewH, ppm: +PPM.toFixed(2), dpr: DPR, cam: { x: +cam.x.toFixed(2), y: +cam.y.toFixed(2) } }; },
     get stageCount() { return NST; },
     get finishX() { return S ? S.finish : 0; },
