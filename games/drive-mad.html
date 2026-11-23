@@ -327,7 +327,7 @@
   var INERTIA = (CAR_W * CAR_W + CAR_H * CAR_H) / 12;
   var WHEEL_R = 0.58, WHEEL_X = 0.88, ANCHOR_Y = 0.16;
   var REST = 0.56, MAXCOMP = 0.34, MAXEXT = 0.20;
-  var SPR_K = 150, SPR_C = 11;
+  var SPR_K = 155, SPR_C = 8.5;
   var ENGINE = 17, BRAKE_F = 34, REVERSE = 11, MAXSPD = 15;
   var GRIP = 3.0, GRIPMAX = 20, DRAG = 0.0135;
   var AIR_TQ = 15, AIR_MAXW = 5.4;
@@ -709,7 +709,7 @@
   function loadStage(n) {
     S = buildFresh(n);
     stageN = n;
-    car.x = S.spawn[0]; car.y = S.spawn[1] - 1.42; car.vx = 0; car.vy = 0; car.a = 0; car.av = 0;
+    car.x = S.spawn[0]; car.y = S.spawn[1] - 1.215; car.vx = 0; car.vy = 0; car.a = 0; car.av = 0;
     wheels[0].on = wheels[1].on = false; wheels[0].len = wheels[1].len = REST;
     wheels[0].spin = wheels[1].spin = 0;
     parts.length = 0; sparks.length = 0;
@@ -1695,7 +1695,7 @@
   paintMute();
   applyLang();
   S = buildFresh(1);
-  car.x = S.spawn[0]; car.y = S.spawn[1] - 1.42;
+  car.x = S.spawn[0]; car.y = S.spawn[1] - 1.215;
   cam.x = car.x; cam.y = car.y - 0.9;
   state = 'title';
   paintChips(); paintProgress(true); paintChal();
