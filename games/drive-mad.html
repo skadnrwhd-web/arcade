@@ -1141,7 +1141,7 @@
 
   /* ══════════ 그리기 ══════════ */
   function wx(x) { return (x - cam.x) * PPM + viewW / 2; }
-  function wy(y) { return (y - cam.y) * PPM + viewH * 0.56; }
+  function wy(y) { return (y - cam.y) * PPM + viewH * 0.6; }
 
   function pathBox(p) {
     var c = Math.cos(p.a), s = Math.sin(p.a);
@@ -1170,7 +1170,7 @@
       if (sx < -260 || sx > viewW + 260 || sy < -300 || sy > viewH + 300) continue;
       col = pieceColor(p);
       pathBox(p);
-      ctx.fillStyle = (p.t === 'bridge') ? '#150e28' : (p.t === 'seesaw' ? '#0b1e18' : (p.t === 'bounce' ? '#241d06' : '#0a1322'));
+      ctx.fillStyle = (p.t === 'bridge') ? '#1a1130' : (p.t === 'seesaw' ? '#0e2a20' : (p.t === 'bounce' ? '#2c2308' : '#12233a'));
       ctx.fill();
       ctx.lineWidth = 6; ctx.strokeStyle = col; ctx.globalAlpha = 0.16; ctx.stroke();
       ctx.globalAlpha = 1; ctx.lineWidth = 1.7; ctx.strokeStyle = col; ctx.stroke();
@@ -1242,9 +1242,12 @@
     var px = wx(car.x), py = wy(car.y);
     var sc = PPM;
     /* 그림자 */
-    var shY = wy(car.y + 1.5 + (car.onGround ? 0 : 0.5));
+    var gY = car.y + 1.5, shT = 1;
+    var gh = rayTerrain(car.x, car.y, 0, 1, 7);
+    if (gh) { gY = car.y + gh.t; shT = clamp(1 - (gh.t - 1.4) / 5, 0.18, 1); }
+    var shY = wy(gY);
     ctx.save();
-    ctx.globalAlpha = car.onGround ? 0.34 : 0.16;
+    ctx.globalAlpha = 0.36 * shT;
     ctx.fillStyle = '#000';
     ctx.beginPath();
     ctx.ellipse(px, shY, 1.5 * sc, 0.22 * sc, 0, 0, Math.PI * 2);
@@ -1480,8 +1483,8 @@
 
   function updateCam(dt) {
     if (!S) return;
-    var look = clamp(car.vx * 0.2, -2.4, 3.4);
-    var tx = car.x + look, ty = car.y - 0.85;
+    var look = clamp(car.vx * 0.13, -1.1, 1.7);
+    var tx = car.x + look, ty = car.y - 1.15;
     var halfW = viewW / PPM / 2, halfH = viewH / PPM / 2;
     var lox = S.x0 + halfW * 0.72, hix = S.x1 - halfW * 0.72;
     if (lox < hix) tx = clamp(tx, lox, hix);
