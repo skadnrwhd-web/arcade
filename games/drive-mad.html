@@ -745,13 +745,15 @@
       var hit = rayTerrain(ax, ay, dx, dy, REST + MAXEXT + WHEEL_R + 0.06);
       if (!hit) { w.on = false; w.len = REST + MAXEXT; continue; }
       var dist = hit.t - WHEEL_R;
-      if (dist > REST + MAXEXT) { w.on = false; w.len = REST + MAXEXT; continue; }
+      /* 서스펜션은 '늘어나는' 힘을 내지 않는다: 정지 길이보다 멀면 바퀴는 공중에 뜬 것 */
+      if (dist > REST) { w.on = false; w.len = REST; w.comp = 0; w.fUp = 0; continue; }
+      if (dist < REST - MAXCOMP) dist = REST - MAXCOMP;
       w.on = true; w.nx = hit.nx; w.ny = hit.ny; w.len = dist; w.dist = dist; w.hitT = hit.t;
       var rxA = ax - car.x, ryA = ay - car.y;
       var vax = car.vx - car.av * ryA, vay = car.vy + car.av * rxA;
       var vdown = vax * dx + vay * dy;
       var comp = REST - dist;
-      if (comp > MAXCOMP) {
+      if (hit.t - WHEEL_R < REST - MAXCOMP) {
         /* 범프 스톱: 서스펜션이 끝까지 접히면 차체가 휠에 걸린 것처럼 강하게 받아낸다 */
         var vUp = -(vax * dx + vay * dy);
         if (vUp < -2.5) {
