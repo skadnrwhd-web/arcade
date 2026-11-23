@@ -456,7 +456,7 @@
     { ko: '회전 게이트', en: 'Spin Gates', par: 14, build: function () {
         return { x0: -18, x1: 50, spawn: [-3, 0], finish: 42, finishY: 0,
           solids: [slab(-18, 48, 0)],
-          haz: [rotor(13, -3.4, 4.0, 0.42, 1.12, 0.6), rotor(27, -3.4, 4.0, 0.42, -1.32, 1.4)],
+          haz: [rotor(13, -3.4, 3.4, 0.42, 0.9, 0.6), rotor(27, -3.4, 3.4, 0.42, -1.05, 1.4)],
           hint: ['막대가 올라간 틈에 통과!', 'Dash through when the bar lifts'] };
       } },
 
@@ -514,7 +514,7 @@
     { ko: '회전 다리', en: 'Spin & Tilt', par: 15, build: function () {
         return { x0: -18, x1: 58, spawn: [-3, 0], finish: 48, finishY: 0,
           solids: [slab(-18, 18, 0), seesaw(24, 0, 12, 0.26), ramp(30, 1.8, 34, 0, 1.5), slab(34, 58, 0)],
-          haz: [rotor(12, -3.2, 4.2, 0.42, 1.1, 0.3)],
+          haz: [rotor(12, -3.2, 3.4, 0.42, 0.85, 0.3)],
           hint: ['막대를 피해 시소로', 'Dodge the bar, then the plank'] };
       } },
 
@@ -1663,7 +1663,7 @@
           if (dd > -2 && dd < 26 && dd < gap) { gap = dd; near = h; }
         }
         if (near) {
-          var blocking = (near.cy + Math.abs(Math.sin(near.a)) * near.hw) > -2.15;
+          var blocking = (near.cy + Math.abs(Math.sin(near.a)) * near.hw) > -2.4;
           if (!blocking && blockPrev && Math.abs(car.vx) < 3.5 && gap < 12) commit = 2.0;
           blockPrev = blocking;
           var tooFast = (gap < 20) && (car.vx > (gap < 6.5 ? 1.2 : 5.5));
