@@ -214,7 +214,7 @@ footer a:hover{color:#fff}
 .hud div{flex:1; background:var(--bg); border:1px solid var(--line); border-radius:12px; padding:8px 12px}
 .hud small{display:block; font-size:11.5px; color:var(--muted); letter-spacing:.08em; text-transform:uppercase}
 .hud strong{font-size:20px; font-variant-numeric:tabular-nums}
-.arena{position:relative; border-radius:16px; overflow:hidden; background:var(--bg); border:1px solid var(--line); min-height:300px; display:grid; place-items:center; touch-action:none; user-select:none; -webkit-user-select:none}
+.arena{position:relative; border-radius:16px; overflow:hidden; background:var(--bg); border:1px solid var(--line); min-height:300px; display:grid; place-items:center; touch-action:none; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none}
 .arena canvas{display:block}
 .over{position:absolute; inset:0; display:grid; place-items:center; background:rgba(9,10,20,.78); text-align:center; padding:20px}
 .over h4{margin:0 0 6px; font-size:26px; letter-spacing:-.02em}
@@ -265,8 +265,8 @@ footer a:hover{color:#fff}
 .p-actions{display:flex; align-items:center; gap:8px}
 #pClose{width:auto; min-width:38px; height:38px; padding:0 13px; border-radius:999px; display:inline-flex; align-items:center; justify-content:center; gap:6px; color:var(--ink); font:inherit; font-size:14px; font-weight:800; white-space:nowrap; cursor:pointer; -webkit-tap-highlight-color:transparent}
 @media (max-width:360px){ #pClose .x-t{display:none} #pClose{padding:0; width:38px} }
-.frame{position:relative; border-radius:16px; overflow:hidden; border:1px solid var(--line); background:#000; height:min(68vh,640px)}
-.frame iframe{width:100%; height:100%; border:0; display:block}
+.frame{position:relative; border-radius:16px; overflow:hidden; border:1px solid var(--line); background:#000; height:min(68vh,640px); user-select:none; -webkit-user-select:none; -webkit-touch-callout:none}
+.frame iframe{width:100%; height:100%; border:0; display:block; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none}
 .c-title{margin:22px 2px 10px; font-size:17px}
 .thread{min-height:60px}
 .thread-box{background:var(--card); border:1px solid var(--line); border-radius:var(--r); padding:22px}
