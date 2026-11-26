@@ -391,14 +391,26 @@
   var GRAV = 150, MAXV = 330, BR = 2.0, SUB = 5;
 
   var WALLS = [];
-  function wall(x1, y1, x2, y2, e) { WALLS.push({ x1: x1, y1: y1, x2: x2, y2: y2, e: e == null ? 0.45 : e }); }
+  /* f: 벽 마찰(접선 속도 감쇠). 기본 0.05 — 아래 인레인 가이드만 낮추어 공이 미끄러져 내려오게 한다 */
+  function wall(x1, y1, x2, y2, e, f) { WALLS.push({ x1: x1, y1: y1, x2: x2, y2: y2, e: e == null ? 0.45 : e, f: f == null ? 0.05 : f }); }
 
-  /* 왼쪽 벽 · 아래 깔때기 */
-  wall(5, 30, 5, 148, 0.42);
-  wall(5, 148, 24, 187, 0.4);
-  /* 오른쪽 아래 깔때기 · 레인 안쪽 벽 · 위쪽 게이트 */
-  wall(88.5, 150, 76, 187, 0.4);
-  wall(88.5, 46, 88.5, 150, 0.4);
+  /* 왼쪽 벽 · 아래 인레인 가이드
+     가이드는 플리퍼와 같은 28° 경사로, 회전축에서 수선거리 1.9 를 지나는 평행선을 따라 내려와
+     축 바로 옆(축에서 1.9)에서 끝난다. 축과 가이드 끝 사이는 공 지름보다 좁아 공이 새지 않고,
+     가이드를 타고 온 공은 축 캡을 감아 플리퍼 윗면으로 그대로 넘어간다.
+     마찰을 낮춰 벽을 타고 내려오는 공이 걸리지 않고 흘러 내려오게 했다. */
+  wall(5, 30, 5, 142.2, 0.42);
+  wall(5, 142.2, 27.7, 154.3, 0.4, 0.012);
+  /* 오른쪽 아래 인레인 가이드 · 레인 안쪽 벽 · 위쪽 게이트 */
+  wall(88.5, 145.65, 72.3, 154.3, 0.4, 0.012);
+  wall(88.5, 46, 88.5, 145.65, 0.4);
+  /* 드레인 깔때기: 플리퍼 아래를 받쳐 바닥까지 모으는 벽.
+     공이 플리퍼 밑으로 빠져나가 바닥을 뚫고 사라지지 않고,
+     중앙 틈으로 내려온 공은 깔때기를 타고 바닥까지 흘러 드레인된다. */
+  wall(26.8, 156.8, 40, 172, 0.35);
+  wall(40, 172, 46.2, 190.5, 0.3);
+  wall(73.2, 156.8, 60, 172, 0.35);
+  wall(60, 172, 53.8, 190.5, 0.3);
   wall(88.5, 46, 83, 35, 0.4);
   /* 발사 레인 바깥벽 · 바닥 */
   wall(95.5, 30, 95.5, 180, 0.4);
@@ -468,8 +480,11 @@
   var BOOST = { x1: 5.8, y1: 102, x2: 15.2, y2: 118, cd: 0, flash: 0 };
 
   /* 표 가장자리(발광용 윤곽) */
-  var EDGE1 = [[5, 148], [5, 30], [10, 20.5], [20, 13.5], [32, 9.5], [46, 8], [60, 9], [74, 13],
-    [85, 19], [83, 35], [88.5, 46], [88.5, 150], [76, 187], [24, 187], [5, 148]];
+  var EDGE1 = [[27.7, 154.3], [5, 142.2], [5, 30], [10, 20.5], [20, 13.5], [32, 9.5], [46, 8], [60, 9], [74, 13],
+    [85, 19], [83, 35], [88.5, 46], [88.5, 145.65], [72.3, 154.3]];
+  /* 드레인 구멍(플리퍼 아래) 채움용 — 깔때기 안쪽 */
+  var DRAIN_MOUTH = [[27.7, 154.3], [26.8, 156.8], [40, 172], [46.2, 190.5], [53.8, 190.5],
+    [60, 172], [73.2, 156.8], [72.3, 154.3]];
   var EDGE2 = [[95.5, 30], [95.5, 180]];
 
   /* 플런저 파워: 낮으면 레인 위쪽까지 못 올라간다 */
@@ -479,10 +494,14 @@
 
   var LANE_X = 92, LANE_Y = 178.5;
 
+  /* 플리퍼: 축을 좌우로 벌리고 길이를 늘려 커버 범위를 넓혔다.
+     정지 상태에서 두 끝 사이 빈틈 = 9.34 - 2r = 6.34 (공 지름 4의 1.59배).
+     중앙 드레인은 살아 있고, 옆으로 새는 구멍은 가이드로 닫았다. */
+  var FLIP_LEN = 21, FLIP_PX = 23.2, FLIP_PY = 156;
   var REST_L = 0.49, UP_L = -0.62, REST_R = Math.PI - 0.49, UP_R = Math.PI + 0.62;
   var FL = {
-    L: { px: 30, py: 156, len: 18, r: 1.5, a: REST_L, rest: REST_L, up: UP_L, w: 0, on: false },
-    R: { px: 70, py: 156, len: 18, r: 1.5, a: REST_R, rest: REST_R, up: UP_R, w: 0, on: false }
+    L: { px: 50 - FLIP_PX, py: FLIP_PY, len: FLIP_LEN, r: 1.5, a: REST_L, rest: REST_L, up: UP_L, w: 0, on: false },
+    R: { px: 50 + FLIP_PX, py: FLIP_PY, len: FLIP_LEN, r: 1.5, a: REST_R, rest: REST_R, up: UP_R, w: 0, on: false }
   };
   var FLIP_UP = 26, FLIP_DOWN = 14;   /* 각속도 rad/s */
 
@@ -710,6 +729,27 @@
     g.globalAlpha = 0.09;
     g.font = '900 3.1px "Apple SD Gothic Neo",system-ui,sans-serif';
     g.fillText('UJ ARCADE', 50, 172);
+    g.restore();
+
+    /* 드레인 구멍(플리퍼 아래): 어두운 입구 + 바닥의 붉은 잔광 */
+    g.save();
+    g.beginPath();
+    g.moveTo(DRAIN_MOUTH[0][0], DRAIN_MOUTH[0][1]);
+    for (var dm = 1; dm < DRAIN_MOUTH.length; dm++) g.lineTo(DRAIN_MOUTH[dm][0], DRAIN_MOUTH[dm][1]);
+    g.closePath();
+    var dg2 = g.createLinearGradient(0, 154, 0, 188);
+    dg2.addColorStop(0, 'rgba(3,5,10,.55)');
+    dg2.addColorStop(0.55, 'rgba(2,3,7,.9)');
+    dg2.addColorStop(1, 'rgba(0,0,0,.97)');
+    g.fillStyle = dg2; g.fill();
+    g.strokeStyle = 'rgba(255,90,122,.2)'; g.lineWidth = 0.3; g.stroke();
+    /* 바닥 붉은 빛 */
+    var dgl = g.createRadialGradient(50, 187, 0, 50, 187, 22);
+    dgl.addColorStop(0, 'rgba(255,70,110,.22)');
+    dgl.addColorStop(0.5, 'rgba(255,60,100,.07)');
+    dgl.addColorStop(1, 'rgba(255,60,100,0)');
+    g.fillStyle = dgl;
+    g.beginPath(); g.ellipse(50, 186, 22, 5.5, 0, 0, PI2); g.fill();
     g.restore();
 
     /* 벽 */
@@ -1340,7 +1380,8 @@
     if (vn < 0) {
       b.vx -= (1 + w.e) * vn * nx; b.vy -= (1 + w.e) * vn * ny;
       var tx = -ny, ty = nx, vt = b.vx * tx + b.vy * ty;
-      b.vx -= vt * 0.05 * tx; b.vy -= vt * 0.05 * ty;
+      var fr = w.f == null ? 0.05 : w.f;
+      b.vx -= vt * fr * tx; b.vy -= vt * fr * ty;
       return true;
     }
     return false;
