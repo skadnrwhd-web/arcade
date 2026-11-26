@@ -19,6 +19,13 @@
 <meta name="twitter:card" content="summary_large_image">
 <style>
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  /* iOS 사파리: 꾹 누르면 뜨는 글자 선택 돋보기(루페)·콜아웃·링크 미리보기를 막는다.
+     html/body 만 걸면 자식 요소에서 다시 살아나는 경우가 있어 전체에 건다.
+     랭킹 닉네임 같은 입력칸만 예외로 골라 쓰고 지울 수 있게 둔다 */
+  html,body,body *{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;
+    -webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+  html input,html textarea,html select,html [contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+  #hud,#hint,#banner,#stage{touch-action:none}
   html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#05060f;color:#eef6ff;
     font-family:"Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR","Malgun Gothic","Liberation Sans",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;touch-action:none}
@@ -1069,6 +1076,45 @@
     }
     hintT = 5.5;
   }
+
+  /* ══════════ iOS 롱프레스 돋보기·콜아웃 차단 ══════════
+     아이폰 사파리에서 플리퍼를 꾹 누르고 있으면 화면이 글자 선택 돋보기(루페)나
+     콜아웃으로 바뀌어 게임이 끊긴다. CSS(user-select·touch-callout)로 한 번 막고,
+     그래도 뜨는 경우가 있어 터치 이벤트 단계에서 한 번 더 막는다.
+     버튼·링크·입력칸은 그대로 두고, 결과·일시정지 같은 .ov 화면은 스크롤이 필요하니 예외. */
+  (function () {
+    function isForm(el) {
+      while (el && el.nodeType === 1) {
+        var t = el.tagName;
+        if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT' || t === 'BUTTON' || t === 'A') return true;
+        if (el.isContentEditable) return true;
+        el = el.parentNode;
+      }
+      return false;
+    }
+    function inOverlay(el) {
+      while (el && el.nodeType === 1) {
+        if (el.classList && el.classList.contains('ov')) return true;
+        el = el.parentNode;
+      }
+      return false;
+    }
+    function guard(name, skipOverlay) {
+      document.addEventListener(name, function (e) {
+        if (isForm(e.target)) return;
+        if (skipOverlay && inOverlay(e.target)) return;
+        e.preventDefault();
+      }, { passive: false, capture: false });
+    }
+    guard('contextmenu');
+    guard('selectstart');
+    guard('gesturestart');
+    guard('gesturechange');
+    guard('gestureend');
+    /* 게임 화면 터치: 스크롤·바운스·돋보기 원천 차단 (.ov 결과창은 스크롤을 위해 통과) */
+    guard('touchstart', true);
+    guard('touchmove', true);
+  })();
 
   /* ══════════ 입력 ══════════ */
   function plunge(b, power) {
