@@ -42,6 +42,8 @@
   .chip.fever{color:#2a1206;background:linear-gradient(135deg,#ffd23f,#ff9a3d);border-color:#ffd23f}
   .chip.combo{color:#ffd9e8;background:rgba(58,14,36,.86);border-color:rgba(255,77,141,.5)}
   .chip.saver{color:#06210f;background:linear-gradient(135deg,#7dffb0,#5ee0ff);border-color:#7dffb0}
+  .chip.chal{color:#ffd7e6;background:rgba(60,16,44,.92);border-color:rgba(255,77,141,.6)}
+  .chip.chal.hit{color:#06210f;background:linear-gradient(135deg,#7dffb0,#5ee0ff);border-color:#7dffb0}
   #hud .right{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
   #balls{display:flex;gap:4px;height:11px;align-items:center}
   #balls i{width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 34% 32%,#fff,#7ceaff 62%,#2a9fc4);
@@ -115,6 +117,7 @@
         <span class="chip combo" id="chipCombo" hidden>COMBO ×1</span>
         <span class="chip fever" id="chipFever" hidden>FEVER ×2</span>
         <span class="chip saver" id="chipSaver" hidden>BALL SAVER</span>
+        <span class="chip chal" id="chipChal" hidden>⚔️</span>
       </div>
     </div>
     <div class="right">
@@ -1026,12 +1029,33 @@
     if (feverT > 0) { cf.hidden = false; cf.textContent = L('FEVER ×2 · ', 'FEVER ×2 · ') + Math.ceil(feverT) + 's'; }
     else cf.hidden = true;
 
+    /* 도전장 목표 */
+    var cch = $('chipChal');
+    if (!chal) readChal();
+    if (chal && state === 'play') {
+      var beat = score >= chal.score;
+      cch.hidden = false;
+      cch.className = 'chip chal' + (beat ? ' hit' : '');
+      cch.textContent = beat
+        ? L('🎉 도전 성공! ', '🎉 Challenge cleared! ') + chal.score.toLocaleString()
+        : '⚔️ ' + (chal.by || L('도전장', 'Challenge')) + ' ' + chal.score.toLocaleString() + L('점 목표', ' pts');
+    } else cch.hidden = true;
+
     /* 볼 세이버 표시 (칩) */
     var cs = $('chipSaver');
     if (state === 'play' && saverT > 0 && balls.length === 1) {
       cs.hidden = false;
       cs.textContent = L('볼 세이버 ', 'BALL SAVER ') + Math.ceil(saverT) + 's';
     } else cs.hidden = true;
+  }
+
+  /* ⚔️ 친구 도전장: rank.js 가 알려 준 목표 점수를 플레이 중에 띠로 보여 준다 */
+  var chal = null;
+  function readChal() {
+    try {
+      var c = window.ArcadeChallenge && window.ArcadeChallenge.get();
+      chal = (c && (c.slug === '' || c.slug === 'pinball') && c.score != null) ? c : null;
+    } catch (e) { chal = null; }
   }
 
   function paintHint() {
@@ -1231,6 +1255,8 @@
   $('tPlay').textContent = String(plays);
   paintMute();
   paintHint();
+  readChal();
+  window.addEventListener('message', function () { readChal(); paintHud(true); });
 
   /* 시작 상태: 레인에 공 한 개 */
   balls = [{ x: LANE_X, y: LANE_Y, vx: 0, vy: 0, r: BR, age: 0, slow: 0 }];
