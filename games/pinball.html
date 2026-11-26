@@ -1091,6 +1091,8 @@
         var t = el.tagName;
         if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT' || t === 'BUTTON' || t === 'A') return true;
         if (el.isContentEditable) return true;
+        /* 랭킹 창은 섀도 DOM 안에 있어 이벤트 대상이 호스트로만 보인다: 닉네임 입력·목록 터치를 막지 않는다 */
+        if (el.id === 'arcade-rank-host' || el.shadowRoot) return true;
         el = el.parentNode;
       }
       return false;
