@@ -1004,9 +1004,12 @@
       }
     }
 
-    /* 멈춘 공 구제 */
+    /* 멈춘 공 구제 (발사대에 대기 중인 공은 빼고: 가만히 기다리거나 발사대를 꾹 눌러
+       힘을 모으는 동안 튕겨 나가 드레인되던 문제) */
+    var laneIdle = laneBall();
     for (var k = 0; k < balls.length; k++) {
       var b = balls[k];
+      if (b === laneIdle) { b.slow = 0; continue; }
       var sp = Math.hypot(b.vx, b.vy);
       if (sp < 9) { b.slow += dt; } else { b.slow = 0; }
       if (b.slow > 2.2) { b.vx += rnd(-30, 30); b.vy -= 26; b.slow = 0; }
