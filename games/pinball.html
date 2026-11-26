@@ -41,6 +41,7 @@
   .chip[hidden]{display:none}
   .chip.fever{color:#2a1206;background:linear-gradient(135deg,#ffd23f,#ff9a3d);border-color:#ffd23f}
   .chip.combo{color:#ffd9e8;background:rgba(58,14,36,.86);border-color:rgba(255,77,141,.5)}
+  .chip.saver{color:#06210f;background:linear-gradient(135deg,#7dffb0,#5ee0ff);border-color:#7dffb0}
   #hud .right{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
   #balls{display:flex;gap:4px;height:11px;align-items:center}
   #balls i{width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 34% 32%,#fff,#7ceaff 62%,#2a9fc4);
@@ -113,6 +114,7 @@
       <div id="chips">
         <span class="chip combo" id="chipCombo" hidden>COMBO ×1</span>
         <span class="chip fever" id="chipFever" hidden>FEVER ×2</span>
+        <span class="chip saver" id="chipSaver" hidden>BALL SAVER</span>
       </div>
     </div>
     <div class="right">
@@ -379,6 +381,29 @@
     halo.addColorStop(0.55, 'rgba(60,50,150,.09)');
     halo.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = halo; g.fillRect(0, 0, vw, vh);
+
+    /* 넓은 화면(태블릿 가로·PC)에서 표 양옆 여백 장식 */
+    var gap = view.ox;
+    if (gap > 76) {
+      g.save();
+      g.globalAlpha = 0.13;
+      g.fillStyle = '#7ceaff';
+      g.textAlign = 'center';
+      g.font = '900 ' + Math.min(34, gap * 0.24) + 'px "Apple SD Gothic Neo",system-ui,sans-serif';
+      g.translate(gap * 0.46, vh / 2);
+      g.rotate(-Math.PI / 2);
+      g.fillText('NEON PINBALL', 0, 0);
+      g.restore();
+      g.save();
+      g.globalAlpha = 0.11;
+      g.fillStyle = '#b78bff';
+      g.textAlign = 'center';
+      g.font = '800 ' + Math.min(19, gap * 0.135) + 'px "Apple SD Gothic Neo",system-ui,sans-serif';
+      g.translate(vw - gap * 0.46, vh / 2);
+      g.rotate(Math.PI / 2);
+      g.fillText(L('왼쪽 반 · 오른쪽 반 터치로 플리퍼', 'TAP LEFT / RIGHT HALF TO FLIP'), 0, 0);
+      g.restore();
+    }
 
     g.save();
     g.translate(view.ox, view.oy);
@@ -913,7 +938,7 @@
     clampspeed(b);
 
     /* 표 밖으로 나가면 드레인 */
-    if (b.y > 189 || b.x < 1 || b.x > 99) drainBall(b);
+    if (b.y > 189 || b.y < -6 || b.x < 1 || b.x > 99) drainBall(b);
   }
 
   function update(dt) {
@@ -945,9 +970,11 @@
     /* 충전 */
     if (charging) charge = clamp(charge + dt / 0.75, 0, 1);
 
-    /* 물리: 프레임 dt 를 SUB 스텝으로 쪼갠다 */
-    var h = dt / SUB;
-    for (var s = 0; s < SUB; s++) {
+    /* 물리: 프레임 dt 를 잘게 쪼갠다. 프레임이 길어져도 한 스텝 이동거리가 1.2 단위를 넘지 않게 해서
+       공이 벽·플리퍼를 뚫고 나가는 일(터널링)을 막는다. 보통 60fps 에서 5스텝 */
+    var sub = clamp(Math.ceil(dt / 0.0034), SUB, 14);
+    var h = dt / sub;
+    for (var s = 0; s < sub; s++) {
       stepFlipper(FL.L, h); stepFlipper(FL.R, h);
       for (var bi = balls.length - 1; bi >= 0; bi--) {
         if (!balls[bi]) continue;
@@ -987,16 +1014,12 @@
     if (feverT > 0) { cf.hidden = false; cf.textContent = L('FEVER ×2 · ', 'FEVER ×2 · ') + Math.ceil(feverT) + 's'; }
     else cf.hidden = true;
 
-    /* 볼 세이버 표시 */
-    var hint = $('hint');
-    if (state === 'play' && saverT > 0 && balls.length === 1 && !hint.classList.contains('sv')) {
-      hint.classList.remove('off'); hint.classList.add('sv');
-      hint.innerHTML = L('<b>볼 세이버</b> ' + Math.ceil(saverT) + '초', '<b>BALL SAVER</b> ' + Math.ceil(saverT) + 's');
-      hintT = 0.6;
-    } else if (state === 'play' && saverT <= 0 && hint.classList.contains('sv')) {
-      hint.classList.remove('sv');
-      paintHint();
-    }
+    /* 볼 세이버 표시 (칩) */
+    var cs = $('chipSaver');
+    if (state === 'play' && saverT > 0 && balls.length === 1) {
+      cs.hidden = false;
+      cs.textContent = L('볼 세이버 ', 'BALL SAVER ') + Math.ceil(saverT) + 's';
+    } else cs.hidden = true;
   }
 
   function paintHint() {
