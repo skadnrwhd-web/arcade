@@ -355,6 +355,18 @@
     view.vw = vw; view.vh = vh; view.dpr = dpr; view.S = S;
     view.ox = Math.round((vw - TW * S) / 2);
     view.oy = Math.round((vh - TH * S) / 2);
+    /* HUD·안내를 표 가장자리에 맞춘다(넓은 화면에서 점수가 표와 따로 놀지 않게) */
+    var hud = $('hud');
+    if (hud) {
+      var pad = Math.max(12, Math.round(view.ox) + 2);
+      hud.style.paddingLeft = 'calc(env(safe-area-inset-left) + ' + pad + 'px)';
+      hud.style.paddingRight = 'calc(env(safe-area-inset-right) + ' + pad + 'px)';
+    }
+    var hintEl = $('hint');
+    if (hintEl) {
+      var mBot = vh - (view.oy + TH * S);
+      hintEl.style.bottom = (mBot > 44 ? Math.round(mBot / 2 - 10) : 6) + 'px';
+    }
     cv.style.width = vw + 'px'; cv.style.height = vh + 'px';
     cv.width = Math.round(vw * dpr); cv.height = Math.round(vh * dpr);
     sc.width = cv.width; sc.height = cv.height;
