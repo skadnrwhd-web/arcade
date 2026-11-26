@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#05060f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>네온 핀볼 - 좌우 플리퍼 멀티볼 아케이드 | UJ ARCADE</title>
+<meta name="description" content="좌우 플리퍼로 공을 쳐 올려 네온 범퍼·드롭 타겟을 터뜨리는 핀볼. 드롭 타겟 3개를 다 맞추면 멀티볼 3구와 2배 스코어 피버, 5초 볼 세이버까지. 터치·키보드 지원, 설치 없이 바로 플레이.">
+<link rel="canonical" href="https://skadnrwhd-web.github.io/arcade/games/pinball.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="UJ ARCADE">
+<meta property="og:title" content="네온 핀볼 - 좌우 플리퍼 멀티볼 아케이드">
+<meta property="og:description" content="플리퍼로 쳐 올려 범퍼·드롭 타겟을 터뜨리는 네온 핀볼. 드롭 타겟 3개 완성 = 멀티볼 3구 + 2배 스코어 피버.">
+<meta property="og:url" content="https://skadnrwhd-web.github.io/arcade/games/pinball.html">
+<meta property="og:image" content="https://skadnrwhd-web.github.io/arcade/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#05060f;color:#eef6ff;
+    font-family:"Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR","Malgun Gothic","Liberation Sans",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none;touch-action:none}
+  #app{position:fixed;inset:0;overflow:hidden;background:#05060f}
+  #stage{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none}
+
+  /* ── HUD ── */
+  #hud{position:absolute;left:0;right:0;top:0;z-index:6;display:flex;align-items:flex-start;gap:8px;
+    padding:calc(env(safe-area-inset-top) + 9px) calc(env(safe-area-inset-right) + 12px) 0 calc(env(safe-area-inset-left) + 12px);
+    pointer-events:none}
+  #hud .sc{min-width:0}
+  #hud .lab{display:block;font-size:9.5px;letter-spacing:.19em;color:#7f93b8;font-weight:800;margin-bottom:1px}
+  #hud #score{font-size:29px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;color:#f2fdff;
+    text-shadow:0 0 15px rgba(55,224,255,.5)}
+  #hud #best{display:block;font-size:10.5px;color:#8ea3c4;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
+  #hud .mid{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:2px;min-width:0}
+  #chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+  .chip{font-size:10.5px;font-weight:900;letter-spacing:.06em;padding:5px 10px;border-radius:99px;white-space:nowrap;
+    color:#bfefff;background:rgba(12,32,48,.86);border:1px solid rgba(55,224,255,.42);font-variant-numeric:tabular-nums}
+  .chip[hidden]{display:none}
+  .chip.fever{color:#2a1206;background:linear-gradient(135deg,#ffd23f,#ff9a3d);border-color:#ffd23f}
+  .chip.combo{color:#ffd9e8;background:rgba(58,14,36,.86);border-color:rgba(255,77,141,.5)}
+  #hud .right{display:flex;flex-direction:column;align-items:flex-end;gap:7px}
+  #balls{display:flex;gap:4px;height:11px;align-items:center}
+  #balls i{width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 34% 32%,#fff,#7ceaff 62%,#2a9fc4);
+    box-shadow:0 0 7px rgba(124,234,255,.6);display:block}
+  #balls i.off{background:#1b2438;box-shadow:none}
+  #hud .btns{display:flex;gap:5px;pointer-events:auto}
+  #hud button,#hud a.ico{width:36px;height:36px;border-radius:12px;border:1px solid rgba(120,190,235,.26);
+    background:rgba(12,22,40,.8);color:#d6ecff;font-size:15px;line-height:1;display:flex;align-items:center;
+    justify-content:center;padding:0;cursor:pointer;font-family:inherit;text-decoration:none}
+  #hud button:active,#hud a.ico:active{transform:scale(.93)}
+  #hud button.off{color:#6b7c99;border-color:rgba(120,190,235,.12)}
+
+  /* ── 안내 · 배너 ── */
+  #hint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 16px);z-index:5;text-align:center;
+    font-size:12px;font-weight:800;color:#d6e8ff;pointer-events:none;transition:opacity .5s ease;padding:0 18px;
+    text-shadow:0 2px 10px rgba(0,0,0,.85);line-height:1.55}
+  #hint b{color:#7ceaff}
+  #hint.off{opacity:0}
+  #banner{position:absolute;left:0;right:0;top:26%;z-index:8;text-align:center;pointer-events:none;padding:0 18px;
+    font-weight:900;font-size:23px;letter-spacing:.01em;color:#f4fdff;opacity:0;transform:scale(.9);
+    transition:opacity .16s ease,transform .16s ease;text-shadow:0 0 24px rgba(55,224,255,.55)}
+  #banner span{display:inline-block;padding:9px 18px;border-radius:16px;background:rgba(6,12,24,.86);
+    border:1px solid rgba(55,224,255,.45)}
+  #banner small{display:block;font-size:12.5px;font-weight:800;color:#9dffc0;margin-top:4px;letter-spacing:.02em}
+  #banner.show{opacity:1;transform:scale(1)}
+  #banner.gold span{border-color:rgba(255,210,63,.66);background:rgba(30,20,4,.92);color:#ffe9a8}
+  #banner.pink span{border-color:rgba(255,77,141,.66);background:rgba(34,6,20,.92);color:#ffd7e6}
+
+  /* ── 오버레이 ── */
+  .ov{position:absolute;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:calc(env(safe-area-inset-top) + 20px) 22px calc(env(safe-area-inset-bottom) + 20px);
+    background:radial-gradient(120% 90% at 50% 14%,rgba(20,44,74,.9),rgba(4,6,14,.95) 62%,rgba(3,4,10,.98));
+    text-align:center;overflow:auto}
+  .ov[hidden]{display:none}
+  .ov h1{margin:0 0 4px;font-size:31px;font-weight:900;letter-spacing:.01em;line-height:1.12;
+    background:linear-gradient(120deg,#7ceaff,#b78bff 52%,#ff7ab3);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .ov h2{margin:0 0 8px;font-size:25px;font-weight:900;color:#f2fdff}
+  .ov .sub{font-size:11px;letter-spacing:.22em;font-weight:800;color:#7f93b8;margin:0 0 14px}
+  .ov p{margin:0 0 12px;font-size:13.5px;line-height:1.62;color:#c3d4ea;max-width:430px}
+  .ov p b{color:#7ceaff}
+  .ov .keys{font-size:11.5px;color:#8ea3c4;line-height:1.7;margin:0 0 16px}
+  .ov .keys kbd{display:inline-block;min-width:20px;padding:1px 6px;border-radius:6px;border:1px solid rgba(120,190,235,.3);
+    background:rgba(16,28,48,.9);font-family:inherit;font-size:11px;color:#d6ecff;margin:0 1px}
+  .btn{font:inherit;font-weight:900;border:0;border-radius:999px;padding:13px 26px;cursor:pointer;color:#031018;
+    background:linear-gradient(135deg,#7ceaff,#37e0ff 55%,#8f9dff);box-shadow:0 10px 30px rgba(55,224,255,.3);
+    -webkit-tap-highlight-color:transparent;font-size:15.5px}
+  .btn:active{transform:scale(.97)}
+  .btn.line{background:transparent;border:1px solid rgba(120,190,235,.32);color:#d6ecff;box-shadow:none;font-size:14px;padding:11px 18px}
+  .ov .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+  .big{font-size:52px;font-weight:900;line-height:1;color:#f2fdff;font-variant-numeric:tabular-nums;
+    text-shadow:0 0 30px rgba(55,224,255,.5);margin:2px 0 4px}
+  .rec{display:flex;gap:10px;margin:8px 0 16px;flex-wrap:wrap;justify-content:center}
+  .rec div{font-size:10.5px;letter-spacing:.1em;color:#8ea3c4;font-weight:800;background:rgba(14,26,44,.8);
+    border:1px solid rgba(120,190,235,.18);border-radius:12px;padding:7px 12px;min-width:82px}
+  .rec b{display:block;font-size:16px;color:#eaf9ff;letter-spacing:0;margin-top:2px;font-variant-numeric:tabular-nums}
+  .tagline{margin-top:14px;font-size:11px;color:#67799a;text-decoration:none}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="stage"></canvas>
+
+  <div id="hud">
+    <div class="sc">
+      <span class="lab" id="labScore">SCORE</span>
+      <span id="score">0</span>
+      <span id="best">BEST 0</span>
+    </div>
+    <div class="mid">
+      <div id="chips">
+        <span class="chip combo" id="chipCombo" hidden>COMBO ×1</span>
+        <span class="chip fever" id="chipFever" hidden>FEVER ×2</span>
+      </div>
+    </div>
+    <div class="right">
+      <div id="balls"></div>
+      <div class="btns">
+        <button id="mute" type="button" aria-label="소리 끄기">🔊</button>
+        <button id="pauseBtn" type="button" aria-label="일시정지">⏸</button>
+        <a class="ico" href="../index.html" aria-label="UJ ARCADE 홈으로" data-home>⌂</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="hint"></div>
+  <div id="banner"><span id="bannerT"></span></div>
+
+  <div id="title" class="ov">
+    <h1>🪩 네온 핀볼</h1>
+    <p class="sub" id="tSub">NEON PINBALL · FLIPPER ARCADE</p>
+    <p id="tDesc">좌우 플리퍼로 공을 쳐 올려 <b>네온 범퍼 4기</b>를 터뜨리세요.<br>
+      위쪽 <b>드롭 타겟 3개</b>를 모두 맞추면 <b>멀티볼 3구</b>와 <b>2배 스코어 피버</b>가 열립니다.</p>
+    <div class="rec">
+      <div id="tBestL">최고 점수<b id="tBest">0</b></div>
+      <div id="tPlayL">플레이<b id="tPlay">0</b></div>
+    </div>
+    <button class="btn start" id="startBtn" type="button">▶ 시작하기</button>
+    <p class="keys" id="tKeys">화면 <b>왼쪽 반 = 왼쪽 플리퍼</b> · <b>오른쪽 반 = 오른쪽 플리퍼</b><br>
+      발사대는 <b>길게 눌렀다 떼기</b> · PC: <kbd>←</kbd><kbd>→</kbd> 또는 <kbd>A</kbd><kbd>D</kbd>, <kbd>space</kbd></p>
+    <a class="tagline" href="../index.html">UJ ARCADE · 무료 브라우저 게임</a>
+  </div>
+
+  <div id="pause" class="ov" hidden>
+    <h2 id="pauseT">일시정지</h2>
+    <p id="pauseP">공은 기다려 주지 않습니다.</p>
+    <div class="row">
+      <button class="btn" id="resumeBtn" type="button">계속하기</button>
+      <button class="btn line" id="restartBtn" type="button">처음부터</button>
+      <button class="btn line" id="quitBtn" type="button">그만두기</button>
+    </div>
+  </div>
+
+  <div id="over" class="ov" hidden>
+    <h2 id="ovTitle">게임 끝</h2>
+    <div class="big" id="ovScore">0</div>
+    <span class="sub" id="ovSub">FINAL SCORE</span>
+    <div class="rec">
+      <div id="ovBestL">최고 점수<b id="ovBest">0</b></div>
+      <div id="ovBumpL">범퍼 타격<b id="ovBump">0</b></div>
+      <div id="ovMultiL">멀티볼<b id="ovMulti">0</b></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="againBtn" type="button">다시 도전</button>
+      <button class="btn line" id="ovRank" type="button">🏆 랭킹</button>
+      <button class="btn line" id="ovHome" type="button">⌂ 홈</button>
+    </div>
+  </div>
+</div>
+
+<script src="../rank.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  /* ══════════ 기본 ══════════ */
+  var $ = function (id) { return document.getElementById(id); };
+  var ERR = [];
+  try {
+    window.addEventListener('error', function (e) { try { ERR.push(String(e.message || e.error || 'error')); } catch (x) { } });
+    window.addEventListener('unhandledrejection', function (e) { try { ERR.push('reject:' + String(e.reason)); } catch (x) { } });
+  } catch (e) { }
+
+  var DEBUG = /[?&]debug=1/.test(location.search);
+  var EN = false;
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { } return null; }
+  try { EN = (store('arc-lang') === 'en') || /[?&]lang=en/.test(location.search); } catch (e) { }
+  function L(ko, en) { return EN ? en : ko; }
+  function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
+  function rnd(a, b) { return a + Math.random() * (b - a); }
+
+  /* ══════════ 소리 (Web Audio 합성) ══════════ */
+  var AC = null, master = null, muted = (store('arc-sound') === '0');
+  function initAudio() {
+    if (AC) return;
+    var C = window.AudioContext || window.webkitAudioContext;
+    if (!C) return;
+    try { AC = new C(); } catch (e) { AC = null; return; }
+    master = AC.createGain(); master.gain.value = muted ? 0 : 0.62; master.connect(AC.destination);
+  }
+  function resumeAudio() { if (AC && AC.state === 'suspended') { try { AC.resume(); } catch (e) { } } }
+  function tone(t, type, f0, f1, dur, gain, delay) {
+    if (!AC || muted) return;
+    try {
+      var o = AC.createOscillator(), g = AC.createGain(), st = t + (delay || 0);
+      o.type = type; o.frequency.setValueAtTime(f0, st);
+      if (f1 && f1 !== f0) o.frequency.exponentialRampToValueAtTime(Math.max(24, f1), st + dur);
+      g.gain.setValueAtTime(0.0001, st);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, gain), st + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, st + dur);
+      o.connect(g); g.connect(master); o.start(st); o.stop(st + dur + 0.03);
+    } catch (e) { }
+  }
+  function sfx(name) {
+    if (!AC || muted) return;
+    var t = AC.currentTime;
+    if (name === 'flip') {
+      tone(t, 'square', 210, 120, 0.045, 0.11);
+      tone(t, 'triangle', 520, 300, 0.03, 0.05);
+    } else if (name === 'flipDown') {
+      tone(t, 'square', 150, 96, 0.04, 0.06);
+    } else if (name === 'bumper') {
+      tone(t, 'sine', 540, 960, 0.13, 0.17);
+      tone(t, 'triangle', 1180, 1720, 0.09, 0.07, 0.01);
+    } else if (name === 'sling') {
+      tone(t, 'triangle', 400, 760, 0.1, 0.13);
+    } else if (name === 'target') {
+      tone(t, 'square', 760, 1080, 0.07, 0.1);
+      tone(t, 'sine', 1320, 1660, 0.06, 0.06, 0.04);
+    } else if (name === 'lane') {
+      tone(t, 'sine', 900, 1400, 0.16, 0.11);
+      tone(t, 'triangle', 1400, 2100, 0.12, 0.06, 0.06);
+    } else if (name === 'combo') {
+      var f = 560;
+      tone(t, 'triangle', f, f * 1.5, 0.1, 0.1);
+    } else if (name === 'launch') {
+      tone(t, 'sine', 150, 420, 0.18, 0.16);
+      tone(t, 'square', 90, 200, 0.12, 0.05, 0.02);
+    } else if (name === 'drain') {
+      tone(t, 'sawtooth', 300, 60, 0.36, 0.17);
+      tone(t, 'sine', 140, 44, 0.4, 0.12, 0.02);
+    } else if (name === 'saver') {
+      tone(t, 'triangle', 300, 900, 0.2, 0.14);
+      tone(t, 'sine', 900, 1500, 0.16, 0.08, 0.08);
+    } else if (name === 'multiball') {
+      for (var i = 0; i < 5; i++) tone(t, 'sawtooth', 320 + i * 90, 1300 + i * 120, 0.2, 0.1, i * 0.085);
+      tone(t, 'square', 220, 880, 0.5, 0.07, 0.05);
+    } else if (name === 'fever') {
+      var notes = [660, 880, 1100, 1320];
+      for (var j = 0; j < notes.length; j++) tone(t, 'triangle', notes[j], notes[j], 0.22, 0.1, j * 0.07);
+    } else if (name === 'over') {
+      var dn = [660, 520, 400, 280];
+      for (var k = 0; k < dn.length; k++) tone(t, 'triangle', dn[k], dn[k] * 0.9, 0.3, 0.13, k * 0.13);
+    } else if (name === 'ui') {
+      tone(t, 'triangle', 660, 880, 0.07, 0.09);
+    }
+  }
+  function paintMute() {
+    var b = $('mute'); if (!b) return;
+    b.textContent = muted ? '🔇' : '🔊';
+    if (muted) b.classList.add('off'); else b.classList.remove('off');
+    b.setAttribute('aria-label', muted ? L('소리 켜기', 'Unmute') : L('소리 끄기', 'Mute'));
+  }
+
+  /* ══════════ 테이블 좌표 (폭 100 · 높이 192) ══════════ */
+  var TW = 100, TH = 192;
+  var GRAV = 150, MAXV = 330, BR = 2.0, SUB = 5;   /* SUB: 프레임당 물리 스텝 */
+
+  var WALLS = [];
+  function wall(x1, y1, x2, y2, e) { WALLS.push({ x1: x1, y1: y1, x2: x2, y2: y2, e: e == null ? 0.45 : e }); }
+
+  /* 왼쪽 벽 · 아래 깔때기 */
+  wall(5, 30, 5, 148, 0.42);
+  wall(5, 148, 24, 187, 0.4);
+  /* 오른쪽 아래 깔때기 · 레인 안쪽 벽 · 위쪽 게이트 */
+  wall(88.5, 150, 76, 187, 0.4);
+  wall(88.5, 46, 88.5, 150, 0.4);
+  wall(88.5, 46, 83, 35, 0.4);
+  /* 발사 레인 바깥벽 · 바닥 */
+  wall(95.5, 30, 95.5, 180, 0.4);
+  wall(88.5, 180.5, 95.5, 180.5, 0.2);
+  /* 좌우 러버(벽을 타고 내려오는 공을 필드 안쪽으로 튕김) */
+  wall(5, 62, 16, 74, 0.62);
+  wall(88.5, 62, 79, 74, 0.62);
+  /* 위쪽 아치 */
+  var ARCH = [[5, 30], [10, 20.5], [20, 13.5], [32, 9.5], [46, 8], [60, 9], [74, 13], [85, 19], [95.5, 30]];
+  for (var ai = 0; ai < ARCH.length - 1; ai++) wall(ARCH[ai][0], ARCH[ai][1], ARCH[ai + 1][0], ARCH[ai + 1][1], 0.5);
+
+  var BUMPERS = [
+    { x: 30, y: 66, r: 5.4, c: '#ff4d8d', hit: 0, cd: 0 },
+    { x: 52, y: 56, r: 5.4, c: '#37e0ff', hit: 0, cd: 0 },
+    { x: 42, y: 88, r: 5.0, c: '#a855f7', hit: 0, cd: 0 },
+    { x: 64, y: 84, r: 5.0, c: '#ffd23f', hit: 0, cd: 0 }
+  ];
+  var POSTS = [{ x: 18, y: 112, r: 2.2 }, { x: 82, y: 112, r: 2.2 }];
+  var SLINGS = [
+    { x1: 8, y1: 124, x2: 24, y2: 142, c: '#ff5a7a', hit: 0 },
+    { x1: 80, y1: 142, x2: 88, y2: 124, c: '#ff5a7a', hit: 0 }
+  ];
+  var TARGETS = [
+    { x: 50, y: 40, w: 6.4, down: false, hit: 0 },
+    { x: 58, y: 40, w: 6.4, down: false, hit: 0 },
+    { x: 66, y: 40, w: 6.4, down: false, hit: 0 }
+  ];
+  var LAMPS = [{ x: 38, y: 17 }, { x: 50, y: 15 }, { x: 62, y: 17 }];
+  var LANE_X = 92, LANE_Y = 178.5;
+
+  var REST_L = 0.49, UP_L = -0.62, REST_R = Math.PI - 0.49, UP_R = Math.PI + 0.62;
+  var FL = {
+    L: { px: 30, py: 156, len: 18, r: 1.5, a: REST_L, rest: REST_L, up: UP_L, w: 0, on: false },
+    R: { px: 70, py: 156, len: 18, r: 1.5, a: REST_R, rest: REST_R, up: UP_R, w: 0, on: false }
+  };
+  var FLIP_UP = 26, FLIP_DOWN = 14;   /* 각속도 rad/s */
+
+  /* ══════════ 상태 ══════════ */
+  var state = 'title';               /* title | play | pause | over */
+  var balls = [], score = 0, lives = 3, best = 0, plays = 0;
+  var combo = 0, comboT = 0, feverT = 0, saverT = 0, laneCd = 0;
+  var lampsOn = 0, multiballCount = 0, bumperHits = 0;
+  var charge = 0, charging = false;
+  var particles = [], pops = [];
+  var tNow = 0, hintT = 0, bannerT = 0;
+  var paused = false, lastRank = 0;
+
+  best = parseFloat(store('pinball-best')) || 0;
+  plays = parseFloat(store('pinball-plays')) || 0;
+
+  /* ══════════ 캔버스 · 레이아웃 ══════════ */
+  var cv = $('stage'), ctx = cv.getContext('2d');
+  var sc = document.createElement('canvas'), sctx = sc.getContext('2d');
+  var view = { vw: 0, vh: 0, dpr: 1, S: 1, ox: 0, oy: 0 };
+  var glowSpr = null;
+
+  function makeGlow() {
+    var c = document.createElement('canvas'), n = 64;
+    c.width = c.height = n;
+    var g = c.getContext('2d');
+    var rg = g.createRadialGradient(n / 2, n / 2, 0, n / 2, n / 2, n / 2);
+    rg.addColorStop(0, 'rgba(210,250,255,.95)');
+    rg.addColorStop(0.32, 'rgba(120,235,255,.5)');
+    rg.addColorStop(1, 'rgba(60,180,255,0)');
+    g.fillStyle = rg; g.beginPath(); g.arc(n / 2, n / 2, n / 2, 0, Math.PI * 2); g.fill();
+    return c;
+  }
+
+  function layout() {
+    var vw = Math.max(200, window.innerWidth), vh = Math.max(280, window.innerHeight);
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var pad = 8;
+    var S = Math.min((vw - pad * 2) / TW, (vh - pad * 2) / TH);
+    view.vw = vw; view.vh = vh; view.dpr = dpr; view.S = S;
+    view.ox = Math.round((vw - TW * S) / 2);
+    view.oy = Math.round((vh - TH * S) / 2);
+    cv.style.width = vw + 'px'; cv.style.height = vh + 'px';
+    cv.width = Math.round(vw * dpr); cv.height = Math.round(vh * dpr);
+    sc.width = cv.width; sc.height = cv.height;
+    if (!glowSpr) glowSpr = makeGlow();
+    renderStatic();
+  }
+
+  /* ══════════ 정적 배경(표) 렌더링 — 리사이즈 때만 ══════════ */
+  function renderStatic() {
+    var g = sctx, vw = view.vw, vh = view.vh, dpr = view.dpr;
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, vw, vh);
+
+    var bg = g.createLinearGradient(0, 0, 0, vh);
+    bg.addColorStop(0, '#080b18');
+    bg.addColorStop(0.55, '#050711');
+    bg.addColorStop(1, '#03040b');
+    g.fillStyle = bg; g.fillRect(0, 0, vw, vh);
+
+    /* 표 뒤 은은한 빛 */
+    var cx = view.ox + TW * view.S / 2, cy = view.oy + TH * view.S * 0.42;
+    var halo = g.createRadialGradient(cx, cy, 0, cx, cy, Math.max(vw, vh) * 0.55);
+    halo.addColorStop(0, 'rgba(38,120,190,.20)');
+    halo.addColorStop(0.55, 'rgba(60,50,150,.09)');
+    halo.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = halo; g.fillRect(0, 0, vw, vh);
+
+    g.save();
+    g.translate(view.ox, view.oy);
+    g.scale(view.S, view.S);
+
+    /* 표 바닥 */
+    var tf = g.createLinearGradient(0, 0, 0, TH);
+    tf.addColorStop(0, '#0c1226');
+    tf.addColorStop(0.42, '#0a1020');
+    tf.addColorStop(1, '#070b16');
+    g.fillStyle = tf;
+    g.beginPath(); g.rect(2, 4, TW - 4, TH - 8); g.fill();
+
+    /* 격자 점 */
+    g.fillStyle = 'rgba(120,190,255,.055)';
+    for (var gx = 10; gx < TW - 6; gx += 8) {
+      for (var gy = 16; gy < TH - 8; gy += 8) {
+        g.beginPath(); g.arc(gx, gy, 0.32, 0, Math.PI * 2); g.fill();
+      }
+    }
+
+    /* 발사 레인 바닥 */
+    g.fillStyle = 'rgba(30,70,110,.32)';
+    g.fillRect(88.5, 34, 7, 146.5);
+
+    /* 데칼 */
+    g.save();
+    g.globalAlpha = 0.24;
+    g.textAlign = 'center';
+    g.fillStyle = '#63c8ff';
+    g.font = '900 5.4px "Apple SD Gothic Neo",system-ui,sans-serif';
+    g.fillText('NEON PINBALL', 46, 116);
+    g.globalAlpha = 0.14;
+    g.font = '900 3.1px "Apple SD Gothic Neo",system-ui,sans-serif';
+    g.letterSpacing = '0.3px';
+    g.fillText('UJ ARCADE', 46, 122);
+    g.globalAlpha = 0.10;
+    g.font = '900 2.6px "Apple SD Gothic Neo",system-ui,sans-serif';
+    g.fillText(L('멀티볼 · 피버 ×2', 'MULTIBALL · FEVER ×2'), 46, 100);
+    g.restore();
+
+    /* 벽 */
+    g.lineCap = 'round'; g.lineJoin = 'round';
+    for (var i = 0; i < WALLS.length; i++) {
+      var w = WALLS[i];
+      g.beginPath(); g.moveTo(w.x1, w.y1); g.lineTo(w.x2, w.y2);
+      g.strokeStyle = 'rgba(90,190,255,.16)'; g.lineWidth = 2.6; g.stroke();
+      g.strokeStyle = 'rgba(150,232,255,.86)'; g.lineWidth = 0.72; g.stroke();
+    }
+
+    /* 슬링샷 */
+    for (var s = 0; s < SLINGS.length; s++) {
+      var sl = SLINGS[s];
+      g.beginPath();
+      g.moveTo(sl.x1, sl.y1); g.lineTo(sl.x2, sl.y2);
+      g.lineTo(sl.x1 < 50 ? sl.x1 - 0.5 : sl.x2 + 0.5, sl.y2 + 3.4);
+      g.closePath();
+      g.fillStyle = 'rgba(255,90,122,.14)'; g.fill();
+      g.strokeStyle = 'rgba(255,120,150,.55)'; g.lineWidth = 0.5; g.stroke();
+      g.beginPath(); g.moveTo(sl.x1, sl.y1); g.lineTo(sl.x2, sl.y2);
+      g.strokeStyle = 'rgba(255,170,195,.95)'; g.lineWidth = 0.8; g.stroke();
+    }
+
+    /* 포스트 */
+    for (var p = 0; p < POSTS.length; p++) {
+      g.beginPath(); g.arc(POSTS[p].x, POSTS[p].y, POSTS[p].r, 0, Math.PI * 2);
+      g.fillStyle = 'rgba(150,220,255,.2)'; g.fill();
+      g.strokeStyle = 'rgba(190,240,255,.8)'; g.lineWidth = 0.55; g.stroke();
+    }
+
+    /* 범퍼 바닥 */
+    for (var b = 0; b < BUMPERS.length; b++) {
+      var bm = BUMPERS[b];
+      g.beginPath(); g.arc(bm.x, bm.y, bm.r, 0, Math.PI * 2);
+      g.fillStyle = 'rgba(8,14,26,.9)'; g.fill();
+      g.strokeStyle = bm.c; g.globalAlpha = 0.95; g.lineWidth = 1.1; g.stroke(); g.globalAlpha = 1;
+      g.beginPath(); g.arc(bm.x, bm.y, bm.r * 0.56, 0, Math.PI * 2);
+      g.strokeStyle = bm.c; g.globalAlpha = 0.4; g.lineWidth = 0.5; g.stroke(); g.globalAlpha = 1;
+      g.beginPath(); g.arc(bm.x, bm.y, bm.r * 0.2, 0, Math.PI * 2);
+      g.fillStyle = bm.c; g.globalAlpha = 0.8; g.fill(); g.globalAlpha = 1;
+    }
+
+    /* 상단 레인 램프 */
+    for (var l = 0; l < LAMPS.length; l++) {
+      g.beginPath(); g.arc(LAMPS[l].x, LAMPS[l].y, 1.7, 0, Math.PI * 2);
+      g.fillStyle = 'rgba(20,34,54,.9)'; g.fill();
+      g.strokeStyle = 'rgba(120,200,240,.45)'; g.lineWidth = 0.4; g.stroke();
+    }
+
+    g.restore();
+  }
+
+  /* ══════════ 그리기 도우미 ══════════ */
+  function drawFlipper(g, f) {
+    var tx = f.px + Math.cos(f.a) * f.len, ty = f.py + Math.sin(f.a) * f.len;
+    g.lineCap = 'round';
+    g.beginPath(); g.moveTo(f.px, f.py); g.lineTo(tx, ty);
+    g.strokeStyle = 'rgba(60,190,255,.22)'; g.lineWidth = f.r * 2 + 2.4; g.stroke();
+    g.strokeStyle = '#8ff0ff'; g.lineWidth = f.r * 2; g.stroke();
+    g.strokeStyle = '#f4feff'; g.lineWidth = f.r * 0.78; g.stroke();
+    g.beginPath(); g.arc(f.px, f.py, f.r * 1.15, 0, Math.PI * 2);
+    g.fillStyle = '#c9f4ff'; g.fill();
+  }
+
+  function drawTarget(g, t) {
+    var h = t.down ? 0.5 : 1.5;
+    var y = t.y + (t.down ? 0.9 : 0);
+    var w = t.w * 0.62;
+    if (t.down) {
+      g.fillStyle = 'rgba(60,86,120,.6)';
+      g.fillRect(t.x - w / 2, y - h / 2, w, h);
+      return;
+    }
+    g.fillStyle = t.hit > 0 ? '#ffffff' : 'rgba(60,224,255,.9)';
+    g.fillRect(t.x - w / 2, y - h / 2, w, h);
+    g.strokeStyle = 'rgba(190,247,255,.95)'; g.lineWidth = 0.3;
+    g.strokeRect(t.x - w / 2, y - h / 2, w, h);
+  }
+
+  function drawBall(g, b) {
+    var gr = b.r * 5.6;
+    g.drawImage(glowSpr, b.x - gr, b.y - gr, gr * 2, gr * 2);
+    g.beginPath(); g.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    g.fillStyle = '#eafcff'; g.fill();
+    g.strokeStyle = 'rgba(120,230,255,.95)'; g.lineWidth = 0.45; g.stroke();
+    g.beginPath(); g.arc(b.x - b.r * 0.32, b.y - b.r * 0.34, b.r * 0.36, 0, Math.PI * 2);
+    g.fillStyle = 'rgba(255,255,255,.95)'; g.fill();
+  }
+
+  function draw() {
+    var g = ctx, dpr = view.dpr;
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.clearRect(0, 0, cv.width, cv.height);
+    g.drawImage(sc, 0, 0);
+
+    g.setTransform(dpr * view.S, 0, 0, dpr * view.S, dpr * view.ox, dpr * view.oy);
+
+    /* 램프 */
+    for (var l = 0; l < LAMPS.length; l++) {
+      var on = l < lampsOn;
+      g.beginPath(); g.arc(LAMPS[l].x, LAMPS[l].y, on ? 2.1 : 1.7, 0, Math.PI * 2);
+      g.fillStyle = on ? '#ffe06a' : 'rgba(20,34,54,.9)';
+      g.fill();
+      if (on) { g.strokeStyle = 'rgba(255,224,106,.35)'; g.lineWidth = 1.1; g.stroke(); }
+    }
+
+    /* 범퍼 타격 링 */
+    for (var b = 0; b < BUMPERS.length; b++) {
+      var bm = BUMPERS[b];
+      if (bm.hit <= 0) continue;
+      var k = bm.hit;
+      g.beginPath(); g.arc(bm.x, bm.y, bm.r + (1 - k) * 5.5, 0, Math.PI * 2);
+      g.strokeStyle = bm.c; g.globalAlpha = k * 0.85; g.lineWidth = 1.4; g.stroke();
+      g.beginPath(); g.arc(bm.x, bm.y, bm.r * 0.9, 0, Math.PI * 2);
+      g.fillStyle = bm.c; g.globalAlpha = k * 0.34; g.fill();
+      g.globalAlpha = 1;
+    }
+    /* 슬링 타격 */
+    for (var s = 0; s < SLINGS.length; s++) {
+      var sl = SLINGS[s];
+      if (sl.hit <= 0) continue;
+      g.beginPath(); g.moveTo(sl.x1, sl.y1); g.lineTo(sl.x2, sl.y2);
+      g.strokeStyle = '#fff'; g.globalAlpha = sl.hit * 0.9; g.lineWidth = 0.9 + sl.hit * 1.4; g.stroke();
+      g.globalAlpha = 1;
+    }
+
+    /* 드롭 타겟 */
+    for (var t = 0; t < TARGETS.length; t++) drawTarget(g, TARGETS[t]);
+
+    /* 플런저 (레인에 공이 있을 때) */
+    var lb = laneBall();
+    if (lb) {
+      var pull = charging ? charge : 0;
+      g.beginPath();
+      g.moveTo(LANE_X, 180.5); g.lineTo(LANE_X, 186.5 - pull * 5.0);
+      g.strokeStyle = 'rgba(140,230,255,.5)'; g.lineWidth = 2.4; g.lineCap = 'round'; g.stroke();
+      g.beginPath(); g.arc(LANE_X, 186.6 - pull * 5.0, 1.9, 0, Math.PI * 2);
+      g.fillStyle = '#9ff0ff'; g.fill();
+      /* 파워 미터 */
+      var mx = 97.4, mh = 26, my = 176;
+      g.fillStyle = 'rgba(10,20,34,.9)'; g.fillRect(mx - 1, my - mh, 2, mh);
+      var p = charging ? clamp(charge, 0.06, 1) : 0.06;
+      g.fillStyle = charging ? '#ffd23f' : 'rgba(90,180,220,.55)';
+      g.fillRect(mx - 1, my - mh * p, 2, mh * p);
+      g.strokeStyle = 'rgba(140,220,255,.5)'; g.lineWidth = 0.3;
+      g.strokeRect(mx - 1, my - mh, 2, mh);
+    } else {
+      g.beginPath();
+      g.moveTo(LANE_X, 180.5); g.lineTo(LANE_X, 186.5);
+      g.strokeStyle = 'rgba(140,230,255,.28)'; g.lineWidth = 2.4; g.lineCap = 'round'; g.stroke();
+    }
+
+    /* 플리퍼 */
+    drawFlipper(g, FL.L); drawFlipper(g, FL.R);
+
+    /* 공 */
+    for (var i = 0; i < balls.length; i++) drawBall(g, balls[i]);
+
+    /* 파티클 */
+    for (var q = 0; q < particles.length; q++) {
+      var pa = particles[q];
+      var a = clamp(pa.life / pa.max, 0, 1);
+      g.globalAlpha = a;
+      g.beginPath(); g.arc(pa.x, pa.y, pa.r * (0.4 + a * 0.9), 0, Math.PI * 2);
+      g.fillStyle = pa.c; g.fill();
+    }
+    g.globalAlpha = 1;
+
+    /* 점수 팝업 */
+    g.textAlign = 'center';
+    for (var pp = 0; pp < pops.length; pp++) {
+      var po = pops[pp];
+      var al = clamp(po.t / 0.9, 0, 1);
+      g.globalAlpha = al;
+      g.font = '900 3.4px "Apple SD Gothic Neo",system-ui,sans-serif';
+      g.fillStyle = po.c;
+      g.fillText(po.txt, po.x, po.y - (1 - po.t / 0.9) * 6);
+    }
+    g.globalAlpha = 1;
+  }
+
+  /* ══════════ 물리 ══════════ */
+  function closestPt(px, py, x1, y1, x2, y2) {
+    var dx = x2 - x1, dy = y2 - y1, L2 = dx * dx + dy * dy;
+    if (L2 < 1e-9) return { x: x1, y: y1 };
+    var t = clamp(((px - x1) * dx + (py - y1) * dy) / L2, 0, 1);
+    return { x: x1 + dx * t, y: y1 + dy * t };
+  }
+
+  function collideWall(b, w) {
+    var cp = closestPt(b.x, b.y, w.x1, w.y1, w.x2, w.y2);
+    var dx = b.x - cp.x, dy = b.y - cp.y, d2 = dx * dx + dy * dy;
+    if (d2 > b.r * b.r) return false;
+    var d = Math.sqrt(d2);
+    var nx, ny;
+    if (d < 1e-5) {
+      var ex = w.x2 - w.x1, ey = w.y2 - w.y1, el = Math.hypot(ex, ey) || 1;
+      nx = -ey / el; ny = ex / el;
+      if (nx * (50 - (w.x1 + w.x2) / 2) + ny * (95 - (w.y1 + w.y2) / 2) < 0) { nx = -nx; ny = -ny; }
+      d = 0;
+    } else { nx = dx / d; ny = dy / d; }
+    b.x = cp.x + nx * b.r; b.y = cp.y + ny * b.r;
+    var vn = b.vx * nx + b.vy * ny;
+    if (vn < 0) {
+      b.vx -= (1 + w.e) * vn * nx; b.vy -= (1 + w.e) * vn * ny;
+      var tx = -ny, ty = nx, vt = b.vx * tx + b.vy * ty;
+      b.vx -= vt * 0.05 * tx; b.vy -= vt * 0.05 * ty;
+      return true;
+    }
+    return false;
+  }
+
+  function collideCircle(b, o, isBumper) {
+    var dx = b.x - o.x, dy = b.y - o.y, rr = b.r + o.r;
+    var d2 = dx * dx + dy * dy;
+    if (d2 > rr * rr || d2 < 1e-9) return false;
+    var d = Math.sqrt(d2), nx = dx / d, ny = dy / d;
+    b.x = o.x + nx * rr; b.y = o.y + ny * rr;
+    var vn = b.vx * nx + b.vy * ny;
+    var e = isBumper ? 1.3 : 0.72;
+    if (vn < 0) {
+      b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny;
+    }
+    if (isBumper) {
+      var out = b.vx * nx + b.vy * ny;
+      var want = 118 + Math.min(80, Math.hypot(b.vx, b.vy) * 0.16);
+      if (out < want) { b.vx += (want - out) * nx; b.vy += (want - out) * ny; }
+      return true;
+    }
+    return false;
+  }
+
+  function collideSling(b, sl) {
+    var cp = closestPt(b.x, b.y, sl.x1, sl.y1, sl.x2, sl.y2);
+    var dx = b.x - cp.x, dy = b.y - cp.y, d2 = dx * dx + dy * dy, rr = b.r + 0.55;
+    if (d2 > rr * rr) return false;
+    var d = Math.sqrt(d2) || 0.0001, nx = dx / d, ny = dy / d;
+    /* 안쪽(플레이 필드)을 향하는 노멀 유지 */
+    if (nx * (50 - (sl.x1 + sl.x2) / 2) + ny * (100 - (sl.y1 + sl.y2) / 2) < 0) { nx = -nx; ny = -ny; }
+    b.x = cp.x + nx * rr; b.y = cp.y + ny * rr;
+    var vn = b.vx * nx + b.vy * ny;
+    if (vn < 0) { b.vx -= 1.5 * vn * nx; b.vy -= 1.5 * vn * ny; }
+    var out = b.vx * nx + b.vy * ny;
+    if (out < 150) { b.vx += (150 - out) * nx; b.vy += (150 - out) * ny; }
+    return true;
+  }
+
+  function collideTarget(b, t) {
+    var cp = closestPt(b.x, b.y, t.x - t.w / 2, t.y, t.x + t.w / 2, t.y);
+    var dx = b.x - cp.x, dy = b.y - cp.y, d2 = dx * dx + dy * dy, rr = b.r + 0.95;
+    if (d2 > rr * rr) return false;
+    var d = Math.sqrt(d2) || 0.0001, nx = dx / d, ny = dy / d;
+    if (ny > 0) { ny = -Math.abs(ny); nx = dx / (d || 1); }   /* 위에서만 맞도록 */
+    var L2 = Math.hypot(nx, ny) || 1; nx /= L2; ny /= L2;
+    b.x = cp.x + nx * rr; b.y = cp.y + ny * rr;
+    var vn = b.vx * nx + b.vy * ny;
+    if (vn < 0) { b.vx -= 1.35 * vn * nx; b.vy -= 1.35 * vn * ny; }
+    return true;
+  }
+
+  function collideFlipper(b, f) {
+    var tx = f.px + Math.cos(f.a) * f.len, ty = f.py + Math.sin(f.a) * f.len;
+    var cp = closestPt(b.x, b.y, f.px, f.py, tx, ty);
+    var dx = b.x - cp.x, dy = b.y - cp.y, d2 = dx * dx + dy * dy, rr = b.r + f.r;
+    if (d2 > rr * rr) return false;
+    var d = Math.sqrt(d2) || 0.0001, nx = dx / d, ny = dy / d;
+    b.x = cp.x + nx * rr; b.y = cp.y + ny * rr;
+    var rx = cp.x - f.px, ry = cp.y - f.py;
+    var svx = -f.w * ry, svy = f.w * rx;
+    var relx = b.vx - svx, rely = b.vy - svy;
+    var vn = relx * nx + rely * ny;
+    if (vn < 0) {
+      var e = 0.42;
+      b.vx -= (1 + e) * vn * nx; b.vy -= (1 + e) * vn * ny;
+      var swing = Math.min(1, Math.abs(f.w) / 18);
+      var kick = 11 + 34 * swing;
+      b.vx += nx * kick; b.vy += ny * kick;
+      if (Math.abs(f.w) < 2) { /* 정지한 플리퍼에 얹힌 공이 미끄러지게 */ }
+    }
+    return true;
+  }
+
+  function clampspeed(b) {
+    var sp = Math.hypot(b.vx, b.vy);
+    if (sp > MAXV) { b.vx = b.vx / sp * MAXV; b.vy = b.vy / sp * MAXV; }
+  }
+
+  function laneBall() {
+    for (var i = 0; i < balls.length; i++) {
+      var b = balls[i];
+      if (b.x > 89 && b.y > 166 && Math.abs(b.vx) < 60 && Math.abs(b.vy) < 60) return b;
+    }
+    return null;
+  }
+
+  /* ══════════ 점수 · 효과 ══════════ */
+  function mult() { return 1 + Math.min(4, Math.floor(combo / 3)); }
+
+  function addScore(base, x, y) {
+    var v = Math.round(base * mult() * (feverT > 0 ? 2 : 1));
+    score += v;
+    pops.push({ x: x, y: y, txt: '+' + v, t: 0.9, c: feverT > 0 ? '#ffd23f' : '#bff4ff' });
+    if (pops.length > 14) pops.shift();
+    return v;
+  }
+
+  function burst(x, y, c, n, sp) {
+    for (var i = 0; i < n; i++) {
+      var a = rnd(0, Math.PI * 2), s = rnd(sp * 0.35, sp);
+      particles.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, r: rnd(0.35, 0.9), life: 0.5, max: 0.5, c: c });
+    }
+    if (particles.length > 150) particles.splice(0, particles.length - 150);
+  }
+
+  function banner(main, sub, cls) {
+    var el = $('banner'), t = $('bannerT');
+    t.textContent = main;
+    if (sub) { var sm = document.createElement('small'); sm.textContent = sub; t.appendChild(sm); }
+    el.className = 'show ' + (cls || '');
+    bannerT = 1.1;
+  }
+
+  function bumpCombo(x, y) {
+    combo++; comboT = 2.5;
+    if (combo >= 3) sfx('combo');
+  }
+
+  /* ══════════ 게임 흐름 ══════════ */
+  function serve(armSaver) {
+    balls = [{ x: LANE_X, y: LANE_Y, vx: 0, vy: 0, r: BR, age: 0, slow: 0 }];
+    saverT = armSaver === false ? 0 : 5;   /* 볼 세이버 5초 (한 공당 한 번) */
+    charge = 0; charging = false;
+    paintHint();
+  }
+
+  function startGame() {
+    initAudio(); resumeAudio();
+    state = 'play'; paused = false;
+    score = 0; lives = 3; combo = 0; comboT = 0; feverT = 0; lampsOn = 0;
+    multiballCount = 0; bumperHits = 0; charge = 0; charging = false;
+    particles.length = 0; pops.length = 0;
+    for (var i = 0; i < TARGETS.length; i++) { TARGETS[i].down = false; TARGETS[i].hit = 0; }
+    for (var j = 0; j < BUMPERS.length; j++) BUMPERS[j].hit = 0;
+    plays++; store('pinball-plays', String(plays));
+    $('title').hidden = true; $('over').hidden = true; $('pause').hidden = true;
+    serve();
+    paintHud(true);
+    sfx('ui');
+  }
+
+  function gameOver() {
+    state = 'over'; charging = false; charge = 0;
+    if (score > best) { best = score; store('pinball-best', String(best)); }
+    $('ovScore').textContent = score.toLocaleString();
+    $('ovBest').textContent = best.toLocaleString();
+    $('ovBump').textContent = String(bumperHits);
+    $('ovMulti').textContent = String(multiballCount);
+    $('over').hidden = false;
+    sfx('over');
+    paintHud(true);
+    if (window.ArcadeRank && score > 0) {
+      try { ArcadeRank.show({ id: 'pinball', score: score, delay: 850 }); } catch (e) { }
+    }
+  }
+
+  function drainBall(b) {
+    var i = balls.indexOf(b);
+    if (i >= 0) balls.splice(i, 1);
+    burst(50, 186, '#ff5a7a', 12, 90);
+    if (balls.length > 0) return;
+    if (saverT > 0) {
+      saverT = 0;
+      banner(L('BALL SAVED', 'BALL SAVED'), L('5초 세이버!', '5-second saver!'), 'gold');
+      sfx('saver');
+      serve(false);
+      return;
+    }
+    sfx('drain');
+    lives--;
+    combo = 0; comboT = 0;
+    if (lives <= 0) { lives = 0; gameOver(); return; }
+    banner(lives + L('구 남음', ' BALLS LEFT'), '', 'pink');
+    serve();
+  }
+
+  function startMultiball() {
+    for (var k = 0; k < 2; k++) {
+      var nb = { x: 44 + k * 10, y: 44 + k * 4, vx: rnd(-50, 50), vy: rnd(30, 70), r: BR, age: 0, slow: 0 };
+      /* 범퍼·타겟과 겹치면 살짝 밀어 낸다 */
+      for (var g = 0; g < 6; g++) {
+        var bad = false;
+        for (var bi = 0; bi < BUMPERS.length; bi++) {
+          if (Math.hypot(nb.x - BUMPERS[bi].x, nb.y - BUMPERS[bi].y) < nb.r + BUMPERS[bi].r + 1.5) { bad = true; nb.y += 4; }
+        }
+        if (!bad) break;
+      }
+      balls.push(nb);
+    }
+    multiballCount++;
+    burst(50, 50, '#7dffb0', 26, 120);
+  }
+
+  function checkTargets() {
+    for (var i = 0; i < TARGETS.length; i++) if (!TARGETS[i].down) return;
+    feverT = 10;
+    startMultiball();
+    banner(L('MULTIBALL · FEVER ×2', 'MULTIBALL · FEVER ×2'), L('드롭 타겟 완성!', 'Target bank cleared!'), 'gold');
+    sfx('multiball');
+    setTimeout(function () { if (state === 'play') sfx('fever'); }, 260);
+  }
+
+  function resetTargets() {
+    for (var i = 0; i < TARGETS.length; i++) { TARGETS[i].down = false; TARGETS[i].hit = 0; }
+  }
+
+  /* ══════════ 스텝 ══════════ */
+  function stepFlipper(f, h) {
+    var target = f.on ? f.up : f.rest;
+    var prev = f.a;
+    var spd = (f.on ? FLIP_UP : FLIP_DOWN) * h;
+    if (f.on) {
+      if (f.up > f.rest) { f.a = Math.min(target, f.a + spd); }
+      else { f.a = Math.max(target, f.a - spd); }
+    } else {
+      if (f.up > f.rest) { f.a = Math.max(target, f.a - spd); }
+      else { f.a = Math.min(target, f.a + spd); }
+    }
+    f.w = (f.a - prev) / h;
+  }
+
+  function stepBall(b, h) {
+    b.vy += GRAV * h;
+    b.vx *= 0.9993; b.vy *= 0.9993;
+    b.x += b.vx * h; b.y += b.vy * h;
+    b.age += h;
+
+    var i;
+    for (i = 0; i < WALLS.length; i++) collideWall(b, WALLS[i]);
+
+    for (i = 0; i < BUMPERS.length; i++) {
+      var bm = BUMPERS[i];
+      if (bm.cd > 0) { bm.cd -= h; if (bm.cd > 0) { collideCircle(b, bm, false); continue; } }
+      if (collideCircle(b, bm, true)) {
+        bm.hit = 1; bm.cd = 0.055;
+        bumperHits++;
+        bumpCombo(bm.x, bm.y);
+        addScore(100, bm.x, bm.y - bm.r - 1);
+        burst(bm.x, bm.y, bm.c, 7, 70);
+        sfx('bumper');
+      }
+    }
+    for (i = 0; i < POSTS.length; i++) collideCircle(b, POSTS[i], false);
+    for (i = 0; i < SLINGS.length; i++) {
+      var sl = SLINGS[i];
+      if (collideSling(b, sl)) {
+        if (sl.hit <= 0.02) {
+          sl.hit = 1;
+          bumpCombo(sl.x1, sl.y1);
+          addScore(60, (sl.x1 + sl.x2) / 2, (sl.y1 + sl.y2) / 2);
+          sfx('sling');
+        }
+      }
+    }
+    for (i = 0; i < TARGETS.length; i++) {
+      var tg = TARGETS[i];
+      if (tg.down) continue;
+      if (collideTarget(b, tg)) {
+        tg.down = true; tg.hit = 1;
+        addScore(250, tg.x, tg.y - 2);
+        burst(tg.x, tg.y, '#7ceaff', 9, 80);
+        sfx('target');
+        checkTargets();
+      }
+    }
+    collideFlipper(b, FL.L);
+    collideFlipper(b, FL.R);
+
+    /* 상단 레인 보너스 */
+    if (laneCd <= 0 && b.y < 22 && b.x > 30 && b.x < 78 && b.vy < -20) {
+      laneCd = 3.0;
+      lampsOn = Math.min(3, lampsOn + 1);
+      addScore(500, b.x, b.y + 4);
+      burst(b.x, b.y, '#ffe06a', 10, 70);
+      sfx('lane');
+      if (lampsOn >= 3) {
+        lampsOn = 0;
+        score += 2000;
+        banner(L('TOP LANE BONUS +2000', 'TOP LANE BONUS +2000'), '', 'gold');
+      }
+    }
+
+    clampspeed(b);
+
+    /* 표 밖으로 나가면 드레인 */
+    if (b.y > 189 || b.x < 1 || b.x > 99) drainBall(b);
+  }
+
+  function update(dt) {
+    tNow += dt;
+    laneCd = Math.max(0, laneCd - dt);
+    if (bannerT > 0) { bannerT -= dt; if (bannerT <= 0) $('banner').className = ''; }
+    if (hintT > 0) { hintT -= dt; if (hintT <= 0) $('hint').classList.add('off'); }
+
+    /* 파티클 */
+    var i;
+    for (i = particles.length - 1; i >= 0; i--) {
+      var p = particles[i];
+      p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 70 * dt;
+      p.life -= dt;
+      if (p.life <= 0) particles.splice(i, 1);
+    }
+    for (i = pops.length - 1; i >= 0; i--) { pops[i].t -= dt; if (pops[i].t <= 0) pops.splice(i, 1); }
+    for (i = 0; i < BUMPERS.length; i++) if (BUMPERS[i].hit > 0) BUMPERS[i].hit = Math.max(0, BUMPERS[i].hit - dt * 4.2);
+    for (i = 0; i < SLINGS.length; i++) if (SLINGS[i].hit > 0) SLINGS[i].hit = Math.max(0, SLINGS[i].hit - dt * 6);
+    for (i = 0; i < TARGETS.length; i++) if (TARGETS[i].hit > 0) TARGETS[i].hit = Math.max(0, TARGETS[i].hit - dt * 5);
+
+    if (state !== 'play') { paintHud(); return; }
+
+    /* 타이머 */
+    if (comboT > 0) { comboT -= dt; if (comboT <= 0) { combo = 0; } }
+    if (feverT > 0) { feverT -= dt; if (feverT <= 0) { feverT = 0; resetTargets(); } }
+    if (saverT > 0) saverT = Math.max(0, saverT - dt);
+
+    /* 충전 */
+    if (charging) charge = clamp(charge + dt / 0.75, 0, 1);
+
+    /* 물리: 프레임 dt 를 SUB 스텝으로 쪼갠다 */
+    var h = dt / SUB;
+    for (var s = 0; s < SUB; s++) {
+      stepFlipper(FL.L, h); stepFlipper(FL.R, h);
+      for (var bi = balls.length - 1; bi >= 0; bi--) {
+        if (!balls[bi]) continue;
+        stepBall(balls[bi], h);
+      }
+    }
+
+    /* 멈춘 공 구제 */
+    for (var k = 0; k < balls.length; k++) {
+      var b = balls[k];
+      var sp = Math.hypot(b.vx, b.vy);
+      if (sp < 9) { b.slow += dt; } else { b.slow = 0; }
+      if (b.slow > 2.2) { b.vx += rnd(-30, 30); b.vy -= 26; b.slow = 0; }
+    }
+
+    paintHud();
+  }
+
+  /* ══════════ HUD ══════════ */
+  var hudCache = {};
+  function paintHud(force) {
+    var sTxt = score.toLocaleString();
+    if (force || hudCache.score !== sTxt) { $('score').textContent = sTxt; hudCache.score = sTxt; }
+    var bTxt = L('최고 ', 'BEST ') + best.toLocaleString();
+    if (force || hudCache.best !== bTxt) { $('best').textContent = bTxt; hudCache.best = bTxt; }
+
+    var lv = (state === 'play') ? lives : 0;
+    if (force || hudCache.lives !== lv) {
+      var h = '', n = Math.max(3, lv);
+      for (var i = 0; i < 3; i++) h += '<i class="' + (i < lv ? '' : 'off') + '"></i>';
+      $('balls').innerHTML = h;
+      hudCache.lives = lv;
+    }
+    var cc = $('chipCombo'), cf = $('chipFever');
+    if (combo >= 3) { cc.hidden = false; cc.textContent = 'COMBO ×' + mult(); }
+    else cc.hidden = true;
+    if (feverT > 0) { cf.hidden = false; cf.textContent = L('FEVER ×2 · ', 'FEVER ×2 · ') + Math.ceil(feverT) + 's'; }
+    else cf.hidden = true;
+
+    /* 볼 세이버 표시 */
+    var hint = $('hint');
+    if (state === 'play' && saverT > 0 && balls.length === 1 && !hint.classList.contains('sv')) {
+      hint.classList.remove('off'); hint.classList.add('sv');
+      hint.innerHTML = L('<b>볼 세이버</b> ' + Math.ceil(saverT) + '초', '<b>BALL SAVER</b> ' + Math.ceil(saverT) + 's');
+      hintT = 0.6;
+    } else if (state === 'play' && saverT <= 0 && hint.classList.contains('sv')) {
+      hint.classList.remove('sv');
+      paintHint();
+    }
+  }
+
+  function paintHint() {
+    var hint = $('hint');
+    hint.classList.remove('off');
+    hint.classList.remove('sv');
+    if (laneBall()) {
+      hint.innerHTML = L('발사대를 <b>길게 눌렀다 떼면</b> 공이 날아갑니다', '<b>Hold and release</b> to launch the ball');
+    } else {
+      hint.innerHTML = L('화면 <b>왼쪽 반</b> = 왼쪽 플리퍼 · <b>오른쪽 반</b> = 오른쪽 플리퍼', '<b>Left half</b> = left flipper · <b>Right half</b> = right flipper');
+    }
+    hintT = 5.5;
+  }
+
+  /* ══════════ 입력 ══════════ */
+  function plunge(b, power) {
+    var sp = 240 + 45 * clamp(power, 0, 1);
+    b.vy = -sp; b.vx = rnd(-7, 7); b.y = Math.min(b.y, LANE_Y);
+    b.slow = 0;
+    charging = false; charge = 0;
+    sfx('launch');
+    paintHint();
+  }
+
+  function pressFlipper(side, on) {
+    var f = side === 'L' ? FL.L : FL.R;
+    if (f.on === on) return;
+    f.on = on;
+    if (on && state === 'play') sfx('flip');
+    else if (!on && state === 'play') sfx('flipDown');
+  }
+
+  var pointers = {};
+
+  function uiTarget(el) {
+    while (el && el !== document.body) {
+      if (el.classList && (el.classList.contains('ov') || el.tagName === 'BUTTON' || el.tagName === 'A')) return true;
+      el = el.parentNode;
+    }
+    return false;
+  }
+
+  function onDown(e) {
+    if (state !== 'play') return;
+    if (uiTarget(e.target)) return;
+    resumeAudio();
+    var lb = laneBall();
+    if (lb) {
+      pointers[e.pointerId] = 'P';
+      charging = true; charge = 0.02;
+      return;
+    }
+    var side = (e.clientX != null ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : 0)) < window.innerWidth / 2 ? 'L' : 'R';
+    pointers[e.pointerId] = side;
+    pressFlipper(side, true);
+  }
+
+  function onUp(e) {
+    var role = pointers[e.pointerId];
+    delete pointers[e.pointerId];
+    if (role === 'P') {
+      var lb = laneBall();
+      if (lb) plunge(lb, Math.max(charge, 0.15));
+      else { charging = false; charge = 0; }
+      return;
+    }
+    if (role === 'L' || role === 'R') pressFlipper(role, false);
+  }
+
+  function onMove(e) {
+    if (pointers[e.pointerId] !== 'P') return;
+    if (e.movementY && e.movementY > 0) charge = clamp(charge + e.movementY * 0.0035, 0, 1);
+  }
+
+  try {
+    window.addEventListener('pointerdown', onDown, { passive: true });
+    window.addEventListener('pointerup', onUp, { passive: true });
+    window.addEventListener('pointercancel', onUp, { passive: true });
+    window.addEventListener('pointermove', onMove, { passive: true });
+  } catch (e) {
+    /* pointer events 없으면 터치로 대체 */
+    window.addEventListener('touchstart', function (e) {
+      if (state !== 'play') return;
+      if (uiTarget(e.target)) return;
+      var lb = laneBall();
+      if (lb) { charging = true; charge = 0.02; return; }
+      for (var i = 0; i < e.changedTouches.length; i++) {
+        var t = e.changedTouches[i];
+        pressFlipper(t.clientX < window.innerWidth / 2 ? 'L' : 'R', true);
+      }
+    }, { passive: true });
+    window.addEventListener('touchend', function (e) {
+      if (charging) { var lb = laneBall(); if (lb) plunge(lb, Math.max(charge, 0.15)); charging = false; charge = 0; }
+      FL.L.on = false; FL.R.on = false;
+    }, { passive: true });
+  }
+
+  window.addEventListener('keydown', function (e) {
+    if (e.repeat) { if (e.code === 'Space' || e.code === 'ArrowDown') e.preventDefault(); return; }
+    var k = e.key;
+    if (k === 'ArrowLeft' || k === 'a' || k === 'A') { pressFlipper('L', true); e.preventDefault(); }
+    else if (k === 'ArrowRight' || k === 'd' || k === 'D') { pressFlipper('R', true); e.preventDefault(); }
+    else if (k === ' ' || k === 'Spacebar' || k === 'Enter' || k === 'ArrowDown') {
+      e.preventDefault();
+      if (state === 'title') { startGame(); return; }
+      if (state === 'over') { startGame(); return; }
+      var lb = laneBall();
+      if (lb) { if (!charging) { charging = true; charge = 0.02; } }
+      else { pressFlipper('L', true); pressFlipper('R', true); }
+    }
+  });
+  window.addEventListener('keyup', function (e) {
+    var k = e.key;
+    if (k === 'ArrowLeft' || k === 'a' || k === 'A') pressFlipper('L', false);
+    else if (k === 'ArrowRight' || k === 'd' || k === 'D') pressFlipper('R', false);
+    else if (k === ' ' || k === 'Spacebar' || k === 'Enter' || k === 'ArrowDown') {
+      var lb = laneBall();
+      if (charging && lb) plunge(lb, Math.max(charge, 0.15));
+      else { charging = false; charge = 0; }
+      pressFlipper('L', false); pressFlipper('R', false);
+    }
+  });
+
+  /* ══════════ 버튼 ══════════ */
+  $('mute').addEventListener('click', function () {
+    muted = !muted; store('arc-sound', muted ? '0' : '1');
+    if (master) master.gain.value = muted ? 0 : 0.62;
+    paintMute(); initAudio(); resumeAudio(); if (!muted) sfx('ui');
+  });
+  $('startBtn').addEventListener('click', function () { sfx('ui'); startGame(); });
+  $('againBtn').addEventListener('click', function () { sfx('ui'); startGame(); });
+  $('pauseBtn').addEventListener('click', function () { sfx('ui'); doPause(true); });
+  $('resumeBtn').addEventListener('click', function () { sfx('ui'); doPause(false); });
+  $('restartBtn').addEventListener('click', function () { sfx('ui'); startGame(); });
+  $('quitBtn').addEventListener('click', function () {
+    doPause(false); state = 'over';
+    if (score > best) { best = score; store('pinball-best', String(best)); }
+    $('ovScore').textContent = score.toLocaleString();
+    $('ovBest').textContent = best.toLocaleString();
+    $('ovBump').textContent = String(bumperHits);
+    $('ovMulti').textContent = String(multiballCount);
+    $('over').hidden = false;
+    if (window.ArcadeRank && score > 0) { try { ArcadeRank.show({ id: 'pinball', score: score, delay: 500 }); } catch (e) { } }
+  });
+  $('ovRank').addEventListener('click', function () {
+    if (window.ArcadeRank) { try { ArcadeRank.open({ id: 'pinball' }); } catch (e) { } }
+  });
+  $('ovHome').addEventListener('click', function () {
+    if (window.ujHome) { window.ujHome(); return; }
+    location.href = '../index.html';
+  });
+
+  function doPause(on) {
+    if (state !== 'play' && on) return;
+    if (on) { paused = true; $('pause').hidden = false; FL.L.on = FL.R.on = false; charging = false; }
+    else { paused = false; $('pause').hidden = true; }
+  }
+  window.addEventListener('blur', function () { if (state === 'play') doPause(true); });
+  document.addEventListener('visibilitychange', function () { if (document.hidden && state === 'play') doPause(true); });
+
+  /* ══════════ 루프 ══════════ */
+  var last = 0;
+  function frame(ts) {
+    requestAnimationFrame(frame);
+    if (!last) last = ts;
+    var dt = (ts - last) / 1000; last = ts;
+    if (dt > 0.05) dt = 0.05;
+    if (!paused) update(dt);
+    draw();
+  }
+
+  /* ══════════ 언어 · 초기화 ══════════ */
+  if (EN) {
+    $('labScore').textContent = 'SCORE';
+    $('tSub').textContent = 'NEON PINBALL · FLIPPER ARCADE';
+    $('tDesc').innerHTML = 'Flip the ball up into <b>four neon bumpers</b>.<br>Clear all <b>three drop targets</b> to unlock <b>3-ball multiball</b> and <b>2x score fever</b>.';
+    $('tBestL').innerHTML = 'Best score<b id="tBest">' + best.toLocaleString() + '</b>';
+    $('tPlayL').innerHTML = 'Plays<b id="tPlay">' + plays + '</b>';
+    $('startBtn').textContent = '▶ Start';
+    $('tKeys').innerHTML = '<b>Left half</b> = left flipper · <b>Right half</b> = right flipper<br>Launch with <b>hold and release</b> · PC: <kbd>←</kbd><kbd>→</kbd> or <kbd>A</kbd><kbd>D</kbd>, <kbd>space</kbd>';
+    $('pauseT').textContent = 'Paused';
+    $('pauseP').textContent = 'The ball will not wait.';
+    $('resumeBtn').textContent = 'Resume';
+    $('restartBtn').textContent = 'Restart';
+    $('quitBtn').textContent = 'Quit';
+    $('ovTitle').textContent = 'Game over';
+    $('over').querySelector('.sub').textContent = 'FINAL SCORE';
+    $('ovBestL').innerHTML = 'Best score<b id="ovBest">' + best.toLocaleString() + '</b>';
+    $('ovBumpL').innerHTML = 'Bumper hits<b id="ovBump">0</b>';
+    $('ovMultiL').innerHTML = 'Multiballs<b id="ovMulti">0</b>';
+    $('againBtn').textContent = 'Play again';
+    $('ovRank').textContent = '🏆 Ranking';
+    $('ovHome').textContent = '⌂ Home';
+    document.documentElement.lang = 'en';
+  }
+  $('tBest').textContent = best.toLocaleString();
+  $('tPlay').textContent = String(plays);
+  paintMute();
+  paintHint();
+
+  /* 시작 상태: 레인에 공 한 개 */
+  balls = [{ x: LANE_X, y: LANE_Y, vx: 0, vy: 0, r: BR, age: 0, slow: 0 }];
+  layout();
+  paintHud(true);
+  window.addEventListener('resize', function () { layout(); });
+  window.addEventListener('orientationchange', function () { setTimeout(layout, 260); });
+
+  state = 'title';
+  requestAnimationFrame(function (ts) { last = ts; frame(ts); });
+
+  /* ══════════ 디버그 훅 (테스트용) ══════════ */
+  if (DEBUG) {
+    window.__pin = {
+      start: function () { startGame(); return true; },
+      step: function (dt) { if (!paused) update(dt || 1 / 60); return true; },
+      draw: function () { draw(); return true; },
+      state: function () {
+        return {
+          state: state, score: score, lives: lives, combo: combo, fever: feverT, saver: saverT,
+          balls: balls.map(function (b) { return { x: +b.x.toFixed(2), y: +b.y.toFixed(2), vx: +b.vx.toFixed(2), vy: +b.vy.toFixed(2) }; }),
+          targets: TARGETS.map(function (t) { return !!t.down; }),
+          lamps: lampsOn, multiball: multiballCount, bumperHits: bumperHits,
+          flippers: { L: +FL.L.a.toFixed(3), R: +FL.R.a.toFixed(3) },
+          particles: particles.length
+        };
+      },
+      lane: function () { return !!laneBall(); },
+      flip: function (side, on) { pressFlipper(side, on); return true; },
+      charge: function (on) { charging = !!on; if (!on) charge = 0; return true; },
+      plunge: function (p) { var lb = laneBall(); if (!lb) return false; plunge(lb, p == null ? 1 : p); return true; },
+      setCharge: function (v) { charging = true; charge = clamp(v, 0, 1); return true; },
+      /* 테스트: 공을 원하는 위치로 */
+      place: function (x, y, vx, vy) {
+        if (!balls.length) balls.push({ x: x, y: y, vx: 0, vy: 0, r: BR, age: 0, slow: 0 });
+        var b = balls[0]; b.x = x; b.y = y; b.vx = vx || 0; b.vy = vy || 0; return true;
+      },
+      table: { W: TW, H: TH, walls: WALLS.length, bumpers: BUMPERS.length, targets: TARGETS.length },
+      view: function () { return { vw: view.vw, vh: view.vh, S: view.S, ox: view.ox, oy: view.oy }; },
+      geo: function () {
+        function fl(f) {
+          return { px: f.px, py: f.py, len: f.len, r: f.r,
+            rest: [f.px + Math.cos(f.rest) * f.len, f.py + Math.sin(f.rest) * f.len],
+            up: [f.px + Math.cos(f.up) * f.len, f.py + Math.sin(f.up) * f.len] };
+        }
+        return { walls: WALLS, bumpers: BUMPERS, posts: POSTS, slings: SLINGS, targets: TARGETS,
+          lamps: LAMPS, lane: [LANE_X, LANE_Y], L: fl(FL.L), R: fl(FL.R), W: TW, H: TH };
+      },
+      errors: function () { return ERR.slice(); }
+    };
+  }
+})();
+</script>
+<script src="home.js"></script>
+</body>
+</html>
