@@ -1374,18 +1374,28 @@ function drawObjects() {
     ctx.fillStyle = c.gold ? '#fff3c4' : '#eafcff';
     ctx.fill();
   }
-  /* 점프대 */
+  /* 점프대: 경사판 + 노란 스트라이프 */
   for (i = 0; i < T.rams.length; i++) {
     var rm = T.rams[i];
     if (rm.cum < car.prog - 6 || rm.cum > car.prog + 34) continue;
-    var w2 = 0.34;
-    var n1 = proj(rm.x + rm.nx * w2 - rm.tx * 0.3, rm.z + rm.nz * w2 - rm.tz * 0.3);
-    var n2 = proj(rm.x - rm.nx * w2 - rm.tx * 0.3, rm.z - rm.nz * w2 - rm.tz * 0.3);
-    var n3 = proj(rm.x - rm.nx * w2 + rm.tx * 0.28, rm.z - rm.nz * w2 + rm.tz * 0.28, 0.18);
-    var n4 = proj(rm.x + rm.nx * w2 + rm.tx * 0.28, rm.z + rm.nz * w2 + rm.tz * 0.28, 0.18);
-    ctx.beginPath(); ctx.moveTo(n1.x, n1.y); ctx.lineTo(n2.x, n2.y); ctx.lineTo(n3.x, n3.y); ctx.lineTo(n4.x, n4.y); ctx.closePath();
-    ctx.fillStyle = 'rgba(255,154,61,.75)'; ctx.fill();
-    ctx.strokeStyle = 'rgba(255,210,63,.9)'; ctx.lineWidth = 1.6; ctx.stroke();
+    var w2 = 0.36, L0 = 0.40, L1 = 0.30, H0 = 0.02, H1 = 0.34;
+    var pL0 = proj(rm.x + rm.nx * w2 - rm.tx * L0, rm.z + rm.nz * w2 - rm.tz * L0, H0);
+    var pR0 = proj(rm.x - rm.nx * w2 - rm.tx * L0, rm.z - rm.nz * w2 - rm.tz * L0, H0);
+    var pR1 = proj(rm.x - rm.nx * w2 + rm.tx * L1, rm.z - rm.nz * w2 + rm.tz * L1, H1);
+    var pL1 = proj(rm.x + rm.nx * w2 + rm.tx * L1, rm.z + rm.nz * w2 + rm.tz * L1, H1);
+    ctx.beginPath();
+    ctx.moveTo(pL0.x, pL0.y); ctx.lineTo(pL1.x, pL1.y); ctx.lineTo(pR1.x, pR1.y); ctx.lineTo(pR0.x, pR0.y); ctx.closePath();
+    ctx.fillStyle = 'rgba(46,32,10,.92)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,210,63,.85)'; ctx.lineWidth = 1.6; ctx.stroke();
+    /* 스트라이프 3줄 */
+    ctx.beginPath();
+    for (var st3 = 1; st3 <= 3; st3++) {
+      var f3 = st3 / 4, bx3 = -L0 + (L1 + L0) * f3, hy = H0 + (H1 - H0) * f3;
+      var s1 = proj(rm.x + rm.nx * w2 * 0.9 + rm.tx * bx3, rm.z + rm.nz * w2 * 0.9 + rm.tz * bx3, hy);
+      var s2 = proj(rm.x - rm.nx * w2 * 0.9 + rm.tx * bx3, rm.z - rm.nz * w2 * 0.9 + rm.tz * bx3, hy);
+      ctx.moveTo(s1.x, s1.y); ctx.lineTo(s2.x, s2.y);
+    }
+    ctx.strokeStyle = 'rgba(255,210,63,.55)'; ctx.lineWidth = 1.4; ctx.stroke();
   }
   /* 부스터 패드 */
   for (i = 0; i < T.boosts.length; i++) {
