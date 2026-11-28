@@ -1,0 +1,1819 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#04060f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>네온 드리프트 보스 - 90도 코너 원터치 드리프트 | UJ ARCADE</title>
+<meta name="description" content="누르면 오른쪽으로 드리프트, 떼면 직진. 공중 네온 도로의 90도 코너를 아슬아슬하게 돌파하는 원터치 아케이드. 좁아지는 구간·연속 지그재그·점프대·부스터, 코인으로 차량 5종 해금, 스킨·부스터·랭킹까지. 설치 없이 바로 플레이.">
+<link rel="canonical" href="https://skadnrwhd-web.github.io/arcade/games/drift-boss.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="UJ ARCADE">
+<meta property="og:title" content="네온 드리프트 보스 - 90도 코너 원터치 드리프트">
+<meta property="og:description" content="버튼 하나로 90도 코너를 도는 네온 드리프트. 점프대·부스터·코인으로 차량 5종 해금, 좁아지는 구간과 연속 코너를 넘으며 최고 거리에 도전하세요.">
+<meta property="og:url" content="https://skadnrwhd-web.github.io/arcade/games/drift-boss.html">
+<meta property="og:image" content="https://skadnrwhd-web.github.io/arcade/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  /* iOS 사파리: 꾹 누르면 뜨는 글자 선택 돋보기·콜아웃·링크 미리보기 차단 */
+  html,body,body *{-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;
+    -webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
+  html input,html textarea,html select,html [contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+  html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#04060f;color:#eaf6ff;
+    font-family:"Apple SD Gothic Neo","Noto Sans KR","Noto Sans CJK KR","Malgun Gothic","Liberation Sans",-apple-system,BlinkMacSystemFont,system-ui,sans-serif;
+    overscroll-behavior:none;touch-action:none}
+  #app{position:fixed;inset:0;overflow:hidden;
+    background:radial-gradient(120% 90% at 50% 6%,#0b1730 0%,#070c19 42%,#04060f 100%)}
+  #stage{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none}
+
+  /* ── HUD ── */
+  #hud{position:absolute;left:0;right:0;top:0;z-index:6;pointer-events:none;
+    padding:calc(env(safe-area-inset-top) + 8px) calc(env(safe-area-inset-right) + 12px) 0 calc(env(safe-area-inset-left) + 12px)}
+  #hud .row1{display:flex;align-items:flex-start;gap:8px}
+  #hud .sc{min-width:0;flex:0 1 auto}
+  #hud .lab{display:block;font-size:9.5px;letter-spacing:.19em;color:#7f93b8;font-weight:800;margin-bottom:1px}
+  #score{font-size:28px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;color:#f2fdff;
+    text-shadow:0 0 16px rgba(55,224,255,.55)}
+  #best{display:block;font-size:10.5px;color:#8ea3c4;font-weight:800;margin-top:4px;font-variant-numeric:tabular-nums}
+  #hud .mid{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;gap:5px;padding-top:2px;min-width:0;overflow:hidden}
+  #chips{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}
+  .chip{font-size:10.5px;font-weight:900;letter-spacing:.05em;padding:4px 9px;border-radius:99px;white-space:nowrap;
+    color:#bfefff;background:rgba(12,32,48,.86);border:1px solid rgba(55,224,255,.42);font-variant-numeric:tabular-nums}
+  .chip[hidden]{display:none}
+  .chip.spd{color:#d7f6ff}
+  .chip.drift{color:#2a0616;background:linear-gradient(135deg,#ff4d8d,#ff9a3d);border-color:#ff9a3d}
+  .chip.boost{color:#2a1206;background:linear-gradient(135deg,#ffd23f,#ff9a3d);border-color:#ffd23f}
+  .chip.sure{color:#06210f;background:linear-gradient(135deg,#7dffb0,#5ee0ff);border-color:#7dffb0}
+  .chip.dbl{color:#1b0630;background:linear-gradient(135deg,#c69bff,#8f9dff);border-color:#c69bff}
+  .chip.chal{color:#ffd7e6;background:rgba(60,16,44,.92);border-color:rgba(255,77,141,.6)}
+  .chip.chal.hit{color:#06210f;background:linear-gradient(135deg,#7dffb0,#5ee0ff);border-color:#7dffb0}
+  #hud .right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex:0 0 auto}
+  #wallet{display:flex;align-items:center;gap:4px;font-size:11.5px;font-weight:900;color:#ffd86a;
+    background:rgba(30,22,6,.74);border:1px solid rgba(255,210,63,.4);border-radius:99px;padding:3px 9px;
+    font-variant-numeric:tabular-nums;line-height:1}
+  #hud .btns{display:flex;gap:5px;pointer-events:auto}
+  #hud button,#hud a.ico{width:34px;height:34px;border-radius:11px;border:1px solid rgba(120,190,235,.26);
+    background:rgba(12,22,40,.8);color:#d6ecff;font-size:15px;line-height:1;display:flex;align-items:center;
+    justify-content:center;padding:0;cursor:pointer;font-family:inherit;text-decoration:none}
+  #hud button:active,#hud a.ico:active{transform:scale(.93)}
+  #hud button.off{color:#6b7c99;border-color:rgba(120,190,235,.12);background:rgba(9,15,26,.72)}
+  @media (max-width:430px){
+    #hud button,#hud a.ico{width:30px;height:30px;border-radius:10px;font-size:14px}
+    #score{font-size:24px}
+    .chip{font-size:9.5px;padding:3px 7px}
+    #wallet{font-size:10.5px;padding:2px 7px}
+  }
+  @media (max-height:460px){
+    #score{font-size:20px}
+    #best{font-size:9px;margin-top:2px}
+    #hud .lab{font-size:8px}
+    #hud button,#hud a.ico{width:28px;height:28px;border-radius:9px;font-size:13px}
+  }
+
+  /* ── 하단 힌트 ── */
+  #hint{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 10px);z-index:6;text-align:center;
+    font-size:12px;font-weight:800;color:#d6e8ff;pointer-events:none;transition:opacity .55s ease;
+    text-shadow:0 2px 12px rgba(0,0,0,.9);line-height:1.35;padding:0 18px}
+  #hint b{color:#7ceaff}
+  #hint.off{opacity:0}
+  #hint kbd{font-family:inherit;font-size:11px;background:rgba(30,48,72,.9);border:1px solid rgba(120,190,235,.35);
+    border-radius:6px;padding:1px 5px;margin:0 2px}
+  @media (max-height:460px){#hint{font-size:10.5px;bottom:6px}}
+
+  /* ── 배너 ── */
+  #banner{position:absolute;left:0;right:0;top:30%;z-index:8;text-align:center;pointer-events:none;padding:0 18px;
+    font-weight:900;font-size:23px;letter-spacing:.01em;color:#f4fdff;opacity:0;transform:scale(.9);
+    transition:opacity .16s ease,transform .16s ease;text-shadow:0 0 24px rgba(55,224,255,.55)}
+  #banner span{display:inline-block;padding:9px 18px;border-radius:16px;background:rgba(6,12,24,.88);
+    border:1px solid rgba(55,224,255,.45);max-width:100%}
+  #banner small{display:block;font-size:12.5px;font-weight:800;color:#9dffc0;margin-top:4px;letter-spacing:.02em}
+  #banner.show{opacity:1;transform:scale(1)}
+
+  /* ── 오버레이 ── */
+  .ov{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 14px);
+    background:radial-gradient(120% 80% at 50% 20%,rgba(9,20,40,.92) 0%,rgba(4,7,15,.96) 60%,rgba(3,5,11,.985) 100%);
+    overflow-y:auto;-webkit-overflow-scrolling:touch;text-align:center}
+  .ov[hidden]{display:none}
+  .ov h1{margin:0 0 4px;font-size:26px;letter-spacing:-.01em;font-weight:900;
+    background:linear-gradient(180deg,#f4feff,#6fd8ff 62%,#a08cff);-webkit-background-clip:text;background-clip:text;
+    -webkit-text-fill-color:transparent}
+  .ov .sub{margin:2px 0 10px;font-size:11px;font-weight:900;letter-spacing:.24em;color:#7ea9d6}
+  .ov h2{margin:0 0 6px;font-size:22px;font-weight:900;color:#f2fdff}
+  .ov p{margin:0 0 10px;font-size:12.5px;line-height:1.55;color:#b9cde5;max-width:430px}
+  .ov p b{color:#7ceaff}
+  .ov .big{font-size:52px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums;
+    color:#f4feff;text-shadow:0 0 26px rgba(55,224,255,.55)}
+  .ov .big small{font-size:16px;color:#8fd6ff;font-weight:900;margin-left:4px}
+  .rec{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:6px 0 12px}
+  .rec>div{min-width:78px;padding:6px 10px;border-radius:12px;background:rgba(11,22,40,.8);
+    border:1px solid rgba(120,190,235,.2);font-size:10px;font-weight:900;letter-spacing:.1em;color:#8ea3c4}
+  .rec>div b{display:block;margin-top:2px;font-size:15px;letter-spacing:0;color:#eaf6ff;font-variant-numeric:tabular-nums}
+  .rec>div.best b{color:#ffd86a}
+  .btn{appearance:none;border:0;border-radius:14px;padding:13px 26px;font-family:inherit;font-weight:900;font-size:15px;
+    color:#04121a;background:linear-gradient(135deg,#7ceaff,#8f9dff);cursor:pointer;
+    box-shadow:0 8px 22px rgba(60,180,255,.28);letter-spacing:.01em}
+  .btn:active{transform:scale(.97)}
+  .btn.line{background:rgba(14,26,46,.9);color:#d6ecff;border:1px solid rgba(120,190,235,.3);box-shadow:none}
+  .btn.gold{background:linear-gradient(135deg,#ffd23f,#ff9a3d);color:#2a1206}
+  .btn[disabled]{opacity:.42;filter:saturate(.4);box-shadow:none}
+  .row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+  .keys{font-size:11px;line-height:1.6;color:#9db4d0;max-width:430px;margin:10px 0 2px}
+  .keys kbd{font-family:inherit;font-size:10.5px;background:rgba(30,48,72,.9);border:1px solid rgba(120,190,235,.35);
+    border-radius:6px;padding:1px 5px;margin:0 2px}
+  .keys b{color:#7ceaff}
+  .tagline{display:inline-block;margin-top:12px;font-size:10.5px;font-weight:900;letter-spacing:.18em;color:#5f7fa6;
+    text-decoration:none}
+
+  /* ── 차고(차량 선택) ── */
+  .garage{margin:4px 0 10px;width:100%;max-width:470px}
+  .garage .gh{display:flex;align-items:center;justify-content:space-between;margin:0 2px 6px;
+    font-size:10px;font-weight:900;letter-spacing:.16em;color:#7ea9d6}
+  .garage .gh b{color:#ffd86a;letter-spacing:0;font-size:12px;font-variant-numeric:tabular-nums}
+  .cars{display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;padding:2px 2px 6px;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;touch-action:pan-x}
+  .cars::-webkit-scrollbar{display:none}
+  .car{flex:0 0 auto;width:104px;padding:7px 6px 6px;border-radius:13px;background:rgba(10,20,38,.86);
+    border:1px solid rgba(120,190,235,.18);cursor:pointer;position:relative;transition:border-color .15s,transform .12s}
+  .car:active{transform:scale(.97)}
+  .car.sel{border-color:rgba(124,234,255,.9);background:linear-gradient(180deg,rgba(20,52,78,.95),rgba(10,22,40,.9));
+    box-shadow:0 0 0 1px rgba(124,234,255,.28) inset}
+  .car svg{display:block;width:100%;height:38px}
+  .car .nm{font-size:10.5px;font-weight:900;color:#eaf6ff;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .car .pk{font-size:9px;font-weight:800;color:#8ea3c4;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .car .pr{position:absolute;top:5px;right:6px;font-size:9.5px;font-weight:900;color:#ffd86a;
+    background:rgba(30,22,6,.86);border-radius:99px;padding:1px 6px;border:1px solid rgba(255,210,63,.28)}
+  .car.locked .nm{color:#b7c6da}
+  .car.locked{background:rgba(9,15,26,.7)}
+  .car .tick{position:absolute;top:5px;right:6px;font-size:11px;color:#7dffb0;font-weight:900}
+
+  /* ── 부스터(코인 사용) ── */
+  .boosts{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:2px 0 12px;width:100%;max-width:470px}
+  .bst{flex:1 1 96px;min-width:96px;padding:8px 8px;border-radius:12px;background:rgba(10,20,38,.86);
+    border:1px solid rgba(120,190,235,.18);cursor:pointer;text-align:left;transition:border-color .15s,background .15s}
+  .bst.on{border-color:rgba(125,255,176,.8);background:linear-gradient(180deg,rgba(12,48,32,.95),rgba(10,22,32,.9))}
+  .bst[disabled]{opacity:.42;filter:saturate(.35)}
+  .bst .t{font-size:11.5px;font-weight:900;color:#eaf6ff;display:flex;justify-content:space-between;gap:4px}
+  .bst .t i{font-style:normal;color:#ffd86a;font-variant-numeric:tabular-nums}
+  .bst .d{font-size:9.5px;color:#8ea3c4;margin-top:3px;line-height:1.35}
+  .bst.on .t i{color:#7dffb0}
+
+  #toast{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 74px);transform:translateX(-50%) translateY(8px);
+    z-index:12;padding:8px 14px;border-radius:12px;background:rgba(6,14,26,.94);border:1px solid rgba(55,224,255,.45);
+    font-size:12px;font-weight:900;color:#eaf6ff;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:86vw}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="stage" aria-label="네온 드리프트 보스 게임 화면"></canvas>
+
+  <div id="hud">
+    <div class="row1">
+      <div class="sc">
+        <span class="lab">SCORE</span>
+        <div id="score">0</div>
+        <span id="best">최고 0 m</span>
+      </div>
+      <div class="mid">
+        <div id="chips">
+          <span class="chip spd" id="chipSpd">0 km/h</span>
+          <span class="chip drift" id="chipDrift" hidden>DRIFT</span>
+          <span class="chip boost" id="chipBoost" hidden>BOOST</span>
+          <span class="chip sure" id="chipSure" hidden>보험</span>
+          <span class="chip dbl" id="chipDbl" hidden>×2</span>
+          <span class="chip chal" id="chipChal" hidden>⚔️</span>
+        </div>
+      </div>
+      <div class="right">
+        <div id="wallet">🪙 <b id="walletN">0</b></div>
+        <div class="btns">
+          <button id="bgmBtn" type="button" aria-label="배경음악 끄기">🎵</button>
+          <button id="mute" type="button" aria-label="효과음 끄기">🔊</button>
+          <button id="pauseBtn" type="button" aria-label="일시정지">⏸</button>
+          <a class="ico" href="../index.html" aria-label="UJ ARCADE 홈으로" data-home>⌂</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="hint"><b>누르고 있으면</b> 오른쪽으로 드리프트 · <b>떼면</b> 직진</div>
+  <div id="banner"><span id="bannerT"></span></div>
+  <div id="toast"></div>
+
+  <div id="title" class="ov">
+    <h1>🏎️ 네온 드리프트 보스</h1>
+    <p class="sub">NEON DRIFT BOSS · ONE-TAP DRIFT ARCADE</p>
+    <p id="tDesc">공중 네온 도로의 <b>90도 코너</b>를 아슬아슬하게 돌파하세요.
+      누르고 있으면 오른쪽으로 꺾이고, 떼면 곧게 달립니다. 코너가 보이면 <b>살짝 미리</b> 누르는 게 요령!</p>
+    <div class="rec">
+      <div class="best" id="tBestL">최고 점수<b id="tBest">0</b></div>
+      <div id="tPlayL">플레이<b id="tPlay">0</b></div>
+      <div id="tCoinL">모은 코인<b id="tCoin">0</b></div>
+    </div>
+    <div class="garage">
+      <div class="gh"><span>🏁 차고 · 차량 선택</span><b id="gCoins">🪙 0</b></div>
+      <div class="cars" id="carStrip"></div>
+    </div>
+    <div class="boosts" id="boostRow"></div>
+    <button class="btn start" id="startBtn" type="button">▶ 출발하기</button>
+    <p class="keys" id="tKeys"><b>한 손가락</b>으로 화면 아무 곳이나 누르고 있으면 코너<br>
+      PC: <kbd>space</kbd> / <kbd>↑</kbd> / 마우스 왼쪽 버튼 · <kbd>P</kbd> 일시정지<br>
+      <b>점프대</b>는 자동 도약, <b>부스터 패드</b>는 잠깐 무적 · 코인으로 차량 5종 해금</p>
+    <a class="tagline" href="../index.html">UJ ARCADE · 무료 브라우저 게임</a>
+  </div>
+
+  <div id="pause" class="ov" hidden>
+    <h2 id="pauseT">일시정지</h2>
+    <p id="pauseP">도로는 기다려 주지 않습니다.</p>
+    <div class="rec">
+      <div id="pDistL">거리<b id="pDist">0 m</b></div>
+      <div id="pCoinL">코인<b id="pCoin">0</b></div>
+      <div id="pSpdL">속도<b id="pSpd">0</b></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="resumeBtn" type="button">계속하기</button>
+      <button class="btn line" id="restartBtn" type="button">처음부터</button>
+      <button class="btn line" id="quitBtn" type="button">그만두기</button>
+    </div>
+  </div>
+
+  <div id="over" class="ov" hidden>
+    <h2 id="ovTitle">게임 끝</h2>
+    <div class="big"><span id="ovScore">0</span><small>점</small></div>
+    <span class="sub" id="ovSub">FINAL SCORE</span>
+    <div class="rec">
+      <div class="best" id="ovBestL">최고 점수<b id="ovBest">0</b></div>
+      <div id="ovDistL">거리<b id="ovDist">0 m</b></div>
+      <div id="ovCoinL">모은 코인<b id="ovCoin">0</b></div>
+      <div id="ovCornL">코너<b id="ovCorn">0</b></div>
+      <div id="ovSpdL">최고 속도<b id="ovSpd">0</b></div>
+    </div>
+    <div class="garage">
+      <div class="gh"><span>🏁 차고 · 차량 선택</span><b id="oCoins">🪙 0</b></div>
+      <div class="cars" id="carStrip2"></div>
+    </div>
+    <div class="row">
+      <button class="btn" id="againBtn" type="button">다시 도전</button>
+      <button class="btn line" id="ovRank" type="button">🏆 랭킹</button>
+      <button class="btn line" id="ovHome" type="button">⌂ 홈</button>
+    </div>
+    <p class="keys" id="ovTip">코너에서 <b>살짝 미리</b> 누르면 안쪽으로 파고들어요 · 좁은 구간은 더 짧게</p>
+  </div>
+</div>
+<script src="../rank.js"></script>
+<script>
+(function () {
+'use strict';
+
+/* ══════════════════════════════════════════════════════════════════
+   네온 드리프트 보스  ·  UJ ARCADE
+   원터치(누르면 우회전 드리프트 / 떼면 직진) 2.5D 드리프트 아케이드
+   ══════════════════════════════════════════════════════════════════ */
+
+function $(id) { return document.getElementById(id); }
+function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function smooth(t) { return t * t * (3 - 2 * t); }
+function angNorm(a) { while (a > Math.PI) a -= Math.PI * 2; while (a < -Math.PI) a += Math.PI * 2; return a; }
+function now() { return (window.performance && performance.now) ? performance.now() : Date.now(); }
+
+/* ───────── 저장 ───────── */
+var KEY = 'uj-drift-boss-v1';
+var store = { coins: 0, best: 0, bestCoins: 0, runs: 0, cars: { coupe: 1 }, sel: 'coupe', bgm: 1, sfx: 1 };
+(function loadStore() {
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (!raw) return;
+    var o = JSON.parse(raw);
+    if (!o || typeof o !== 'object') return;
+    store.coins = Math.max(0, Math.floor(o.coins || 0));
+    store.best = Math.max(0, Math.floor(o.best || 0));
+    store.bestCoins = Math.max(0, Math.floor(o.bestCoins || 0));
+    store.runs = Math.max(0, Math.floor(o.runs || 0));
+    store.cars = (o.cars && typeof o.cars === 'object') ? o.cars : { coupe: 1 };
+    store.cars.coupe = 1;
+    store.sel = typeof o.sel === 'string' ? o.sel : 'coupe';
+    store.bgm = o.bgm == null ? 1 : (o.bgm ? 1 : 0);
+    store.sfx = o.sfx == null ? 1 : (o.sfx ? 1 : 0);
+  } catch (e) { }
+})();
+function saveStore() {
+  try { localStorage.setItem(KEY, JSON.stringify(store)); } catch (e) { }
+}
+
+/* ───────── 차량 ───────── */
+var CARS = [
+  { id: 'coupe', ko: '네온 쿠페', pr: 0, b1: '#37e0ff', b2: '#7ceaff', b3: '#eafcff', perk: '밸런스 · 기본' },
+  { id: 'drifter', ko: '사이버 드리프터', pr: 150, b1: '#ff4d8d', b2: '#ff9ad0', b3: '#ffe6f2', perk: '코너 회전 +10%' },
+  { id: 'gold', ko: '골드 F1', pr: 400, b1: '#ffd23f', b2: '#ff9a3d', b3: '#fff3c4', perk: '차체 좁음 · 판정 +' },
+  { id: 'hover', ko: '호버 GT', pr: 800, b1: '#8f9dff', b2: '#c69bff', b3: '#eee6ff', perk: '코인 자석 1.5배' },
+  { id: 'phantom', ko: '네온 팬텀', pr: 1500, b1: '#eafcff', b2: '#7dffb0', b3: '#ffffff', perk: '점수 +10%' }
+];
+function carDef(id) { for (var i = 0; i < CARS.length; i++) if (CARS[i].id === id) return CARS[i]; return CARS[0]; }
+
+/* ───────── 오디오 (iOS 잠금 해제 포함) ───────── */
+var AU = {
+  ac: null, master: null, mus: null, sfx: null, ready: false, unlockTried: false,
+  noise: null, skidSrc: null, skidGain: null, skidFilt: null,
+  step: 0, nextT: 0, musicOn: false, tension: 0,
+
+  boot: function () {
+    if (this.ac) { this.resume(); return; }
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    try {
+      this.ac = new AC();
+      var ac = this.ac;
+      this.master = ac.createGain(); this.master.gain.value = 0.85; this.master.connect(ac.destination);
+      this.mus = ac.createGain(); this.mus.gain.value = store.bgm ? 0.5 : 0; this.mus.connect(this.master);
+      this.sfx = ac.createGain(); this.sfx.gain.value = store.sfx ? 0.85 : 0; this.sfx.connect(this.master);
+      /* 무음 버퍼 한 번 재생 = iOS 사파리 오디오 잠금 해제 */
+      var b = ac.createBuffer(1, 1, 22050);
+      var s = ac.createBufferSource(); s.buffer = b; s.connect(ac.destination); s.start(0);
+      /* 노이즈 버퍼(스키드·추돌·모자이크 사운드 공용) */
+      var n = ac.createBuffer(1, Math.floor(ac.sampleRate * 1.2), ac.sampleRate);
+      var d = n.getChannelData(0);
+      for (var i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length * 0.15);
+      this.noise = n;
+      this.ready = true;
+      this.resume();
+    } catch (e) { this.ac = null; }
+  },
+  resume: function () {
+    if (!this.ac) return;
+    try { if (this.ac.state === 'suspended') this.ac.resume(); } catch (e) { }
+  },
+  setMusic: function (on) {
+    store.bgm = on ? 1 : 0; saveStore();
+    if (this.mus && this.ac) { try { this.mus.gain.setTargetAtTime(store.bgm ? 0.5 : 0, this.ac.currentTime, 0.05); } catch (e) { } }
+    if (on) this.startMusic(); else this.musicOn = store.bgm ? this.musicOn : false;
+  },
+  setSfx: function (on) {
+    store.sfx = on ? 1 : 0; saveStore();
+    if (this.sfx && this.ac) { try { this.sfx.gain.setTargetAtTime(store.sfx ? 0.85 : 0, this.ac.currentTime, 0.03); } catch (e) { } }
+  },
+  tone: function (o) {
+    if (!this.ready) return;
+    var ac = this.ac;
+    try {
+      var t0 = o.at != null ? o.at : ac.currentTime;
+      var osc = ac.createOscillator(), g = ac.createGain();
+      osc.type = o.type || 'sine';
+      osc.frequency.setValueAtTime(o.f0, t0);
+      if (o.f1 != null) osc.frequency.exponentialRampToValueAtTime(Math.max(20, o.f1), t0 + (o.dur || 0.15));
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, o.vol == null ? 0.2 : o.vol), t0 + (o.atk == null ? 0.008 : o.atk));
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + (o.dur || 0.15));
+      osc.connect(g); g.connect(o.bus || this.sfx);
+      osc.start(t0); osc.stop(t0 + (o.dur || 0.15) + 0.03);
+    } catch (e) { }
+  },
+  burst: function (o) {
+    if (!this.ready || !this.noise) return;
+    var ac = this.ac;
+    try {
+      var t0 = ac.currentTime;
+      var src = ac.createBufferSource(); src.buffer = this.noise;
+      var f = ac.createBiquadFilter(); f.type = o.ftype || 'bandpass';
+      f.frequency.setValueAtTime(o.f0 || 1600, t0);
+      if (o.f1) f.frequency.exponentialRampToValueAtTime(Math.max(60, o.f1), t0 + (o.dur || 0.2));
+      f.Q.value = o.q == null ? 1.1 : o.q;
+      var g = ac.createGain();
+      g.gain.setValueAtTime(Math.max(0.0002, o.vol == null ? 0.22 : o.vol), t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + (o.dur || 0.2));
+      src.connect(f); f.connect(g); g.connect(o.bus || this.sfx);
+      src.start(t0); src.stop(t0 + (o.dur || 0.2) + 0.02);
+    } catch (e) { }
+  },
+
+  /* ── 스키드(타이어 마찰) 루프: 드리프트 각도에 비례해 게인·컷오프 ── */
+  skidInit: function () {
+    if (this.skidSrc || !this.ready || !this.noise) return;
+    try {
+      var ac = this.ac;
+      var src = ac.createBufferSource(); src.buffer = this.noise; src.loop = true;
+      var f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 2100; f.Q.value = 2.2;
+      var g = ac.createGain(); g.gain.value = 0.0001;
+      src.connect(f); f.connect(g); g.connect(this.sfx);
+      src.start(0);
+      this.skidSrc = src; this.skidFilt = f; this.skidGain = g;
+    } catch (e) { }
+  },
+  skid: function (level) {
+    if (!this.ready) { if (level > 0.05) this.skidInit(); return; }
+    if (!this.skidSrc) this.skidInit();
+    if (!this.skidGain) return;
+    var v = clamp(level, 0, 1);
+    try {
+      var t = this.ac.currentTime;
+      this.skidGain.gain.setTargetAtTime(0.0001 + v * 0.16, t, 0.04);
+      this.skidFilt.frequency.setTargetAtTime(1500 + v * 1900, t, 0.06);
+    } catch (e) { }
+  },
+
+  /* ── 신스웨이브 BGM: 16분음표 스케줄러 ── */
+  startMusic: function () {
+    if (!this.ready || !store.bgm) return;
+    this.musicOn = true;
+    if (!this.nextT || this.nextT < this.ac.currentTime) this.nextT = this.ac.currentTime + 0.08;
+  },
+  stopMusic: function () { this.musicOn = false; },
+  tick: function () {
+    if (!this.ready || !this.musicOn || !store.bgm) return;
+    var ac = this.ac;
+    if (this.nextT < ac.currentTime) this.nextT = ac.currentTime + 0.02;
+    var stepDur = 60 / 132 / 4;                       /* 132 BPM 16분음표 */
+    var guard = 0;
+    while (this.nextT < ac.currentTime + 0.22 && guard++ < 24) {
+      this.sched(this.step, this.nextT);
+      this.step++;
+      this.nextT += stepDur;
+    }
+  },
+  sched: function (step, at) {
+    var BAR = 16, bar = Math.floor(step / BAR) % 4, s = step % BAR;
+    var bass = [110.0, 87.31, 130.81, 98.0];
+    var pads = [[220, 261.63, 329.63], [174.61, 220, 261.63], [196, 261.63, 329.63], [196, 246.94, 293.66]];
+    var root = bass[bar], pad = pads[bar];
+    var ms = this.mus;
+    /* 베이스: 8분음표 펄스 */
+    if (s % 2 === 0) {
+      this.tone({ type: 'sawtooth', f0: root, dur: 0.16, vol: 0.085, bus: ms, at: at });
+      this.tone({ type: 'sine', f0: root / 2, dur: 0.18, vol: 0.075, bus: ms, at: at });
+    }
+    /* 패드: 마디 첫머리 화음 */
+    if (s === 0) {
+      for (var i = 0; i < pad.length; i++)
+        this.tone({ type: 'triangle', f0: pad[i], dur: 1.5, atk: 0.25, vol: 0.028, bus: ms, at: at });
+    }
+    /* 아르페지오 리드 */
+    if (s === 2 || s === 6 || s === 10 || s === 13) {
+      this.tone({ type: 'square', f0: pad[(s / 3 | 0) % 3] * 2, dur: 0.085, vol: 0.022 + this.tension * 0.012, bus: ms, at: at });
+    }
+    /* 드럼 */
+    if (s === 0 || s === 6 || s === 8 || s === 14) {
+      this.tone({ type: 'sine', f0: 132, f1: 44, dur: 0.12, vol: 0.16, bus: ms, at: at });
+    }
+    if (s === 4 || s === 12) {
+      try {
+        var ac = this.ac, src = ac.createBufferSource(); src.buffer = this.noise;
+        var f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1300;
+        var g = ac.createGain(); g.gain.setValueAtTime(0.055, at);
+        g.gain.exponentialRampToValueAtTime(0.0001, at + 0.12);
+        src.connect(f); f.connect(g); g.connect(ms); src.start(at); src.stop(at + 0.14);
+      } catch (e) { }
+    }
+    if (s % 2 === 1) {
+      try {
+        var ac2 = this.ac, s2 = ac2.createBufferSource(); s2.buffer = this.noise;
+        var f2 = ac2.createBiquadFilter(); f2.type = 'highpass'; f2.frequency.value = 7200;
+        var g2 = ac2.createGain(); g2.gain.setValueAtTime(0.014, at);
+        g2.gain.exponentialRampToValueAtTime(0.0001, at + 0.035);
+        s2.connect(f2); f2.connect(g2); g2.connect(ms); s2.start(at); s2.stop(at + 0.05);
+      } catch (e) { }
+    }
+  },
+
+  /* ── 효과음 ── */
+  coin: function (n) {
+    var f = 900 * Math.pow(2, Math.min(n, 14) / 12);
+    this.tone({ type: 'triangle', f0: f, f1: f * 1.6, dur: 0.085, vol: 0.15 });
+    this.tone({ type: 'square', f0: f * 2, dur: 0.05, vol: 0.05 });
+  },
+  gold: function () {
+    this.tone({ type: 'triangle', f0: 1046, dur: 0.09, vol: 0.14 });
+    this.tone({ type: 'triangle', f0: 1568, dur: 0.12, vol: 0.13, at: this.ac ? this.ac.currentTime + 0.07 : 0 });
+    this.tone({ type: 'triangle', f0: 2093, dur: 0.16, vol: 0.1, at: this.ac ? this.ac.currentTime + 0.14 : 0 });
+  },
+  near: function () {
+    this.tone({ type: 'triangle', f0: 1500, f1: 2200, dur: 0.09, vol: 0.1 });
+    this.tone({ type: 'sine', f0: 2600, dur: 0.14, vol: 0.06, at: this.ac ? this.ac.currentTime + 0.05 : 0 });
+  },
+  boost: function () {
+    this.burst({ ftype: 'bandpass', f0: 420, f1: 3600, dur: 0.32, vol: 0.2, q: 0.9 });
+    this.tone({ type: 'sawtooth', f0: 220, f1: 980, dur: 0.3, vol: 0.13 });
+  },
+  jump: function () { this.tone({ type: 'triangle', f0: 320, f1: 820, dur: 0.16, vol: 0.13 }); },
+  land: function () { this.burst({ ftype: 'lowpass', f0: 900, f1: 200, dur: 0.16, vol: 0.18 }); this.tone({ type: 'sine', f0: 150, f1: 70, dur: 0.14, vol: 0.12 }); },
+  crash: function () {
+    this.burst({ ftype: 'lowpass', f0: 2400, f1: 120, dur: 0.55, vol: 0.32 });
+    this.tone({ type: 'sawtooth', f0: 180, f1: 40, dur: 0.5, vol: 0.2 });
+  },
+  ui: function () { this.tone({ type: 'square', f0: 620, dur: 0.045, vol: 0.07 }); },
+  buy: function () { this.tone({ type: 'triangle', f0: 740, dur: 0.1, vol: 0.14 }); this.tone({ type: 'triangle', f0: 1180, dur: 0.14, vol: 0.12, at: this.ac ? this.ac.currentTime + 0.09 : 0 }); }
+};
+
+/* ───────── 트랙(공중 네온 도로) 생성 ───────── */
+var TILE_M = 5;              /* 타일 1칸 = 5 m */
+var HW_ROAD = 0.47, HW_NARROW = 0.355;
+var rngState = 1;
+function rng() { rngState = (rngState * 1664525 + 1013904223) >>> 0; return rngState / 4294967296; }
+function ri(a, b) { return a + Math.floor(rng() * (b - a + 1)); }
+function dirVec(d) { return d === 0 ? [0, -1] : d === 1 ? [1, 0] : d === 2 ? [0, 1] : [-1, 0]; }
+
+var T = {
+  pts: [], hw: [], cum: [], corner: [], nor: [], kind: [],
+  coins: [], rams: [], boosts: [],
+  total: 0, gx: 0, gz: 0, dir: 0, used: null, coinGoldAt: 9
+};
+
+function tReset(seed) {
+  rngState = (seed >>> 0) || 20261128;
+  T.pts = []; T.hw = []; T.cum = []; T.corner = []; T.nor = []; T.kind = [];
+  T.coins = []; T.rams = []; T.boosts = [];
+  T.total = 0; T.gx = 0; T.gz = 0; T.dir = 0; T.used = { '0,0': 1 }; T.coinGoldAt = ri(7, 14);
+  T.sinceRam = 0; T.sinceBoost = 0;
+  pushP(0, 0, HW_ROAD, false, 'start');
+  for (var i = 0; i < 10; i++) tStep(HW_ROAD, 'road');
+  tCorner();
+  for (i = 0; i < 4; i++) tStep(HW_ROAD, 'road');
+  tEnsure(80);
+}
+
+function pushP(x, z, hw, corner, kind) {
+  var i = T.pts.length;
+  T.pts.push({ x: x, z: z });
+  T.hw.push(hw); T.corner.push(corner ? 1 : 0); T.kind.push(kind || 'road');
+  T.cum.push(i === 0 ? 0 : T.cum[i - 1] + (Math.abs(x - T.pts[i - 1].x) + Math.abs(z - T.pts[i - 1].z)));
+  T.total = T.cum[i];
+  fixNormals(Math.max(0, i - 3));
+  return i;
+}
+
+/* 각 점의 진행방향·법선(코너는 마이터로 벌려 부드러운 코너 패드를 만든다) */
+function fixNormals(from) {
+  var n = T.pts.length, i, a, b, ax, az, bx, bz, la, lb, tx, tz, nx, nz, dot, sc;
+  for (i = from; i < n; i++) {
+    var p = T.pts[i];
+    if (n < 2) { T.nor[0] = { x: 1, z: 0, tx: 0, tz: -1 }; continue; }
+    if (i === 0) { a = T.pts[1]; ax = a.x - p.x; az = a.z - p.z; bx = ax; bz = az; }
+    else if (i === n - 1) { b = T.pts[i - 1]; ax = p.x - b.x; az = p.z - b.z; bx = ax; bz = az; }
+    else { a = T.pts[i + 1]; b = T.pts[i - 1]; ax = a.x - p.x; az = a.z - p.z; bx = p.x - b.x; bz = p.z - b.z; }
+    la = Math.hypot(ax, az) || 1; lb = Math.hypot(bx, bz) || 1;
+    tx = ax / la + bx / lb; tz = az / la + bz / lb;
+    var lt = Math.hypot(tx, tz) || 1; tx /= lt; tz /= lt;
+    nx = -tz; nz = tx;
+    /* 마이터 배율: 두 법선이 이루는 각의 절반 코사인 */
+    var n1x = -bz / lb, n1z = bx / lb;
+    dot = nx * n1x + nz * n1z;
+    sc = 1 / Math.max(0.62, Math.abs(dot));
+    T.nor[i] = { x: nx * sc, z: nz * sc, tx: tx, tz: tz };
+  }
+}
+
+function tStep(hw, kind) {
+  var v = dirVec(T.dir);
+  T.gx += v[0]; T.gz += v[1];
+  var i = pushP(T.gx, T.gz, hw, false, kind);
+  T.used[T.gx + ',' + T.gz] = 1;
+  return i;
+}
+function tCorner() {
+  var last = T.pts.length - 1;
+  T.corner[last] = 1;
+  T.dir = (T.dir + 1) % 4;
+  tStep(HW_ROAD, 'corner');
+  tStep(HW_ROAD, 'corner');
+}
+function cellOk(x, z, allow) {
+  var key = x + ',' + z;
+  if (T.used[key] && !allow[key]) return false;
+  if (!allow[key] && (T.used[(x + 1) + ',' + z] || T.used[(x - 1) + ',' + z] ||
+      T.used[x + ',' + (z + 1)] || T.used[x + ',' + (z - 1)])) return false;
+  return true;
+}
+
+/* 패턴 1개 = (직선 L칸) + 코너 + (2칸) */
+function tPattern() {
+  var d = T.total * TILE_M, diff = clamp(d / 1600, 0, 1), r = rng(), L;
+  if (r < 0.20 + diff * 0.14) L = ri(2, 4);
+  else if (r < 0.72) L = ri(4, 7);
+  else L = ri(7, 12);
+  var narrow = (d > 260 && L >= 6 && rng() < 0.26);
+  var hw = narrow ? HW_NARROW : HW_ROAD;
+
+  /* 길이를 줄여 가며 겹치지 않는 경로를 찾는다 */
+  var placed = false, tries = 0;
+  while (!placed && tries < 5) {
+    var v = dirVec(T.dir), cx = T.gx, cz = T.gz, cells = [], k;
+    for (k = 0; k < L; k++) { cx += v[0]; cz += v[1]; cells.push([cx, cz]); }
+    var nd = (T.dir + 1) % 4, nv = dirVec(nd);
+    cx += nv[0]; cz += nv[1]; cells.push([cx, cz]);
+    cx += nv[0]; cz += nv[1]; cells.push([cx, cz]);
+    /* 후보 칸과, 바로 앞 경로 칸(현재·직전)은 인접 판정에서 제외 */
+    var allow = {};
+    for (k = 0; k < cells.length; k++) allow[cells[k][0] + ',' + cells[k][1]] = 1;
+    allow[T.gx + ',' + T.gz] = 1;
+    allow[(T.gx - v[0]) + ',' + (T.gz - v[1])] = 1;
+    var ok = true;
+    for (k = 0; k < cells.length && ok; k++) ok = cellOk(cells[k][0], cells[k][1], allow);
+    if (ok) placed = true; else { L = Math.max(2, L - 2); tries++; }
+  }
+  if (!placed) L = 2;
+
+  var startIdx = T.pts.length;
+  (T.Llog = T.Llog || []).push(L);
+  for (var j = 0; j < L; j++) tStep(hw, narrow ? 'narrow' : 'road');
+
+  /* 코인 배치 */
+  for (var c = startIdx; c < T.pts.length - 1; c += 2) {
+    if (rng() < 0.62) {
+      var gold = (T.coins.length >= T.coinGoldAt);
+      if (gold) T.coinGoldAt = T.coins.length + ri(9, 17);
+      var pt = T.pts[c], nr = T.nor[c] || { x: 1, z: 0 };
+      var off = (rng() * 2 - 1) * (hw * 0.55);
+      T.coins.push({ x: pt.x + nr.x * off, z: pt.z + nr.z * off, cum: T.cum[c], gold: gold ? 1 : 0, got: 0, spin: rng() * 6.28 });
+    }
+  }
+  /* 점프대 · 부스터 패드 */
+  T.sinceRam = (T.sinceRam || 0) + 1; T.sinceBoost = (T.sinceBoost || 0) + 1;
+  if (L >= 9 && (rng() < 0.6 || T.sinceRam >= 6)) {
+    T.sinceRam = 0;
+    var ri2 = startIdx + 1, rp = T.pts[ri2], rn = T.nor[ri2] || { x: 1, z: 0 };
+    T.rams.push({ x: rp.x, z: rp.z, cum: T.cum[ri2], nx: rn.x, nz: rn.z, tx: rn.tx, tz: rn.tz, used: 0 });
+  }
+  if (L >= 5 && (rng() < 0.40 || T.sinceBoost >= 5)) {
+    T.sinceBoost = 0;
+    var bi = startIdx + Math.floor(L * 0.6), bp = T.pts[bi], bn = T.nor[bi] || { x: 1, z: 0 };
+    T.boosts.push({ x: bp.x, z: bp.z, cum: T.cum[bi], nx: bn.x, nz: bn.z, tx: bn.tx, tz: bn.tz, got: 0 });
+  }
+  tCorner();
+}
+
+function tEnsure(ahead) {
+  var guard = 0;
+  while (T.total < ahead && guard++ < 400) tPattern();
+}
+
+/* 경로 위 최근접점: 거리 + 투영 좌표 */
+function nearestOnTrack(x, z, hint) {
+  var i0 = Math.max(0, hint - 3), i1 = Math.min(T.pts.length - 2, hint + 9);
+  var best = { d: 1e9, i: Math.min(hint, T.pts.length - 2), t: 0, px: 0, pz: 0, cum: 0, hw: HW_ROAD, nx: 1, nz: 0, tx: 0, tz: -1 };
+  for (var i = i0; i <= i1; i++) {
+    var a = T.pts[i], b = T.pts[i + 1];
+    var bx = b.x - a.x, bz = b.z - a.z, len2 = bx * bx + bz * bz;
+    if (len2 < 1e-9) continue;
+    var len = Math.sqrt(len2);
+    var t = clamp(((x - a.x) * bx + (z - a.z) * bz) / len2, 0, 1);
+    var px = a.x + bx * t, pz = a.z + bz * t;
+    var dx = x - px, dz = z - pz, dd = dx * dx + dz * dz;
+    if (dd < best.d) {
+      best.d = dd; best.i = i; best.t = t; best.px = px; best.pz = pz;
+      best.hw = T.hw[i] + (T.hw[i + 1] - T.hw[i]) * t + (T.corner[i] ? 0.13 : 0);
+      best.cum = T.cum[i] + len * t;
+      best.nx = -bz / len; best.nz = bx / len;
+      best.tx = bx / len; best.tz = bz / len;
+    }
+  }
+  best.d = Math.sqrt(best.d);
+  return best;
+}
+
+/* ══════════ 캔버스 · 카메라 ══════════ */
+var cv = $('stage'), ctx = cv.getContext('2d');
+var W = 0, H = 0, DPR = 1, S = 84, TILT = 0.62;
+var cam = { x: 0, z: 3.2, a: -Math.PI / 2, ca: 0, sa: -1 };
+var skyGrad = null;
+
+function resize() {
+  W = Math.max(320, window.innerWidth || 390);
+  H = Math.max(320, window.innerHeight || 844);
+  DPR = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  S = Math.max(46, Math.min(W / 4.4, H / 6.4, 132));
+  cam.S = S;
+  try {
+    skyGrad = ctx.createLinearGradient(0, 0, 0, H);
+    skyGrad.addColorStop(0, '#04070f');
+    skyGrad.addColorStop(0.42, '#070e1d');
+    skyGrad.addColorStop(0.72, '#081426');
+    skyGrad.addColorStop(1, '#04070f');
+  } catch (e) { skyGrad = '#05080f'; }
+}
+
+function proj(px, pz, py) {
+  var dx = px - cam.x, dz = pz - cam.z;
+  var fx = dx * cam.ca + dz * cam.sa;
+  var rx = -dx * cam.sa + dz * cam.ca;
+  return { x: W * 0.5 + rx * S, y: H * 0.80 - fx * S * TILT - (py || 0) * S * 0.66 };
+}
+
+/* ══════════ 게임 상태 ══════════ */
+var G = {
+  mode: 'title', dist: 0, bonus: 0, score: 0, coinRun: 0, corners: 0, topSpeed: 0,
+  shake: 0, flash: 0, hintT: 0, bannerT: 0, combo: 0, comboT: 0, tilt: 0
+};
+var car = {
+  x: 0, z: 0, y: 0, ang: -Math.PI / 2, v: 0, prog: 0, seg: 0, off: 0, on: true,
+  turning: false, turnFrom: 0, turnTo: 0, turnT: 0, settled: true, holdDelay: 0,
+  air: false, vy: 0, invuln: 0, boost: 0, coyote: 0, dbl: 0, magnet: 0, sure: 0,
+  skid: 0, steer: 0, armed: true, pending: 0
+};
+var input = { hold: false };
+var parts = [], marks = [], floats = [];
+var chal = null, coinCursor = 0;
+
+var SEL = { dbl: 0, mag: 0, sure: 0 };
+var BOOSTS = [
+  { id: 'dbl', ko: '더블 점수', pr: 60, d: '이번 판 점수 ×2' },
+  { id: 'mag', ko: '코인 자석', pr: 40, d: '코인을 끌어당김' },
+  { id: 'sure', ko: '보험', pr: 80, d: '추락 1회 방지' }
+];
+
+function carTol() { return store.sel === 'gold' ? 0.06 : 0; }
+function turnDur() { return store.sel === 'drifter' ? 0.122 : 0.137; }
+function magnetR() { return (store.sel === 'hover' ? 1.15 : 0.78) + (car.magnet ? 0.75 : 0); }
+function scoreMul() { return (store.sel === 'phantom' ? 1.1 : 1) * (car.dbl ? 2 : 1); }
+
+var V0 = 8.0, VMAX = 12.9;
+function targetV() {
+  var m = G.dist;
+  return Math.min(VMAX, V0 + m / 620) * (car.boost > 0 ? 1.55 : 1) * (car.turning ? 0.76 : 1);
+}
+
+/* ══════════ 새 판 ══════════ */
+function newGame(seed) {
+  tReset(seed || ((Date.now() ^ (Math.random() * 1e9)) >>> 0));
+  var p = T.pts[0];
+  car.x = p.x; car.z = p.z; car.y = 0; car.ang = -Math.PI / 2; car.v = 0; car.prog = 0; car.seg = 0;
+  car.off = 0; car.on = true; car.turning = false; car.turnT = 0; car.settled = true; car.holdDelay = 0;
+  car.air = false; car.vy = 0; car.invuln = 0.4; car.boost = 0; car.coyote = 0; car.skid = 0;
+  car.armed = true; car.pending = 0; car.holdDelay = 0;
+  cam.x = car.x - Math.cos(car.ang) * 1.8; cam.z = car.z - Math.sin(car.ang) * 1.8; cam.a = car.ang;
+  cam.ca = Math.cos(cam.a); cam.sa = Math.sin(cam.a);
+  G.dist = 0; G.bonus = 0; G.score = 0; G.coinRun = 0; G.corners = 0; G.topSpeed = 0;
+  G.shake = 0; G.flash = 0; G.combo = 0; G.comboT = 0; G.bannerT = 0; G.hintT = 5.2;
+  parts.length = 0; marks.length = 0; floats.length = 0;
+  coinCursor = 0; input.hold = false;
+  readChal();
+  paintChips();
+}
+
+/* ══════════ 입력 ══════════ */
+function isUI(el) {
+  while (el && el.nodeType === 1) {
+    var t = el.tagName;
+    if (t === 'BUTTON' || t === 'A' || t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return true;
+    if (el.isContentEditable) return true;
+    if (el.id === 'arcade-rank-host' || el.shadowRoot) return true;
+    el = el.parentNode;
+  }
+  return false;
+}
+function pressStart() {
+  AU.boot();
+  if (G.mode !== 'play') return;
+  input.hold = true;
+  input.touch = true;
+}
+function pressEnd() { input.hold = false; }
+
+function bindInput() {
+  document.addEventListener('pointerdown', function (e) {
+    AU.boot();
+    if (G.mode !== 'play' || isUI(e.target)) return;
+    if (e.cancelable) e.preventDefault();
+    pressStart();
+  }, { passive: false });
+  document.addEventListener('pointerup', function (e) {
+    if (isUI(e.target)) { pressEnd(); return; }
+    if (e.cancelable && G.mode === 'play') e.preventDefault();
+    pressEnd();
+  }, { passive: false });
+  document.addEventListener('pointercancel', function () { pressEnd(); }, { passive: true });
+  document.addEventListener('touchstart', function (e) {
+    AU.boot();
+    if (G.mode !== 'play' || isUI(e.target)) return;
+    if (e.cancelable) e.preventDefault();
+    pressStart();
+  }, { passive: false });
+  document.addEventListener('touchend', function (e) {
+    if (e.cancelable && G.mode === 'play' && !isUI(e.target)) e.preventDefault();
+    pressEnd();
+  }, { passive: false });
+  document.addEventListener('touchmove', function (e) {
+    if (G.mode === 'play' && !isUI(e.target) && e.cancelable) e.preventDefault();
+  }, { passive: false });
+
+  window.addEventListener('keydown', function (e) {
+    var k = e.key;
+    if (k === ' ' || k === 'Spacebar' || k === 'ArrowUp' || k === 'ArrowRight' || k === 'w' || k === 'W' || k === 'Enter') {
+      if (G.mode === 'play') { if (e.cancelable) e.preventDefault(); input.hold = true; AU.boot(); }
+    } else if (k === 'p' || k === 'P' || k === 'Escape') {
+      if (G.mode === 'play') { if (e.cancelable) e.preventDefault(); pauseGame(); }
+      else if (G.mode === 'pause') { if (e.cancelable) e.preventDefault(); resumeGame(); }
+    }
+  }, { passive: false });
+  window.addEventListener('keyup', function (e) {
+    var k = e.key;
+    if (k === ' ' || k === 'Spacebar' || k === 'ArrowUp' || k === 'ArrowRight' || k === 'w' || k === 'W' || k === 'Enter') input.hold = false;
+  });
+  window.addEventListener('blur', function () { input.hold = false; });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden && G.mode === 'play') pauseGame();
+  });
+}
+
+/* iOS 롱프레스 돋보기·콜아웃 차단 (결과창·입력칸·랭킹창은 예외) */
+(function guard() {
+  function inOv(el) { while (el && el.nodeType === 1) { if (el.classList && el.classList.contains('ov')) return true; el = el.parentNode; } return false; }
+  function g(name, skip) {
+    document.addEventListener(name, function (e) {
+      if (isUI(e.target)) return;
+      if (skip && inOv(e.target)) return;
+      if (e.cancelable) e.preventDefault();
+    }, { passive: false });
+  }
+  g('contextmenu'); g('selectstart'); g('gesturestart'); g('gesturechange'); g('gestureend');
+})();
+
+/* ══════════ 물리 ══════════ */
+var TURN_LEAD = 0.55, TURN_BUF = 2.7;
+/* 앞쪽 가장 가까운 코너까지 남은 타일 수 */
+function cornerAhead() {
+  var i, n = T.pts.length;
+  for (i = car.seg; i < Math.min(n, car.seg + 40); i++) {
+    if (T.corner[i] && T.cum[i] > car.prog + 0.01) return T.cum[i] - car.prog;
+  }
+  return null;
+}
+function startTurn() {
+  if (car.turning) return;
+  car.turning = true; car.settled = false; car.turnT = 0;
+  car.turnFrom = car.ang; car.turnTo = car.ang + Math.PI / 2;
+}
+function onTurnEnd() {
+  G.corners++;
+  var nr = nearestOnTrack(car.x, car.z, car.seg);
+  var offD = nr.d;
+  var limit = nr.hw + 0.06 + carTol();
+  if (offD < limit) {
+    var b = offD < limit * 0.45 ? 100 : 50;
+    addBonus(b, offD < limit * 0.45 ? '+100 PERFECT!' : '+50 DRIFT!');
+    AU.near();
+  }
+}
+function addBonus(n, txt) {
+  G.bonus += n;
+  if (txt) pushFloat(car.x, car.z, 0.4, txt, '#ffd86f');
+}
+
+function update(dt) {
+  var hold = input.hold;
+  G.t += dt;
+
+  /* ── 회전 ──
+     버튼을 누르면 '코너 앞 대기(pending)' 후 코너에서 딱 맞춰 꺾인다.
+     코너에서 멀리 떨어진 곳에서 누르면 그 자리에서 꺾여 도로를 벗어난다(= 급한 실수). */
+  if (!car.air) {
+    if (!hold) {
+      car.armed = true; car.pending = 0; car.holdDelay = 0;
+      if (!car.turning) car.settled = true;
+    } else if (car.armed && !car.turning) {
+      if (car.holdDelay > 0) { car.holdDelay -= dt; }
+      else {
+        var cd = cornerAhead();
+        if (car.pending) {
+          if (cd != null && cd <= TURN_LEAD) { car.pending = 0; car.armed = false; startTurn(); }
+        } else if (cd != null && cd <= TURN_LEAD) {
+          car.armed = false; startTurn();
+        } else if (cd != null && cd <= TURN_BUF) {
+          car.pending = 1;
+        } else if (G.t > 1.2) {
+          /* 코너에서 한참 떨어진 곳에서 누름 = 그 자리에서 꺾여 도로를 벗어난다 (출발 직후 1.2초는 관대하게) */
+          car.armed = false; startTurn();
+        }
+      }
+    }
+  }
+  if (car.turning) {
+    car.turnT += dt;
+    var T0 = turnDur(), k = clamp(car.turnT / T0, 0, 1);
+    car.ang = car.turnFrom + (car.turnTo - car.turnFrom) * smooth(k);
+    if (k >= 1) {
+      car.ang = car.turnTo; car.turning = false; car.settled = true; car.holdDelay = 0.062;
+      onTurnEnd();
+    }
+  }
+
+  /* ── 속도·이동 ── */
+  var tv = targetV();
+  car.v += (tv - car.v) * Math.min(1, dt * 2.8);
+  var spd = car.v * TILE_M;
+  if (spd > G.topSpeed) G.topSpeed = spd;
+  car.x += Math.cos(car.ang) * car.v * dt;
+  car.z += Math.sin(car.ang) * car.v * dt;
+
+  if (car.boost > 0) car.boost = Math.max(0, car.boost - dt);
+  if (car.invuln > 0) car.invuln = Math.max(0, car.invuln - dt);
+
+  /* ── 트랙 최근접 + 진행도 ── */
+  var nr = nearestOnTrack(car.x, car.z, car.seg);
+  car.seg = nr.i;
+  if (nr.cum > car.prog && nr.cum - car.prog < 2.5) car.prog = nr.cum;
+  G.dist = car.prog * TILE_M;
+  tEnsure(car.prog + 80);
+
+  var offS = (car.x - nr.px) * (nr.nx || 1) + (car.z - nr.pz) * (nr.nz || 0);
+  car.off = offS;
+  var allowed = nr.hw + 0.12 + carTol();
+
+  /* ── 점프대 ── */
+  if (!car.air) {
+    for (var i = 0; i < T.rams.length; i++) {
+      var rm = T.rams[i];
+      if (rm.used) continue;
+      if (Math.abs(rm.cum - nr.cum) < 0.55 && Math.abs(offS) < nr.hw + 0.05) {
+        rm.used = 1; car.air = true; car.vy = 4.7; car.invuln = Math.max(car.invuln, 0.35);
+        AU.jump(); G.shake = Math.min(1, G.shake + 0.25);
+        for (var q = 0; q < 8; q++) pushPart(car.x, car.z, 0.05, (Math.random() - .5) * 1.4, (Math.random() - .5) * 1.4, 1.5, '#ffd23f', 3);
+        pushFloat(car.x, car.z, 0.3, 'JUMP!', '#7dffb0');
+      }
+    }
+  }
+
+  /* ── 공중 ── */
+  if (car.air) {
+    car.y += car.vy * dt; car.vy -= 19 * dt;
+    if (car.y <= 0) {
+      car.y = 0; car.air = false;
+      var nr2 = nearestOnTrack(car.x, car.z, car.seg);
+      car.seg = nr2.i;
+      if (nr2.d > nr2.hw + 0.16 + carTol()) { fall(); return; }
+      AU.land(); G.shake = Math.min(1, G.shake + 0.3);
+      for (var w = 0; w < 10; w++) pushPart(car.x, car.z, 0.02, (Math.random() - .5) * 2.2, (Math.random() - .5) * 2.2, 1.2, '#7ceaff', 3);
+      addBonus(50, '+50 AIR!');
+    }
+  } else {
+    /* ── 코인 ── */
+    collectCoins(nr);
+
+    /* ── 부스터 패드 ── */
+    for (var b = 0; b < T.boosts.length; b++) {
+      var bp = T.boosts[b];
+      if (bp.got) continue;
+      if (Math.abs(bp.cum - nr.cum) < 0.6 && Math.abs(offS) < nr.hw) {
+        bp.got = 1; car.boost = 1.25; car.invuln = Math.max(car.invuln, 1.0);
+        AU.boost(); G.shake = Math.min(1, G.shake + 0.45); G.flash = 0.5;
+        pushFloat(car.x, car.z, 0.3, 'BOOST!', '#ffd23f');
+      }
+    }
+
+    /* ── 도로 이탈 ── */
+    if (car.invuln > 0) {
+      /* 무적/보험 중에는 자기 레일로 끌어당긴다 */
+      var lim = nr.hw + 0.06;
+      if (nr.d > lim) {
+        var kk = 1 - lim / Math.max(nr.d, 1e-4);
+        car.x += (nr.px - car.x) * kk;
+        car.z += (nr.pz - car.z) * kk;
+      }
+    } else if (nr.d > allowed) {
+      car.coyote += dt;
+      if (car.coyote > 0.11) { fall(); return; }
+    } else {
+      car.coyote = Math.max(0, car.coyote - dt * 1.6);
+      /* 약한 중앙 정렬 보조(아슬아슬한 라인을 살려 준다) */
+      if (!car.turning && Math.abs(offS) > 0.02) {
+        var pull = Math.min(0.95, 2.4 * dt);
+        car.x -= (nr.nx || 1) * offS * pull;
+        car.z -= (nr.nz || 0) * offS * pull;
+      }
+    }
+  }
+
+  /* ── 스키드 · 파티클 ── */
+  var driftAmt = 0;
+  if (car.turning) driftAmt = 1;
+  else {
+    var fa = Math.atan2(nr.tz || -1, nr.tx || 0);
+    driftAmt = Math.min(1, Math.abs(angNorm(car.ang - fa)) / 0.7);
+  }
+  car.skid = car.air ? 0 : Math.max(driftAmt, car.boost > 0 ? 0.35 : 0);
+  AU.skid(car.skid * (car.v / VMAX) * (car.on ? 0.9 : 0));
+
+  if (car.skid > 0.25 && !car.air) {
+    var side = 0.17;
+    var px = -Math.sin(car.ang), pz = Math.cos(car.ang);
+    for (var s2 = -1; s2 <= 1; s2 += 2) {
+      var wx = car.x - Math.cos(car.ang) * 0.28 + px * side * s2;
+      var wz = car.z - Math.sin(car.ang) * 0.28 + pz * side * s2;
+      if (marks.length < 120) marks.push({ x: wx, z: wz, a: car.ang, l: 0.62, m: 0.62 });
+      if (Math.random() < 0.7) pushPart(wx, wz, 0.03, -px * s2 * 0.6 + (Math.random() - .5) * .5, -pz * s2 * 0.6 + (Math.random() - .5) * .5, 0.9, car.skid > 0.7 ? '#ff9ad0' : '#7ceaff', 2.4);
+    }
+  }
+  if (car.boost > 0) {
+    for (var f2 = 0; f2 < 2; f2++)
+      pushPart(car.x - Math.cos(car.ang) * 0.4, car.z - Math.sin(car.ang) * 0.4, 0.06, -Math.cos(car.ang) * 3 + (Math.random() - .5), -Math.sin(car.ang) * 3 + (Math.random() - .5), 1.1, f2 ? '#ffd23f' : '#ff9a3d', 3.2);
+  }
+
+  /* ── 카메라 ── */
+  var look = 1.85;
+  var tx2 = car.x - Math.cos(cam.a) * look, tz2 = car.z - Math.sin(cam.a) * look;
+  cam.x += (tx2 - cam.x) * Math.min(1, dt * 9);
+  cam.z += (tz2 - cam.z) * Math.min(1, dt * 9);
+  cam.a += angNorm(car.ang - cam.a) * Math.min(1, dt * 11);
+  cam.ca = Math.cos(cam.a); cam.sa = Math.sin(cam.a);
+
+  /* ── 연출 감쇠 ── */
+  if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 2.2);
+  if (G.flash > 0) G.flash = Math.max(0, G.flash - dt * 2.4);
+  if (G.hintT > 0) { G.hintT -= dt; if (G.hintT <= 0) $('hint').classList.add('off'); }
+  if (G.comboT > 0) { G.comboT -= dt; if (G.comboT <= 0) G.combo = 0; }
+  if (G.bannerT > 0) { G.bannerT -= dt; if (G.bannerT <= 0) $('banner').classList.remove('show'); }
+  updParts(dt);
+}
+
+function collectCoins(nr) {
+  var R = magnetR(), i, c;
+  while (coinCursor < T.coins.length && T.coins[coinCursor].cum < nr.cum - 1.5) coinCursor++;
+  for (i = coinCursor; i < T.coins.length; i++) {
+    c = T.coins[i];
+    if (c.cum > nr.cum + 2.6) break;
+    if (c.got) continue;
+    var dx = c.x - car.x, dz = c.z - car.z;
+    if (dx * dx + dz * dz > R * R) continue;
+    c.got = 1;
+    var v = c.gold ? 5 : 1;
+    store.coins += v; G.coinRun += v; G.bonus += v * 2;
+    G.comboT = 1.25; G.combo++;
+    if (c.gold) { AU.gold(); pushFloat(c.x, c.z, 0.45, '+5', '#ffd86f'); G.flash = 0.3; }
+    else { AU.coin(G.combo); if (G.combo > 4 && G.combo % 5 === 0) pushFloat(c.x, c.z, 0.4, 'x' + G.combo, '#7ceaff'); }
+    for (var k = 0; k < 4; k++) pushPart(c.x, c.z, 0.12, (Math.random() - .5) * 1.6, (Math.random() - .5) * 1.6, 1.2, c.gold ? '#ffd23f' : '#7ceaff', 2.2);
+  }
+  if (coinCursor > 120) { T.coins = T.coins.slice(coinCursor - 30); coinCursor = 30; }
+}
+
+var fallT = 0;
+function fall() {
+  if (car.sure > 0) {
+    car.sure = 0;
+    var nr = nearestOnTrack(car.x, car.z, car.seg);
+    var a = Math.round(Math.atan2(nr.tz || -1, nr.tx || 0) / (Math.PI / 2)) * (Math.PI / 2);
+    car.x = nr.px; car.z = nr.pz; car.ang = a; car.v = Math.min(car.v, targetV() * 0.6);
+    car.invuln = 1.35; car.coyote = 0; car.turning = false; car.settled = true; car.air = false; car.y = 0;
+    G.shake = 0.8; G.flash = 0.7;
+    AU.land(); showBanner('보험 발동!', '한 번은 살아났습니다', 1500);
+    paintChips();
+    for (var i = 0; i < 16; i++) pushPart(car.x, car.z, 0.1, (Math.random() - .5) * 3, (Math.random() - .5) * 3, 1.4, '#7dffb0', 3);
+    return;
+  }
+  if (G.mode !== 'play') return;
+  G.mode = 'fall'; fallT = 0.62;
+  car.turning = false; car.pending = 0; input.hold = false;
+  car.vy = 0.9; car.spin = 0;
+  G.shake = 1; G.flash = 0.35;
+  AU.skid(0); AU.crash();
+  $('hint').classList.add('off');
+}
+
+function updateFall(dt) {
+  fallT -= dt;
+  car.vy -= 17 * dt;
+  car.y += car.vy * dt;
+  car.x += Math.cos(car.ang) * car.v * dt * 0.55;
+  car.z += Math.sin(car.ang) * car.v * dt * 0.55;
+  car.ang += dt * 3.4;
+  car.v = Math.max(0, car.v - dt * 6);
+  cam.a += angNorm(car.ang - cam.a) * Math.min(1, dt * 3);
+  cam.ca = Math.cos(cam.a); cam.sa = Math.sin(cam.a);
+  cam.x += (car.x - cam.x) * Math.min(1, dt * 6);
+  cam.z += (car.z - cam.z) * Math.min(1, dt * 6);
+  if (G.shake > 0) G.shake = Math.max(0, G.shake - dt * 1.6);
+  if (G.flash > 0) G.flash = Math.max(0, G.flash - dt * 2.2);
+  updParts(dt);
+  if (fallT <= 0) gameOver();
+}
+
+function gameOver() {
+  if (G.mode !== 'play' && G.mode !== 'fall') return;
+  G.mode = 'over';
+  input.hold = false;
+  AU.skid(0); AU.stopMusic(); AU.crash();
+  G.shake = 1;
+  var dist = Math.floor(G.dist);
+  var sc = Math.floor((G.dist + G.bonus) * scoreMul());
+  G.score = sc;
+  var newBest = sc > store.best;
+  if (newBest) { store.best = sc; store.bestD = Math.max(store.bestD || 0, dist); }
+  store.bestD = Math.max(store.bestD || 0, dist);
+  store.runs++;
+  saveStore();
+  paintChips();
+  $('ovTitle').textContent = newBest ? '최고 기록 갱신!' : '게임 끝';
+  $('ovScore').textContent = sc.toLocaleString('en-US');
+  $('ovBest').textContent = (store.best || 0).toLocaleString('en-US');
+  $('ovDist').textContent = dist.toLocaleString('en-US') + ' m';
+  $('ovCoin').textContent = G.coinRun;
+  $('ovCorn').textContent = G.corners;
+  $('ovSpd').textContent = Math.round(G.topSpeed * 3.6) + ' km/h';
+  $('over').hidden = false;
+  $('hint').classList.add('off');
+  renderGarage($('carStrip2'));
+  paintChips();
+  if (window.ArcadeRank && sc > 0) {
+    try {
+      ArcadeRank.show({
+        id: 'drift-boss', score: sc, delay: 950,
+        cancelIf: function () { return G.mode !== 'over'; }
+      });
+    } catch (e) { }
+  }
+}
+
+function pushPart(x, z, y, vx, vz, vy, c, size) {
+  if (parts.length > 150) return;
+  parts.push({ x: x, z: z, y: y, vx: vx, vz: vz, vy: vy, l: 0.55, m: 0.55, c: c, s: size });
+}
+function pushFloat(x, z, y, txt, c) {
+  if (floats.length > 8) return;
+  floats.push({ x: x, z: z, y: y, t: txt, c: c, l: 1.0, m: 1.0 });
+}
+function updParts(dt) {
+  var i, p;
+  for (i = parts.length - 1; i >= 0; i--) {
+    p = parts[i];
+    p.l -= dt; if (p.l <= 0) { parts.splice(i, 1); continue; }
+    p.x += p.vx * dt; p.z += p.vz * dt; p.y += p.vy * dt; p.vy -= 3.2 * dt;
+    if (p.y < 0) { p.y = 0; p.vy *= -0.35; }
+  }
+  for (i = marks.length - 1; i >= 0; i--) { marks[i].l -= dt * 0.42; if (marks[i].l <= 0) marks.splice(i, 1); }
+  for (i = floats.length - 1; i >= 0; i--) { floats[i].l -= dt; if (floats[i].l <= 0) floats.splice(i, 1); }
+}
+
+/* ══════════ 그리기 ══════════ */
+function rrect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y); ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r); ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h); ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r); ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function roadQuad(i, yo, hwScale) {
+  var a = T.pts[i], b = T.pts[i + 1];
+  var dx = b.x - a.x, dz = b.z - a.z, L = Math.hypot(dx, dz) || 1;
+  var nx = -dz / L, nz = dx / L;
+  var ha = T.hw[i] * (hwScale || 1), hb = T.hw[i + 1] * (hwScale || 1);
+  var p1 = proj(a.x + nx * ha, a.z + nz * ha, yo);
+  var p2 = proj(b.x + nx * hb, b.z + nz * hb, yo);
+  var p3 = proj(b.x - nx * hb, b.z - nz * hb, yo);
+  var p4 = proj(a.x - nx * ha, a.z - nz * ha, yo);
+  ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y); ctx.lineTo(p4.x, p4.y); ctx.closePath();
+}
+/* 코너 이음매: 두 구간 사이의 틈을 코너 사각형(마이터와 같은 크기)으로 메운다 */
+function roadCorner(i, yo, hwScale) {
+  if (i <= 0 || i >= T.pts.length - 1) return;
+  var p = T.pts[i];
+  var a = T.pts[i - 1], b = T.pts[i + 1];
+  var d1x = p.x - a.x, d1z = p.z - a.z, l1 = Math.hypot(d1x, d1z) || 1;
+  var d2x = b.x - p.x, d2z = b.z - p.z, l2 = Math.hypot(d2x, d2z) || 1;
+  var n1x = -d1z / l1, n1z = d1x / l1, n2x = -d2z / l2, n2z = d2x / l2;
+  var hw = T.hw[i] * (hwScale || 1);
+  var ax = p.x + n1x * hw, az = p.z + n1z * hw;
+  var bx = p.x - n1x * hw, bz = p.z - n1z * hw;
+  var q1 = proj(ax + n2x * hw, az + n2z * hw, yo);
+  var q2 = proj(ax - n2x * hw, az - n2z * hw, yo);
+  var q3 = proj(bx - n2x * hw, bz - n2z * hw, yo);
+  var q4 = proj(bx + n2x * hw, bz + n2z * hw, yo);
+  ctx.moveTo(q1.x, q1.y); ctx.lineTo(q2.x, q2.y); ctx.lineTo(q3.x, q3.y); ctx.lineTo(q4.x, q4.y); ctx.closePath();
+}
+
+function drawRoad() {
+  var i0 = Math.max(0, car.seg - 9), i1 = Math.min(T.pts.length - 1, car.seg + 34), i, p, n, q;
+  /* ① 슬래브(도로 두께) — 사각형과 원판을 따로 채워야 겹친 곳이 뚫리지 않는다 */
+  ctx.fillStyle = '#05070d';
+  ctx.beginPath();
+  for (i = i0; i < i1; i++) roadQuad(i, -0.18, 1);
+  ctx.fill();
+  ctx.beginPath();
+  for (i = i0; i < i1; i++) if (T.corner[i + 1]) roadCorner(i + 1, -0.18, 1);
+  ctx.fill('nonzero');
+
+  /* ② 도로 본체: 구간 사각형 + 코너 원판 */
+  ctx.fillStyle = '#1b2540';
+  ctx.beginPath();
+  for (i = i0; i < i1; i++) roadQuad(i, 0, 1);
+  ctx.fill();
+  ctx.fillStyle = '#1b2540';
+  ctx.beginPath();
+  for (i = i0; i < i1; i++) if (T.corner[i + 1]) roadCorner(i + 1, 0, 1);
+  ctx.fill();
+
+  /* ③ 좁은 구간 표시 */
+  ctx.beginPath();
+  for (i = i0; i < i1; i++) {
+    if (T.kind[i] !== 'narrow' && T.kind[i + 1] !== 'narrow') continue;
+    roadQuad(i, 0.005, 1);
+  }
+  ctx.fillStyle = 'rgba(255,77,141,.20)';
+  ctx.fill();
+
+  /* ④ 중앙 점선 */
+  ctx.beginPath();
+  for (i = i0; i < i1; i++) {
+    var c1 = T.pts[i], c2 = T.pts[i + 1];
+    var mx1 = c1.x + (c2.x - c1.x) * 0.18, mz1 = c1.z + (c2.z - c1.z) * 0.18;
+    var mx2 = c1.x + (c2.x - c1.x) * 0.62, mz2 = c1.z + (c2.z - c1.z) * 0.62;
+    var d1 = proj(mx1, mz1, 0.006), d2 = proj(mx2, mz2, 0.006);
+    ctx.moveTo(d1.x, d1.y); ctx.lineTo(d2.x, d2.y);
+  }
+  ctx.strokeStyle = 'rgba(140,200,255,.28)';
+  ctx.lineWidth = Math.max(1.5, S * 0.02);
+  ctx.stroke();
+
+  /* ⑤ 네온 양쪽 라인 (마이터 윤곽) */
+  ctx.beginPath();
+  for (i = i0; i <= i1; i++) {
+    p = T.pts[i]; n = T.nor[i];
+    q = proj(p.x + n.x * T.hw[i], p.z + n.z * T.hw[i]);
+    i === i0 ? ctx.moveTo(q.x, q.y) : ctx.lineTo(q.x, q.y);
+  }
+  for (i = i1; i >= i0; i--) {
+    p = T.pts[i]; n = T.nor[i];
+    q = proj(p.x - n.x * T.hw[i], p.z - n.z * T.hw[i]);
+    if (i === i1) ctx.moveTo(q.x, q.y); else ctx.lineTo(q.x, q.y);
+  }
+  ctx.strokeStyle = 'rgba(55,224,255,.22)';
+  ctx.lineWidth = Math.max(4.5, S * 0.08);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(150,240,255,.92)';
+  ctx.lineWidth = Math.max(1.6, S * 0.022);
+  ctx.stroke();
+
+  /* ⑥ 코너 진입 셰브론(>>) */
+  ctx.beginPath();
+  for (i = i0; i <= i1; i++) {
+    if (!T.corner[i] || i === 0) continue;
+    p = T.pts[i];
+    var pv = T.pts[i - 1];
+    var dl = Math.hypot(p.x - pv.x, p.z - pv.z) || 1;
+    var dx2 = (p.x - pv.x) / dl, dz2 = (p.z - pv.z) / dl;
+    var nx2 = -dz2, nz2 = dx2;
+    var hw3 = T.hw[i] * 0.52;
+    for (var ci = 0; ci < 2; ci++) {
+      var back = 0.30 + ci * 0.30;
+      var cx0 = p.x - dx2 * back, cz0 = p.z - dz2 * back;
+      var axx = cx0 + nx2 * hw3, azz = cz0 + nz2 * hw3;
+      var ex1 = cx0 - nx2 * hw3 * 0.55 + dx2 * 0.16, ez1 = cz0 - nz2 * hw3 * 0.55 + dz2 * 0.16;
+      var ex2 = cx0 - nx2 * hw3 * 0.55 - dx2 * 0.16, ez2 = cz0 - nz2 * hw3 * 0.55 - dz2 * 0.16;
+      var pa = proj(axx, azz, 0.008), pb = proj(ex1, ez1, 0.008), pc = proj(ex2, ez2, 0.008);
+      ctx.moveTo(pb.x, pb.y); ctx.lineTo(pa.x, pa.y); ctx.lineTo(pc.x, pc.y);
+    }
+  }
+  ctx.strokeStyle = 'rgba(255,210,63,.55)';
+  ctx.lineWidth = Math.max(2, S * 0.03);
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+
+  /* ⑦ 사이드 파일런 */
+  ctx.beginPath();
+  for (i = i0; i <= i1; i += 3) {
+    p = T.pts[i]; n = T.nor[i];
+    var nl = Math.hypot(n.x, n.z) || 1;
+    for (var sd = -1; sd <= 1; sd += 2) {
+      var bxp = p.x + (n.x / nl) * (T.hw[i] + 0.10) * sd, bzp = p.z + (n.z / nl) * (T.hw[i] + 0.10) * sd;
+      var b1 = proj(bxp, bzp, 0), t1 = proj(bxp, bzp, 0.62);
+      ctx.moveTo(b1.x, b1.y); ctx.lineTo(t1.x, t1.y);
+    }
+  }
+  ctx.strokeStyle = 'rgba(143,157,255,.5)';
+  ctx.lineWidth = Math.max(1.4, S * 0.018);
+  ctx.stroke();
+  ctx.beginPath();
+  for (i = i0; i <= i1; i += 3) {
+    p = T.pts[i]; n = T.nor[i];
+    var nl2 = Math.hypot(n.x, n.z) || 1;
+    for (var sd2 = -1; sd2 <= 1; sd2 += 2) {
+      var tp = proj(p.x + (n.x / nl2) * (T.hw[i] + 0.10) * sd2, p.z + (n.z / nl2) * (T.hw[i] + 0.10) * sd2, 0.62);
+      ctx.moveTo(tp.x + 1.8, tp.y); ctx.arc(tp.x, tp.y, 1.7, 0, 6.2832);
+    }
+  }
+  ctx.fillStyle = 'rgba(200,224,255,.85)';
+  ctx.fill();
+}
+
+var STARS = null;
+function drawStars() {
+  if (!STARS || STARS.w !== W) {
+    STARS = { w: W, h: H, list: [] };
+    for (var k = 0; k < 46; k++) STARS.list.push({ x: ((k * 97.13) % 1) * W, y: ((k * 41.7) % 1) * H * 0.62, r: 0.6 + (k % 3) * 0.5 });
+  }
+  var span = H * 0.62;
+  ctx.beginPath();
+  for (var i = 0; i < STARS.list.length; i++) {
+    var st = STARS.list[i];
+    var yy = ((st.y - cam.z * 1.5) % span + span) % span;
+    ctx.moveTo(st.x + st.r, yy); ctx.arc(st.x, yy, st.r, 0, 6.2832);
+  }
+  ctx.fillStyle = 'rgba(190,220,255,.42)';
+  ctx.fill();
+}
+
+function drawTowers() {
+  var i0 = Math.max(0, car.seg - 8), i1 = Math.min(T.pts.length - 1, car.seg + 36);
+  for (var i = i0; i <= i1; i += 5) {
+    var sd = ((i / 5) | 0) % 2 ? 1 : -1;
+    var p = T.pts[i], n = T.nor[i];
+    var h = 0.5 + ((i * 37) % 11) / 12;
+    var dd = 2.3 + ((i * 13) % 5) * 0.5;
+    var bx = p.x + n.x * dd * sd, bz = p.z + n.z * dd * sd;
+    var b = proj(bx, bz, -0.4), t = proj(bx, bz, h);
+    var al = 0.10 + ((i * 7) % 5) / 40;
+    ctx.strokeStyle = 'rgba(120,160,255,' + (al * 0.75).toFixed(2) + ')';
+    ctx.lineWidth = Math.max(2, S * 0.045);
+    ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(t.x, t.y); ctx.stroke();
+    ctx.fillStyle = 'rgba(124,234,255,' + (al * 1.7).toFixed(2) + ')';
+    ctx.fillRect(t.x - 2, t.y - 2, 4, 4);
+  }
+}
+
+function drawObjects() {
+  var i, q;
+  /* 스키드 마크 */
+  for (var lvl = 0; lvl < 2; lvl++) {
+    ctx.beginPath();
+    var drew = false;
+    for (i = 0; i < marks.length; i++) {
+      var mk = marks[i];
+      var ra = mk.l / mk.m;
+      if ((ra > 0.5) !== (lvl === 0)) continue;
+      var q1 = proj(mk.x - Math.cos(mk.a) * 0.10, mk.z - Math.sin(mk.a) * 0.10, 0.012);
+      var q2 = proj(mk.x + Math.cos(mk.a) * 0.10, mk.z + Math.sin(mk.a) * 0.10, 0.012);
+      ctx.moveTo(q1.x, q1.y); ctx.lineTo(q2.x, q2.y);
+      drew = true;
+    }
+    if (!drew) continue;
+    ctx.strokeStyle = lvl === 0 ? 'rgba(170,200,240,.30)' : 'rgba(170,200,240,.14)';
+    ctx.lineWidth = Math.max(2, S * 0.036);
+    ctx.stroke();
+  }
+  /* 코인 */
+  for (i = 0; i < T.coins.length; i++) {
+    var c = T.coins[i];
+    if (c.got) continue;
+    if (c.cum < car.prog - 6) continue;
+    if (c.cum > car.prog + 34) break;
+    q = proj(c.x, c.z, 0.28 + Math.sin(G.t * 3 + c.spin) * 0.05);
+    var rr = S * (c.gold ? 0.13 : 0.10);
+    var sw = 0.55 + Math.abs(Math.cos(G.t * 2.4 + c.spin)) * 0.45;
+    ctx.beginPath();
+    ctx.ellipse ? ctx.ellipse(q.x, q.y, rr * sw, rr, 0, 0, 6.2832) : ctx.arc(q.x, q.y, rr, 0, 6.2832);
+    ctx.fillStyle = c.gold ? '#ffd23f' : '#7ceaff';
+    ctx.fill();
+    ctx.beginPath(); ctx.arc(q.x, q.y, rr * 0.42 * sw, 0, 6.2832);
+    ctx.fillStyle = c.gold ? '#fff3c4' : '#eafcff';
+    ctx.fill();
+  }
+  /* 점프대 */
+  for (i = 0; i < T.rams.length; i++) {
+    var rm = T.rams[i];
+    if (rm.cum < car.prog - 6 || rm.cum > car.prog + 34) continue;
+    var w2 = 0.34;
+    var n1 = proj(rm.x + rm.nx * w2 - rm.tx * 0.3, rm.z + rm.nz * w2 - rm.tz * 0.3);
+    var n2 = proj(rm.x - rm.nx * w2 - rm.tx * 0.3, rm.z - rm.nz * w2 - rm.tz * 0.3);
+    var n3 = proj(rm.x - rm.nx * w2 + rm.tx * 0.28, rm.z - rm.nz * w2 + rm.tz * 0.28, 0.18);
+    var n4 = proj(rm.x + rm.nx * w2 + rm.tx * 0.28, rm.z + rm.nz * w2 + rm.tz * 0.28, 0.18);
+    ctx.beginPath(); ctx.moveTo(n1.x, n1.y); ctx.lineTo(n2.x, n2.y); ctx.lineTo(n3.x, n3.y); ctx.lineTo(n4.x, n4.y); ctx.closePath();
+    ctx.fillStyle = 'rgba(255,154,61,.75)'; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,210,63,.9)'; ctx.lineWidth = 1.6; ctx.stroke();
+  }
+  /* 부스터 패드 */
+  for (i = 0; i < T.boosts.length; i++) {
+    var bp = T.boosts[i];
+    if (bp.got || bp.cum < car.prog - 6 || bp.cum > car.prog + 34) continue;
+    var w3 = 0.30, s3 = proj(bp.x, bp.z, 0.01);
+    var g1 = proj(bp.x + bp.nx * w3 - bp.tx * 0.26, bp.z + bp.nz * w3 - bp.tz * 0.26);
+    var g2 = proj(bp.x - bp.nx * w3 - bp.tx * 0.26, bp.z - bp.nz * w3 - bp.tz * 0.26);
+    var g3 = proj(bp.x - bp.nx * w3 + bp.tx * 0.26, bp.z - bp.nz * w3 + bp.tz * 0.26);
+    var g4 = proj(bp.x + bp.nx * w3 + bp.tx * 0.26, bp.z + bp.nz * w3 + bp.tz * 0.26);
+    ctx.beginPath(); ctx.moveTo(g1.x, g1.y); ctx.lineTo(g2.x, g2.y); ctx.lineTo(g3.x, g3.y); ctx.lineTo(g4.x, g4.y); ctx.closePath();
+    ctx.fillStyle = 'rgba(255,210,63,' + (0.4 + Math.abs(Math.sin(G.t * 4)) * 0.35).toFixed(2) + ')'; ctx.fill();
+    /* 화살표 */
+    var a1 = proj(bp.x + bp.tx * 0.1, bp.z + bp.tz * 0.1, 0.02);
+    var a2 = proj(bp.x - bp.tx * 0.1 + bp.nx * 0.12, bp.z - bp.tz * 0.1 + bp.nz * 0.12, 0.02);
+    var a3 = proj(bp.x - bp.tx * 0.1 - bp.nx * 0.12, bp.z - bp.tz * 0.1 - bp.nz * 0.12, 0.02);
+    ctx.beginPath(); ctx.moveTo(a1.x, a1.y); ctx.lineTo(a2.x, a2.y); ctx.lineTo(a3.x, a3.y); ctx.closePath();
+    ctx.fillStyle = 'rgba(40,20,0,.65)'; ctx.fill();
+  }
+  /* 파티클 */
+  for (i = 0; i < parts.length; i++) {
+    var pt = parts[i];
+    q = proj(pt.x, pt.z, pt.y);
+    var al2 = Math.max(0, pt.l / pt.m);
+    ctx.fillStyle = pt.c;
+    ctx.globalAlpha = al2;
+    var sz = pt.s * (0.6 + al2 * 0.6);
+    ctx.fillRect(q.x - sz / 2, q.y - sz / 2, sz, sz);
+  }
+  ctx.globalAlpha = 1;
+  /* 떠오르는 문구 */
+  ctx.font = '900 ' + Math.max(11, Math.round(S * 0.19)) + 'px "Apple SD Gothic Neo","Noto Sans KR",system-ui,sans-serif';
+  ctx.textAlign = 'center';
+  for (i = 0; i < floats.length; i++) {
+    var fl = floats[i];
+    q = proj(fl.x, fl.z, fl.y + (1 - fl.l / fl.m) * 0.75);
+    ctx.globalAlpha = Math.min(1, fl.l / fl.m * 1.7);
+    ctx.fillStyle = fl.c;
+    ctx.fillText(fl.t, q.x, q.y);
+  }
+  ctx.globalAlpha = 1;
+  ctx.textAlign = 'left';
+}
+
+function drawCar() {
+  var gp = proj(car.x, car.z, 0);
+  var q = proj(car.x, car.z, car.y);
+  var rot = car.ang - cam.a;
+  var c = carDef(store.sel);
+  var L = S * 0.40, Wd = S * 0.21;
+
+  /* 그림자 */
+  if (car.y > 0.02) {
+    ctx.globalAlpha = Math.max(0.08, 0.34 - car.y * 0.2);
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse ? ctx.ellipse(gp.x, gp.y, Wd * 0.9, Wd * 0.5, -rot, 0, 6.2832) : ctx.arc(gp.x, gp.y, Wd * 0.7, 0, 6.2832);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  ctx.save();
+  ctx.translate(q.x, q.y);
+  ctx.rotate(rot);
+
+  /* 언더글로우 */
+  ctx.globalAlpha = 0.30 + (car.boost > 0 ? 0.3 : 0);
+  ctx.fillStyle = c.b1;
+  ctx.beginPath();
+  ctx.ellipse ? ctx.ellipse(0, L * 0.06, Wd * 1.02, L * 0.42, 0, 0, 6.2832) : ctx.arc(0, 0, Wd * 0.8, 0, 6.2832);
+  ctx.fill();
+  ctx.globalAlpha = 1;
+
+  /* 바퀴 */
+  ctx.fillStyle = '#060a12';
+  ctx.fillRect(-Wd * 1.02, -L * 0.78, Wd * 0.42, L * 0.30);
+  ctx.fillRect(Wd * 0.60, -L * 0.78, Wd * 0.42, L * 0.30);
+  ctx.fillRect(-Wd * 1.06, L * 0.44, Wd * 0.46, L * 0.34);
+  ctx.fillRect(Wd * 0.60, L * 0.44, Wd * 0.46, L * 0.34);
+
+  /* 차체 */
+  rrect(-Wd, -L, Wd * 2, L * 2, Wd * 0.52);
+  ctx.fillStyle = c.b1; ctx.fill();
+  rrect(-Wd * 0.62, -L * 0.72, Wd * 1.24, L * 1.05, Wd * 0.34);
+  ctx.fillStyle = c.b3; ctx.fill();
+  ctx.globalAlpha = 0.55; ctx.fillStyle = c.b2;
+  rrect(-Wd * 0.52, -L * 0.62, Wd * 1.04, L * 0.5, Wd * 0.2); ctx.fill();
+  ctx.globalAlpha = 1;
+
+  /* 네온 스트립 */
+  ctx.fillStyle = c.b2;
+  ctx.fillRect(-Wd * 0.98, -L * 0.15, Wd * 0.16, L * 1.1);
+  ctx.fillRect(Wd * 0.82, -L * 0.15, Wd * 0.16, L * 1.1);
+
+  /* 헤드라이트 */
+  ctx.fillStyle = '#fffdf2';
+  ctx.fillRect(-Wd * 0.72, -L * 0.98, Wd * 0.44, L * 0.14);
+  ctx.fillRect(Wd * 0.28, -L * 0.98, Wd * 0.44, L * 0.14);
+
+  /* 테일램프 */
+  ctx.fillStyle = car.boost > 0 ? '#ff9a3d' : '#ff4d6d';
+  ctx.fillRect(-Wd * 0.8, L * 0.88, Wd * 0.42, L * 0.12);
+  ctx.fillRect(Wd * 0.38, L * 0.88, Wd * 0.42, L * 0.12);
+
+  /* 부스터 화염 */
+  if (car.boost > 0) {
+    ctx.globalAlpha = 0.6 + Math.random() * 0.3;
+    ctx.fillStyle = '#ffd23f';
+    ctx.beginPath();
+    ctx.moveTo(-Wd * 0.5, L * 1.0); ctx.lineTo(0, L * (1.5 + Math.random() * 0.4)); ctx.lineTo(Wd * 0.5, L * 1.0);
+    ctx.closePath(); ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  ctx.restore();
+
+  /* 무적 표시 링 */
+  if (car.invuln > 0.15) {
+    ctx.beginPath();
+    ctx.arc(q.x, q.y, Wd * (1.3 + Math.sin(G.t * 9) * 0.14), 0, 6.2832);
+    ctx.strokeStyle = 'rgba(125,255,176,' + (0.35 + Math.sin(G.t * 12) * 0.2).toFixed(2) + ')';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+}
+
+function drawSpeedLines() {
+  var k = clamp((car.v - 8.4) / 4.5, 0, 1) + (car.boost > 0 ? 0.3 : 0);
+  if (k <= 0.03) return;
+  var cx = W * 0.5, cy = H * 0.62, i;
+  ctx.strokeStyle = 'rgba(180,230,255,' + (0.08 + k * 0.16).toFixed(2) + ')';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  for (i = 0; i < 14; i++) {
+    var a = (i / 14) * 6.2832 + G.t * 0.35;
+    var r0 = Math.max(W, H) * (0.30 + ((i * 37) % 9) / 40);
+    var r1 = r0 + Math.max(W, H) * (0.10 + k * 0.16);
+    ctx.moveTo(cx + Math.cos(a) * r0, cy + Math.sin(a) * r0);
+    ctx.lineTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+  }
+  ctx.stroke();
+}
+
+function render() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  var sh = G.shake;
+  if (sh > 0.01) {
+    var dx = (Math.random() - 0.5) * sh * 9, dy = (Math.random() - 0.5) * sh * 9;
+    ctx.setTransform(DPR, 0, 0, DPR, dx * DPR, dy * DPR);
+  }
+  ctx.fillStyle = skyGrad;
+  ctx.fillRect(0, 0, W, H);
+  drawStars();
+  drawTowers();
+  drawRoad();
+  drawObjects();
+  drawCar();
+  drawSpeedLines();
+  if (G.flash > 0.01) {
+    ctx.globalAlpha = G.flash * 0.5;
+    ctx.fillStyle = '#cfefff';
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+  }
+}
+
+/* ══════════ HUD ══════════ */
+function paintChips() {
+  $('walletN').textContent = store.coins.toLocaleString('en-US');
+  $('gCoins').textContent = '🪙 ' + store.coins.toLocaleString('en-US');
+  $('oCoins').textContent = '🪙 ' + store.coins.toLocaleString('en-US');
+  $('tBest').textContent = (store.best || 0).toLocaleString('en-US');
+  $('tPlay').textContent = store.runs;
+  $('tCoin').textContent = (store.bestCoins || 0).toLocaleString('en-US');
+  $('chipBoost').hidden = !(car.boost > 0);
+  $('chipDrift').hidden = !(G.mode === 'play' && car.turning);
+  $('chipSure').hidden = !(car.sure > 0);
+  $('chipDbl').hidden = !(car.dbl > 0);
+  if (chal && chal.score != null) {
+    $('chipChal').hidden = false;
+    $('chipChal').textContent = '⚔️ ' + Number(chal.score).toLocaleString('en-US');
+    $('chipChal').className = 'chip chal' + ((G.dist + G.bonus) * scoreMul() >= Number(chal.score) ? ' hit' : '');
+  } else $('chipChal').hidden = true;
+}
+setInterval(function () {
+  if (G.mode === 'play') {
+    $('score').textContent = Math.floor((G.dist + G.bonus) * scoreMul()).toLocaleString('en-US');
+    $('best').textContent = '최고 ' + (store.best || 0).toLocaleString('en-US') + '점';
+    $('chipSpd').textContent = Math.round(car.v * TILE_M * 3.6) + ' km/h';
+    $('chipDrift').hidden = !car.turning;
+    $('chipBoost').hidden = !(car.boost > 0);
+  }
+}, 120);
+
+function showBanner(t, sub, ms) {
+  var b = $('banner');
+  $('bannerT').innerHTML = t + (sub ? '<small>' + sub + '</small>' : '');
+  b.classList.add('show');
+  G.bannerT = (ms || 1100) / 1000;
+}
+var toastT = 0;
+function toast(t) {
+  var el = $('toast');
+  el.textContent = t; el.classList.add('show');
+  clearTimeout(toastT);
+  toastT = setTimeout(function () { el.classList.remove('show'); }, 1700);
+}
+
+/* ══════════ 차고 · 부스터 UI ══════════ */
+function carSVG(c) {
+  return '<svg viewBox="0 0 104 40" aria-hidden="true">'
+    + '<rect x="18" y="15" width="68" height="12" rx="6" fill="' + c.b1 + '" opacity=".22"/>'
+    + '<rect x="22" y="16" width="60" height="10" rx="5" fill="' + c.b1 + '"/>'
+    + '<rect x="34" y="17" width="17" height="8" rx="2.4" fill="' + c.b3 + '" opacity=".9"/>'
+    + '<rect x="55" y="17.5" width="11" height="7" rx="2" fill="' + c.b2 + '" opacity=".75"/>'
+    + '<rect x="14" y="17" width="8" height="9" rx="2.4" fill="#0a1220"/>'
+    + '<rect x="82" y="17" width="8" height="9" rx="2.4" fill="#0a1220"/>'
+    + '<rect x="24" y="14.6" width="4" height="2.2" rx="1" fill="' + c.b2 + '"/>'
+    + '<rect x="24" y="24.6" width="4" height="2.2" rx="1" fill="' + c.b2 + '"/>'
+    + '</svg>';
+}
+function renderGarage(box) {
+  if (!box) return;
+  var html = '';
+  for (var i = 0; i < CARS.length; i++) {
+    var c = CARS[i], owned = !!store.cars[c.id], sel = store.sel === c.id;
+    html += '<div class="car' + (sel ? ' sel' : '') + (owned ? '' : ' locked') + '" data-car="' + c.id + '">'
+      + carSVG(c) + '<div class="nm">' + c.ko + '</div><div class="pk">' + c.perk + '</div>'
+      + (owned ? (sel ? '<span class="tick">✓</span>' : '') : '<span class="pr">🪙' + c.pr + '</span>')
+      + '</div>';
+  }
+  box.innerHTML = html;
+  var cards = box.querySelectorAll('.car');
+  for (var j = 0; j < cards.length; j++) {
+    cards[j].addEventListener('click', function (ev) {
+      var id = this.getAttribute('data-car');
+      pickCar(id);
+      ev.stopPropagation();
+    });
+  }
+}
+function pickCar(id) {
+  var c = carDef(id);
+  if (store.cars[id]) {
+    if (store.sel === id) { AU.ui(); return; }
+    store.sel = id; saveStore(); AU.ui();
+    toast(c.ko + ' 선택');
+  } else {
+    if (store.coins < c.pr) { toast('코인이 ' + (c.pr - store.coins).toLocaleString('en-US') + '개 부족해요'); return; }
+    store.coins -= c.pr; store.cars[id] = 1; store.sel = id; saveStore();
+    AU.buy();
+    if (window.ArcadeRank) { }
+    toast(c.ko + ' 해금! 🎉');
+  }
+  renderGarage($('carStrip')); renderGarage($('carStrip2'));
+  paintChips();
+}
+function renderBoosts() {
+  var box = $('boostRow'), html = '';
+  for (var i = 0; i < BOOSTS.length; i++) {
+    var b = BOOSTS[i], on = !!SEL[b.id], afford = store.coins >= b.pr;
+    html += '<div class="bst' + (on ? ' on' : '') + '" data-bst="' + b.id + '"' + ((!afford && !on) ? ' disabled' : '') + '>'
+      + '<div class="t"><span>' + b.ko + '</span><i>🪙' + b.pr + '</i></div>'
+      + '<div class="d">' + b.d + '</div></div>';
+  }
+  box.innerHTML = html;
+  var items = box.querySelectorAll('.bst');
+  for (var j = 0; j < items.length; j++) {
+    items[j].addEventListener('click', function (ev) {
+      var id = this.getAttribute('data-bst'), def = null;
+      for (var k = 0; k < BOOSTS.length; k++) if (BOOSTS[k].id === id) def = BOOSTS[k];
+      if (!def) return;
+      if (!SEL[id] && store.coins < def.pr) { toast('코인이 부족해요'); return; }
+      SEL[id] = SEL[id] ? 0 : 1;
+      AU.ui(); renderBoosts();
+      ev.stopPropagation();
+    });
+  }
+}
+
+/* ══════════ 게임 흐름 ══════════ */
+function showOnly(id) {
+  $('title').hidden = id !== 'title';
+  $('pause').hidden = id !== 'pause';
+  $('over').hidden = id !== 'over';
+}
+function startGame() {
+  AU.boot();
+  var cost = 0, i;
+  for (i = 0; i < BOOSTS.length; i++) if (SEL[BOOSTS[i].id]) cost += BOOSTS[i].pr;
+  if (cost > store.coins) { toast('코인이 부족해요'); return; }
+  if (cost > 0) { store.coins -= cost; saveStore(); }
+  newGame();
+  car.dbl = SEL.dbl ? 1 : 0;
+  car.magnet = SEL.mag ? 1 : 0;
+  car.sure = SEL.sure ? 1 : 0;
+  SEL = { dbl: 0, mag: 0, sure: 0 };
+  showOnly('');
+  G.mode = 'play';
+  $('hint').classList.remove('off');
+  G.hintT = 5.2;
+  AU.setSfx(!!store.sfx); AU.setMusic(!!store.bgm);
+  AU.startMusic();
+  paintChips();
+  renderBoosts();
+}
+function pauseGame() {
+  if (G.mode !== 'play') return;
+  G.mode = 'pause'; input.hold = false;
+  AU.skid(0); AU.stopMusic();
+  $('pDist').textContent = Math.floor(G.dist).toLocaleString('en-US') + ' m';
+  $('pCoin').textContent = G.coinRun;
+  $('pSpd').textContent = Math.round(car.v * TILE_M * 3.6) + ' km/h';
+  showOnly('pause');
+  $('hint').classList.add('off');
+}
+function resumeGame() {
+  if (G.mode !== 'pause') return;
+  G.mode = 'play'; showOnly('');
+  $('hint').classList.remove('off'); G.hintT = 2.2;
+  AU.startMusic();
+}
+function toTitle() {
+  G.mode = 'title'; input.hold = false;
+  AU.skid(0); AU.stopMusic();
+  newGame();
+  $('tBest').textContent = (store.best || 0).toLocaleString('en-US');
+  $('tPlay').textContent = store.runs;
+  $('tCoin').textContent = (store.bestCoins || 0).toLocaleString('en-US');
+  renderGarage($('carStrip')); renderBoosts(); paintChips();
+  showOnly('title');
+  $('hint').classList.add('off');
+}
+
+function readChal() {
+  try {
+    var c = window.ArcadeChallenge && window.ArcadeChallenge.get();
+    chal = (c && (c.slug === '' || c.slug === 'drift-boss') && c.score != null) ? c : null;
+  } catch (e) { chal = null; }
+  if (chal) showBanner('⚔️ ' + (chal.by || '도전자') + '님의 도전장', '목표 ' + Number(chal.score).toLocaleString('en-US') + '점', 1900);
+}
+
+/* ══════════ 버튼 배선 ══════════ */
+function wire() {
+  $('startBtn').addEventListener('click', startGame);
+  $('againBtn').addEventListener('click', startGame);
+  $('resumeBtn').addEventListener('click', resumeGame);
+  $('restartBtn').addEventListener('click', startGame);
+  $('quitBtn').addEventListener('click', toTitle);
+  $('pauseBtn').addEventListener('click', function () { if (G.mode === 'play') pauseGame(); else if (G.mode === 'pause') resumeGame(); });
+  $('ovHome').addEventListener('click', function () {
+    if (window.ujHome) { window.ujHome(); return; }
+    try { if (window.top && window.top !== window.self) window.parent.postMessage({ arcade: 'home' }, '*'); else location.href = '../index.html'; }
+    catch (e) { location.href = '../index.html'; }
+  });
+  $('ovRank').addEventListener('click', function () {
+    if (window.ArcadeRank) { try { ArcadeRank.open({ id: 'drift-boss' }); } catch (e) { } }
+  });
+  $('bgmBtn').addEventListener('click', function () {
+    var on = !store.bgm; AU.setMusic(on); syncAudioBtns();
+    if (on) { AU.boot(); if (G.mode === 'play') AU.startMusic(); }
+    AU.ui();
+  });
+  $('mute').addEventListener('click', function () { var on = !store.sfx; AU.setSfx(on); syncAudioBtns(); AU.ui(); });
+  function syncAudioBtns() {
+    $('bgmBtn').className = store.bgm ? '' : 'off';
+    $('mute').className = store.sfx ? '' : 'off';
+    $('bgmBtn').setAttribute('aria-label', store.bgm ? '배경음악 끄기' : '배경음악 켜기');
+    $('mute').setAttribute('aria-label', store.sfx ? '효과음 끄기' : '효과음 켜기');
+  }
+  syncAudioBtns();
+  window.addEventListener('resize', function () { resize(); });
+  window.addEventListener('orientationchange', function () { setTimeout(resize, 260); });
+}
+
+/* ══════════ 루프 ══════════ */
+var lastT = 0;
+function frame(ts) {
+  window.requestAnimationFrame(frame);
+  if (!lastT) lastT = ts;
+  var dt = Math.min(0.05, Math.max(0, (ts - lastT) / 1000));
+  lastT = ts;
+  if (G.mode === 'play') update(dt);
+  else if (G.mode === 'fall') updateFall(dt);
+  else if (G.mode !== 'pause') { updParts(dt); if (G.hintT > 0) G.hintT -= dt; }
+  render();
+  AU.tick();
+}
+
+/* ══════════ 시작 ══════════ */
+resize();
+newGame();
+renderGarage($('carStrip')); renderGarage($('carStrip2'));
+renderBoosts();
+paintChips();
+wire();
+bindInput();
+showOnly('title');
+$('hint').classList.add('off');
+window.addEventListener('message', function (e) {
+  var d = e && e.data;
+  if (d && typeof d === 'object' && d.arcade === 'challenge') {
+    setTimeout(function () { readChal(); }, 60);
+  }
+});
+window.requestAnimationFrame(frame);
+
+/* 테스트·디버그용 읽기 전용 훅 */
+window.__DB = {
+  G: G, car: car, T: T, store: store, input: input,
+  start: function (seed) { startGame(); if (seed) { newGame(seed); } },
+  newGame: newGame, pause: pauseGame, resume: resumeGame,
+  near: function () { var n = nearestOnTrack(car.x, car.z, car.seg); return { d: +n.d.toFixed(3), i: n.i, t: +n.t.toFixed(2), px: n.px, pz: n.pz, cum: +n.cum.toFixed(2), hw: +n.hw.toFixed(2) }; },
+  nextCorner: function () {
+    for (var i = car.seg; i < Math.min(T.pts.length, car.seg + 46); i++) {
+      if (T.corner[i] && T.cum[i] > car.prog + 0.02) return { cum: T.cum[i], d: +(T.cum[i] - car.prog).toFixed(3), i: i };
+    }
+    return null;
+  },
+  state: function () {
+    return {
+      mode: G.mode, dist: +G.dist.toFixed(2), score: Math.floor((G.dist + G.bonus) * scoreMul()),
+      x: +car.x.toFixed(2), z: +car.z.toFixed(2), v: +car.v.toFixed(2), off: +car.off.toFixed(3),
+      seg: car.seg, turning: car.turning, air: car.air, y: +car.y.toFixed(2),
+      coins: G.coinRun, corners: G.corners, parts: parts.length, marks: marks.length,
+      trackPts: T.pts.length, total: +T.total.toFixed(1), sel: store.sel
+    };
+  }
+};
+})();
+</script>
+</body>
+</html>
