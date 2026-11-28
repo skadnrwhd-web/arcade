@@ -3,8 +3,8 @@
 Browser games made together with AI, collected in one place.
 Play them at https://skadnrwhd-web.github.io/arcade/
 
-- 28 full games (3D puzzles, a pathfinding race, shooters, a rail shooter, a survivor roguelite, a runner, Suika, Gomoku, a web-swinging swing runner, a trap platformer, a neon pinball table and more) and 3 bonus mini-games — 31 in all
-  - 22 of the 28 are in this repo (`games/<id>.html`), from Gem Match to 네온 핀볼; the other 6 (Seoul Escape, Water Ring Toss, Wobble Tower, Tower of Hanoi 3D I·II, 숫자전쟁) open in their own sites
+- 29 full games (3D puzzles, a pathfinding race, shooters, a rail shooter, a survivor roguelite, a runner, Suika, Gomoku, a web-swinging swing runner, a trap platformer, a neon pinball table, a one-tap neon drift racer and more) and 3 bonus mini-games — 32 in all
+  - 23 of the 29 are in this repo (`games/<id>.html`), from Gem Match to 네온 드리프트 보스; the other 6 (Seoul Escape, Water Ring Toss, Wobble Tower, Tower of Hanoi 3D I·II, 숫자전쟁) open in their own sites
 - Every game in `games/` has a `⌂` button in its top bar: inside the arcade player it closes the game and returns to the arcade, and when the game file is opened on its own it opens the arcade home. Gem Match·2048·글자 6칸 have sound with a mute toggle
 - A no-login message board (nickname only)
 - Share with friends on KakaoTalk
