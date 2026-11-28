@@ -177,7 +177,7 @@
       <div class="sc">
         <span class="lab">SCORE</span>
         <div id="score">0</div>
-        <span id="best">최고 0 m</span>
+        <span id="best">최고 0점</span>
       </div>
       <div class="mid">
         <div id="chips">
@@ -529,7 +529,7 @@ function tReset(seed) {
   T.total = 0; T.gx = 0; T.gz = 0; T.dir = 0; T.used = { '0,0': 1 }; T.coinGoldAt = ri(7, 14);
   T.sinceRam = 0; T.sinceBoost = 0;
   pushP(0, 0, HW_ROAD, false, 'start');
-  for (var i = 0; i < 10; i++) tStep(HW_ROAD, 'road');
+  for (var i = 0; i < 16; i++) tStep(HW_ROAD, 'road');
   tCorner();
   for (i = 0; i < 4; i++) tStep(HW_ROAD, 'road');
   tEnsure(80);
